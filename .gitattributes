@@ -1,0 +1,17 @@
+* text=auto
+
+*.vcproj text eol=crlf
+*.sln text eol=crlf
+*.bat text eol=crlf
+
+*.sh text eol=lf
+
+*.doc -text
+*.jpg -text
+*.jpeg -text
+*.png -text
+*.bmp -text
+*.obj -text
+*.pdf -text
+*.dll -text
+*.lib -text

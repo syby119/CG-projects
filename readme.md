@@ -15,7 +15,9 @@ This will help you understanding:
     + graphics pipleine etc;
 + how GPU works to display a frame on the screen;
 
-Basically, I follow the learning OpenGL tutorial and refactor the old version assignments in an object oriented way. The students should have some knowledge of modern C++. Don't be panic if you haven't learn C++ yet. You'll write no more than 20 lines of code for most of the assignments.
+Basically, I follow the [Learning OpenGL](https://learnopengl-cn.github.io/) tutorial and refactor the old version assignments in an object oriented way. The students should have some knowledge of modern C++. Don't be panic if you haven't learn C++ yet. You'll write no more than 20 lines of code for most of the assignments.
+
+You can find more materials in [Bilibili](https://space.bilibili.com/52683403/channel/seriesdetail?sid=2403889)
 
 #### How to run
 
@@ -56,7 +58,7 @@ cd ./demo/winexe
     <img src="./demo/screenshots/project1.png" width="640"/>
 </div>
 
-##### Transformation Matrix
+##### Transformation Matrices
 ```shell
 cd ./demo/winexe
 ./project2.exe

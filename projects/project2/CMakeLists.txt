@@ -10,7 +10,7 @@ include_directories(${THIRD_PARTY_LIBRARY_PATH}/glad/include)
 
 include_directories(${THIRD_PARTY_LIBRARY_PATH}/glfw/include)
 
-include_directories(${THIRD_PARTY_LIBRARY_PATH}/tiny_obj_loader)
+include_directories(${THIRD_PARTY_LIBRARY_PATH}/tinyobjloader)
 
 aux_source_directory(. PROJECT_SRC)
 
@@ -45,4 +45,4 @@ target_link_libraries(project2 glad)
 
 target_link_libraries(project2 glfw)
 
-target_link_libraries(project2 tiny_obj_loader)
+target_link_libraries(project2 tinyobjloader)

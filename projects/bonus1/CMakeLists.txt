@@ -10,7 +10,7 @@ include_directories(${THIRD_PARTY_LIBRARY_PATH}/glad/include)
 
 include_directories(${THIRD_PARTY_LIBRARY_PATH}/glfw/include)
 
-include_directories(${THIRD_PARTY_LIBRARY_PATH}/tiny_obj_loader)
+include_directories(${THIRD_PARTY_LIBRARY_PATH}/tinyobjloader)
 
 include_directories(${THIRD_PARTY_LIBRARY_PATH}/imgui)
 
@@ -62,7 +62,7 @@ target_link_libraries(bonus1 glad)
 
 target_link_libraries(bonus1 glfw)
 
-target_link_libraries(bonus1 tiny_obj_loader)
+target_link_libraries(bonus1 tinyobjloader)
 
 target_link_libraries(bonus1 imgui)
 

@@ -27,8 +27,7 @@ You can find more materials in [Bilibili](https://space.bilibili.com/52683403/ch
 
 ##### Build and Compile
 ```shell
-cd build
-cmake ..
+cmake -Bbuild .
 cmake --build . --parallel 8
 ```
 

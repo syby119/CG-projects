@@ -11,5 +11,3 @@ include_directories(${THIRD_PARTY_LIBRARY_PATH}/glad/include)
 aux_source_directory(. IMGUI_SRC)
 
 add_library(imgui ${IMGUI_SRC})
-
-set_target_properties(imgui PROPERTIES FOLDER "lib")

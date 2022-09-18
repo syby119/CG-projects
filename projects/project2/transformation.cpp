@@ -7,7 +7,7 @@
 #include "transformation.h"
 #include "tiny_obj_loader.h"
 
-const std::string modelPath = "../../media/bunny.obj";
+const std::string modelRelPath = "obj/bunny.obj";
 
 Transformation::Transformation(const Options& options): Application(options) {
 	// use tiny_obj_loader to load mesh data
@@ -17,6 +17,7 @@ Transformation::Transformation(const Options& options): Application(options) {
 
 	std::string err;
 
+	std::string modelPath = getAssetFullPath(modelRelPath);
 	std::string::size_type index = modelPath.find_last_of("/");
 	std::string mtlBaseDir = modelPath.substr(0, index + 1);
 
@@ -119,11 +120,11 @@ void Transformation::renderFrame() {
 
 	_shader->use();
 	for (std::size_t i = 0; i < _bunnies.size(); ++i) {
-		_shader->setMat4("projection", projection);
-		_shader->setMat4("view", view);
-		// model matrix transform the homogenous coodinates
-		// from model space (raw vertex data form model) to world space, depending on following parametes:
-		// TODO: calculate translation, rotation, scale matrices
+		_shader->setUniformMat4("projection", projection);
+		_shader->setUniformMat4("view", view);
+		// model matrix transform the homogenous coodinates from 
+		// model space (raw vertex data of the model) to world space, depending on following parametes:
+		// TODO: calculate the translation, rotation, scale matrices
 		// change your code here
 		// -----------------------------------------------
 		// @translation
@@ -135,7 +136,7 @@ void Transformation::renderFrame() {
 		// ------------------------------------------------
 
 		glm::mat4 model = translation * rotation * scale;
-		_shader->setMat4("model", model);
+		_shader->setUniformMat4("model", model);
 
 		_bunnies[i].draw();
 	}

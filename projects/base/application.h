@@ -12,6 +12,7 @@
 #include "frame_rate_indicator.h"
 
 struct Options {
+	std::string assetRootDir;
 	std::string windowTitle;
 	int windowWidth;
 	int windowHeight;
@@ -35,6 +36,9 @@ public:
 	void run();
 
 protected:
+	/* _assetPath */
+	std::string _assetRootDir;
+
 	/* window info */
 	GLFWwindow* _window = nullptr;
 	std::string _windowTitle;
@@ -48,11 +52,12 @@ protected:
 	FrameRateIndicator _fpsIndicator{ 64 };
 
 	/* input handler */
-	KeyboardInput _keyboardInput;
-	MouseInput _mouseInput;
+	Input _input;
 
 	/* clear color */
 	glm::vec4 _clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	std::string getAssetFullPath(const std::string& resourceRelPath) const;
 
 	void updateTime();
 
@@ -68,11 +73,11 @@ protected:
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-	static void cursorMovedCallback(GLFWwindow* window, double xPos, double yPos);
+	static void cursorPosCallback(GLFWwindow* window, double xPos, double yPos);
 
-	static void mouseClickedCallback(GLFWwindow* window, int button, int action, int mods);
+	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
 	static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
-	static void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };

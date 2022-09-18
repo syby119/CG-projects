@@ -4,11 +4,11 @@
 
 #include "shading_tutorial.h"
 
-const std::string modelPath = "../../media/bunny.obj";
+const std::string modelRelPath = "obj/bunny.obj";
 
 ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) {
 	// init model
-	_bunny.reset(new Model(modelPath));
+	_bunny.reset(new Model(getAssetFullPath(modelRelPath)));
 
 	// init materials
 	_ambientMaterial.reset(new AmbientMaterial);
@@ -32,16 +32,17 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
 	_ambientLight.reset(new AmbientLight);
 
 	_directionalLight.reset(new DirectionalLight);
-	_directionalLight->position = glm::vec3(10.0f, 10.0f, 10.0f);
-	_directionalLight->rotation = glm::angleAxis(glm::radians(45.0f), -glm::vec3(1.0f, 1.0f, 1.0f));
+	_directionalLight->intensity = 0.5f;
+	_directionalLight->transform.rotation = glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
 	_spotLight.reset(new SpotLight);
-	_spotLight->position = glm::vec3(0.0f, 0.0f, 5.0f);
-	_spotLight->rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	_spotLight->intensity = 0.5f;
+	_spotLight->transform.position = glm::vec3(0.0f, 0.0f, 5.0f);
+	_spotLight->transform.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	// init camera
 	_camera.reset(new PerspectiveCamera(glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
-	_camera->position.z = 10.0f;
+	_camera->transform.position.z = 10.0f;
 
 	// init imgui
 	IMGUI_CHECKVERSION();
@@ -240,56 +241,58 @@ void ShadingTutorial::renderFrame() {
 	case RenderMode::Ambient:
 		_ambientShader->use();
 		// 1. transfer mvp matrix to the shader
-		_ambientShader->setMat4("projection", _camera->getProjectionMatrix());
-		_ambientShader->setMat4("view", _camera->getViewMatrix());
-		_ambientShader->setMat4("model", _bunny->getModelMatrix());
+		_ambientShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+		_ambientShader->setUniformMat4("view", _camera->getViewMatrix());
+		_ambientShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
 		// 2. transfer material attributes to the shader
-		_ambientShader->setVec3("material.ka", _ambientMaterial->ka);
+		_ambientShader->setUniformVec3("material.ka", _ambientMaterial->ka);
 		// 3. transfer light attributes to the shader
-		_ambientShader->setVec3("ambientLight.color", _ambientLight->color);
-		_ambientShader->setFloat("ambientLight.intensity", _ambientLight->intensity);
+		_ambientShader->setUniformVec3("ambientLight.color", _ambientLight->color);
+		_ambientShader->setUniformFloat("ambientLight.intensity", _ambientLight->intensity);
 		break;
 	case RenderMode::Lambert:
 		_lambertShader->use();
 		// 1. transfer mvp matrix to the shader
-		_lambertShader->setMat4("projection", _camera->getProjectionMatrix());
-		_lambertShader->setMat4("view", _camera->getViewMatrix());
-		_lambertShader->setMat4("model", _bunny->getModelMatrix());
+		_lambertShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+		_lambertShader->setUniformMat4("view", _camera->getViewMatrix());
+		_lambertShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
 		// 2. transfer material attributes to the shader
-		_lambertShader->setVec3("material.kd", _lambertMaterial->kd);
+		_lambertShader->setUniformVec3("material.kd", _lambertMaterial->kd);
 		// 3. transfer light attributes to the shader
-		_lambertShader->setVec3("spotLight.position", _spotLight->position);
-		_lambertShader->setVec3("spotLight.direction", _spotLight->getFront());
-		_lambertShader->setFloat("spotLight.intensity", _spotLight->intensity);
-		_lambertShader->setVec3("spotLight.color", _spotLight->color);
-		_lambertShader->setFloat("spotLight.angle", _spotLight->angle);
-		_lambertShader->setFloat("spotLight.kc", _spotLight->kc);
-		_lambertShader->setFloat("spotLight.kl", _spotLight->kl);
-		_lambertShader->setFloat("spotLight.kq", _spotLight->kq);
-		_lambertShader->setVec3("directionalLight.direction", _directionalLight->getFront());
-		_lambertShader->setFloat("directionalLight.intensity", _directionalLight->intensity);
-		_lambertShader->setVec3("directionalLight.color", _directionalLight->color);
+		_lambertShader->setUniformVec3("spotLight.position", _spotLight->transform.position);
+		_lambertShader->setUniformVec3("spotLight.direction", _spotLight->transform.getFront());
+		_lambertShader->setUniformFloat("spotLight.intensity", _spotLight->intensity);
+		_lambertShader->setUniformVec3("spotLight.color", _spotLight->color);
+		_lambertShader->setUniformFloat("spotLight.angle", _spotLight->angle);
+		_lambertShader->setUniformFloat("spotLight.kc", _spotLight->kc);
+		_lambertShader->setUniformFloat("spotLight.kl", _spotLight->kl);
+		_lambertShader->setUniformFloat("spotLight.kq", _spotLight->kq);
+		_lambertShader->setUniformVec3("directionalLight.direction", _directionalLight->transform.getFront());
+		_lambertShader->setUniformFloat("directionalLight.intensity", _directionalLight->intensity);
+		_lambertShader->setUniformVec3("directionalLight.color", _directionalLight->color);
 		break;
 	case RenderMode::Phong:
 		_phongShader->use();
-		// 1. transfer mvp matrix to the shader
-		_phongShader->setMat4("projection", _camera->getProjectionMatrix());
-		_phongShader->setMat4("view", _camera->getViewMatrix());
-		_phongShader->setMat4("model", _bunny->getModelMatrix());
+		// 1. transfer the mvp matrices to the shader
+		_phongShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+		_phongShader->setUniformMat4("view", _camera->getViewMatrix());
+		_phongShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
 		
-		// 2. TODO: transfer view position to the shader
+		// 2. TODO: transfer the camera position to the shader
 		// write your code here
 		// ----------------------------------------------------------------
 		// _phongShader->set...
 		// ----------------------------------------------------------------
 
-		// 3. TODO: transfer material attributes to the shader
+		
+		// 3. TODO: transfer the material attributes to the shader
 		// write your code here
 		// -----------------------------------------------------------
 		// _phongShader->set...
 		// -----------------------------------------------------------
 
-		// 4. TODO: transfer light attributes to the shader
+
+		// 4. TODO: transfer the light attributes to the shader
 		// write your code here
 		// -----------------------------------------------------------
 		// _phongShader->set...
@@ -333,19 +336,19 @@ void ShadingTutorial::renderFrame() {
 
 		ImGui::Text("ambient light");
 		ImGui::Separator();
-		ImGui::SliderFloat("intensity##1", &_ambientLight->intensity, 0.0f, 2.0f);
+		ImGui::SliderFloat("intensity##1", &_ambientLight->intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("color##1", (float*)&_ambientLight->color);
 		ImGui::NewLine();
 
 		ImGui::Text("directional light");
 		ImGui::Separator();
-		ImGui::SliderFloat("intensity##2", &_directionalLight->intensity, 0.0f, 1.5f);
+		ImGui::SliderFloat("intensity##2", &_directionalLight->intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("color##2", (float*)&_directionalLight->color);
 		ImGui::NewLine();
 
 		ImGui::Text("spot light");
 		ImGui::Separator();
-		ImGui::SliderFloat("intensity##3", &_spotLight->intensity, 0.0f, 1.5f);
+		ImGui::SliderFloat("intensity##3", &_spotLight->intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("color##3", (float*)&_spotLight->color);
 		ImGui::SliderFloat("angle##3", (float*)&_spotLight->angle, 0.0f, glm::radians(180.0f), "%f rad");
 		ImGui::NewLine();

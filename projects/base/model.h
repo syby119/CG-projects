@@ -5,11 +5,11 @@
 
 #include <glad/glad.h>
 
-#include "vertex.h"
-#include "object3d.h"
 #include "bounding_box.h"
+#include "transform.h"
+#include "vertex.h"
 
-class Model : public Object3D {
+class Model {
 public:
     Model(const std::string& filepath);
 
@@ -32,6 +32,9 @@ public:
     virtual void draw() const;
 
     virtual void drawBoundingBox() const;
+
+public:
+    Transform transform;
 
 protected:
     // vertices of the table represented in model's own coordinate

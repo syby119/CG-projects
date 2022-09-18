@@ -4,28 +4,30 @@
 
 #include "texture_mapping.h"
 
-const std::string modelPath = "../../media/sphere.obj";
+const std::string modelRelPath = "obj/sphere.obj";
 
-const std::string earthTexturePath = "../../media/earthmap.jpg";
-const std::string planetTexturePath = "../../media/planet_Quom1200.png";
+const std::string earthTextureRelPath = "texture/miscellaneous/earthmap.jpg";
+const std::string planetTextureRelPath = "texture/miscellaneous/planet_Quom1200.png";
 
-const std::vector<std::string> skyboxTexturePaths = {
-	"../../media/starfield/Right_Tex.jpg",
-	"../../media/starfield/Left_Tex.jpg",
-	"../../media/starfield/Up_Tex.jpg",
-	"../../media/starfield/Down_Tex.jpg",
-	"../../media/starfield/Front_Tex.jpg",
-	"../../media/starfield/Back_Tex.jpg"
+const std::vector<std::string> skyboxTextureRelPaths = {
+	"texture/skybox/Right_Tex.jpg",
+	"texture/skybox/Left_Tex.jpg",
+	"texture/skybox/Up_Tex.jpg",
+	"texture/skybox/Down_Tex.jpg",
+	"texture/skybox/Front_Tex.jpg",
+	"texture/skybox/Back_Tex.jpg"
 };
 
 TextureMapping::TextureMapping(const Options& options): Application(options) {
 	// init model
-	_sphere.reset(new Model(modelPath));
-	_sphere->scale = glm::vec3(3.0f, 3.0f, 3.0f);
+	_sphere.reset(new Model(getAssetFullPath(modelRelPath)));
+	_sphere->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 
 	// init textures
-	std::shared_ptr<Texture2D> earthTexture = std::make_shared<Texture2D>(earthTexturePath);
-	std::shared_ptr<Texture2D> planetTexture = std::make_shared<Texture2D>(planetTexturePath);
+	std::shared_ptr<Texture2D> earthTexture = 
+		std::make_shared<Texture2D>(getAssetFullPath(earthTextureRelPath));
+	std::shared_ptr<Texture2D> planetTexture = 
+		std::make_shared<Texture2D>(getAssetFullPath(planetTextureRelPath));
 
 	// init materials
 	_simpleMaterial.reset(new SimpleMaterial);
@@ -44,17 +46,21 @@ TextureMapping::TextureMapping(const Options& options): Application(options) {
 	_checkerMaterial->colors[1] = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	// init skybox
-	_skybox.reset(new SkyBox(skyboxTexturePaths));
+	std::vector<std::string> skyboxTextureFullPaths;
+	for (size_t i = 0; i < skyboxTextureRelPaths.size(); ++i) {
+		skyboxTextureFullPaths.push_back(getAssetFullPath(skyboxTextureRelPaths[i]));
+	}
+	_skybox.reset(new SkyBox(skyboxTextureFullPaths));
 
 	// init camera
 	_camera.reset(new PerspectiveCamera(
 		glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
-	_camera->position.z = 10.0f;
+	_camera->transform.position.z = 10.0f;
 
 	// init light
 	_light.reset(new DirectionalLight());
-	_light->rotation = glm::angleAxis(glm::radians(45.0f), -glm::vec3(1.0f, 1.0f, 1.0f));
-
+	_light->transform.rotation = 
+		glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f)));
 
 	// init shaders
 	initSimpleShader();
@@ -127,8 +133,9 @@ void TextureMapping::initBlendShader() {
 		"}\n";
 
 	// TODO: change the fragment shader code to achieve the following goals
-	// + blend of the two textures
+	// + blend the colors of the two textures
 	// + lambert shading, i.e the color is affected by the light
+	// write your code here
 	// -----------------------------------------------------------------
 	const char* fsCode =
 		"#version 330 core\n"
@@ -178,8 +185,8 @@ void TextureMapping::initCheckerShader() {
 		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
 		"}\n";
 
-	// TODO: change the following code to achieve procedural checker texture
-	// hint: use the TexCoord to determine the color
+	// TODO: change the following code to achieve the procedural checker texture
+	// hint: use the fTexCoord to determine the color
 	// modify your code here
 	// --------------------------------------------------------------
 	const char* fsCode =
@@ -209,7 +216,7 @@ void TextureMapping::handleInput() {
 	const float angluarVelocity = 0.1f;
 	const float angle = angluarVelocity * static_cast<float>(_deltaTime);
 	const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
-	_sphere->rotation = glm::angleAxis(angle, axis) * _sphere->rotation;
+	_sphere->transform.rotation = glm::angleAxis(angle, axis) * _sphere->transform.rotation;
 }
 
 void TextureMapping::renderFrame() {
@@ -238,9 +245,9 @@ void TextureMapping::renderFrame() {
 		// 1. use the shader
 		_simpleShader->use();
 		// 2. transfer mvp matrices to gpu 
-		_simpleShader->setMat4("projection", projection);
-		_simpleShader->setMat4("view", view);
-		_simpleShader->setMat4("model", _sphere->getModelMatrix());
+		_simpleShader->setUniformMat4("projection", projection);
+		_simpleShader->setUniformMat4("view", view);
+		_simpleShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
 		// 3. enable textures and transform textures to gpu
 		glActiveTexture(GL_TEXTURE0);
 		_simpleMaterial->mapKd->bind();
@@ -249,37 +256,36 @@ void TextureMapping::renderFrame() {
 		// 1. use the shader
 		_blendShader->use();
 		// 2. transfer mvp matrices to gpu 
-		_blendShader->setMat4("projection", projection);
-		_blendShader->setMat4("view", view);
-		_blendShader->setMat4("model", _sphere->getModelMatrix());
+		_blendShader->setUniformMat4("projection", projection);
+		_blendShader->setUniformMat4("view", view);
+		_blendShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
 		// 3. transfer light attributes to gpu
-		_blendShader->setVec3("light.direction", _light->getFront());
-		_blendShader->setVec3("light.color", _light->color);
-		_blendShader->setFloat("light.intensity", _light->intensity);
+		_blendShader->setUniformVec3("light.direction", _light->transform.getFront());
+		_blendShader->setUniformVec3("light.color", _light->color);
+		_blendShader->setUniformFloat("light.intensity", _light->intensity);
 		// 4. transfer materials to gpu
 		// 4.1 transfer simple material attributes
-		_blendShader->setVec3("material.kds[0]", _blendMaterial->kds[0]);
-		_blendShader->setVec3("material.kds[1]", _blendMaterial->kds[1]);
+		_blendShader->setUniformVec3("material.kds[0]", _blendMaterial->kds[0]);
+		_blendShader->setUniformVec3("material.kds[1]", _blendMaterial->kds[1]);
 		// 4.2 transfer blend cofficient to gpu
-		_blendShader->setFloat("material.blend", _blendMaterial->blend);
+		_blendShader->setUniformFloat("material.blend", _blendMaterial->blend);
 		// 4.3 TODO: enable textures and transform textures to gpu
 		// write your code here
 		//----------------------------------------------------------------
 		// ...
 		//----------------------------------------------------------------
-
 		break;
 	case RenderMode::Checker:
 		// 1. use the shader
 		_checkerShader->use();
 		// 2. transfer mvp matrices to gpu 
-		_checkerShader->setMat4("projection", projection);
-		_checkerShader->setMat4("view", view);
-		_checkerShader->setMat4("model", _sphere->getModelMatrix());
+		_checkerShader->setUniformMat4("projection", projection);
+		_checkerShader->setUniformMat4("view", view);
+		_checkerShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
 		// 3. transfer material attributes to gpu
-		_checkerShader->setInt("material.repeat", _checkerMaterial->repeat);
-		_checkerShader->setVec3("material.colors[0]", _checkerMaterial->colors[0]);
-		_checkerShader->setVec3("material.colors[1]", _checkerMaterial->colors[1]);
+		_checkerShader->setUniformInt("material.repeat", _checkerMaterial->repeat);
+		_checkerShader->setUniformVec3("material.colors[0]", _checkerMaterial->colors[0]);
+		_checkerShader->setUniformVec3("material.colors[1]", _checkerMaterial->colors[1]);
 		break;
 	}
 

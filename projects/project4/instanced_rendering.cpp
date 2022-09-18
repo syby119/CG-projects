@@ -4,8 +4,8 @@
 
 #include "instanced_rendering.h"
 
-const std::string planetPath = "../../media/sphere.obj";
-const std::string asternoidPath = "../../media/rock.obj";
+const std::string planetRelPath = "obj/sphere.obj";
+const std::string asternoidRelPath = "obj/rock.obj";
 
 InstancedRendering::InstancedRendering(const Options& options): Application(options) {
 	/* init imgui */
@@ -16,10 +16,10 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 	ImGui_ImplOpenGL3_Init();
 
 	/* import models */
-	_planet.reset(new Model(planetPath));
-	_planet->scale = glm::vec3(10.0f, 10.0f, 10.0f);
+	_planet.reset(new Model(getAssetFullPath(planetRelPath)));
+	_planet->transform.scale = glm::vec3(10.0f, 10.0f, 10.0f);
 
-	_asternoid.reset(new Model(asternoidPath));
+	_asternoid.reset(new Model(getAssetFullPath(asternoidRelPath)));
 
 	// init camera
 	_camera.reset(new PerspectiveCamera(
@@ -27,8 +27,8 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 		1.0f * _windowWidth / _windowHeight,
 		0.1f, 10000.0f));
 
-	_camera->position = glm::vec3(0.0f, 25.0f, 100.0f);
-	_camera->rotation = glm::angleAxis(-glm::radians(20.0f), _camera->getRight());
+	_camera->transform.position = glm::vec3(0.0f, 25.0f, 100.0f);
+	_camera->transform.rotation = glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
 
 	/* shader issues */
 	initShaders();
@@ -58,7 +58,7 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 		_modelMatrices.push_back(model);
 	}
 
-	// TODO: configure instanced buffer and transfer data to GPU
+	// TODO: configure the instanced buffer and transfer the matrix data to GPU
 	// write your code here
 	// ---------------------------------------------------------
 	// glXXX(_instanceBuffer); ... 
@@ -133,25 +133,25 @@ void InstancedRendering::initShaders() {
 }
 
 void InstancedRendering::handleInput() {
-	if (_keyboardInput.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
 		glfwSetWindowShouldClose(_window, true);
 		return;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
-		_camera->position += _camera->getFront() * _cameraMoveSpeed * _deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
+		_camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
-		_camera->position -= _camera->getRight() * _cameraMoveSpeed * _deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
+		_camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
-		_camera->position -= _camera->getFront() * _cameraMoveSpeed * _deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
+		_camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
-		_camera->position += _camera->getRight() * _cameraMoveSpeed * _deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
+		_camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
 	}
 }
 
@@ -172,34 +172,33 @@ void InstancedRendering::renderFrame() {
 
 	// draw planet
 	_planetShader->use();
-	_planetShader->setMat4("model", _planet->getModelMatrix());
-	_planetShader->setMat4("view", view);
-	_planetShader->setMat4("projection", projection);
+	_planetShader->setUniformMat4("model", _planet->transform.getLocalMatrix());
+	_planetShader->setUniformMat4("view", view);
+	_planetShader->setUniformMat4("projection", projection);
 	_planet->draw();
 
 	// draw asternoids
 	switch (_renderMode) {
 	case RenderMode::Ordinary:
 		_asternoidShader->use();
-		_asternoidShader->setMat4("view", view);
-		_asternoidShader->setMat4("projection", projection);
+		_asternoidShader->setUniformMat4("view", view);
+		_asternoidShader->setUniformMat4("projection", projection);
 		for (int i = 0; i < _amount; ++i) {
-			_asternoidShader->setMat4("model", _modelMatrices[i]);
+			_asternoidShader->setUniformMat4("model", _modelMatrices[i]);
 			_asternoid->draw();
 		}
 		break;
 	case RenderMode::Instanced:
 		_asternoidInstancedShader->use();
-		_asternoidInstancedShader->setMat4("view", view);
-		_asternoidInstancedShader->setMat4("projection", projection);
+		_asternoidInstancedShader->setUniformMat4("view", view);
+		_asternoidInstancedShader->setUniformMat4("projection", projection);
 
-		// TODO: draw asternoid by instance
+		// TODO: draw the asternoids by the instance rendering method
 		// write your code here
 		// ---------------------------------------------------------
 		// ...
 		// glDraw...(...);
 		// ---------------------------------------------------------
-
 		break;
 	}
 

@@ -29,21 +29,33 @@ public:
 
     void use();
 
-    void setBool(const std::string& name, bool value) const;
+    int getUniformBlockSize(const std::string& name) const;
 
-    void setInt(const std::string& name, int value) const;
+    int getUniformBlockIndex(const std::string& name) const;
 
-    void setFloat(const std::string& name, float value) const;
+    int getUniformBlockVariableOffset(const std::string& name) const;
 
-    void setVec2(const std::string& name, const glm::vec2& v2) const;
+    void setUniformBool(const std::string& name, bool value) const;
 
-    void setVec3(const std::string& name, const glm::vec3& v3) const;
+    void setUniformInt(const std::string& name, int value) const;
 
-    void setVec4(const std::string& name, const glm::vec4& v4) const;
+    void setUniformUint(const std::string& name, uint32_t value) const;
 
-    void setMat3(const std::string& name, const glm::mat3& mat3) const;
+    void setUniformFloat(const std::string& name, float value) const;
 
-    void setMat4(const std::string& name, const glm::mat4& mat4) const;
+    void setUniformVec2(const std::string& name, const glm::vec2& v2) const;
+
+    void setUniformVec3(const std::string& name, const glm::vec3& v3) const;
+
+    void setUniformVec4(const std::string& name, const glm::vec4& v4) const;
+
+    void setUniformMat2(const std::string& name, const glm::mat2& mat2) const;
+
+    void setUniformMat3(const std::string& name, const glm::mat3& mat3) const;
+
+    void setUniformMat4(const std::string& name, const glm::mat4& mat4) const;
+
+    void setUniformBlockBinding(const std::string& name, uint32_t binding) const;
 
 public:
     GLuint _handle = 0;

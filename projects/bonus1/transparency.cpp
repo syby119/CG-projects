@@ -4,23 +4,22 @@
 
 #include "transparency.h"
 
-const std::string knotPath = "../../media/knot.obj";
-const std::string dragonPath = "../../media/dragon.obj";
-const std::string transparentTexturePath = "../../media/transparent.png";
+const std::string knotRelPath = "obj/knot.obj";
+const std::string transparentTextureRelPath = "texture/miscellaneous/transparent.png";
 
-Transparency::Transparency(const Options& options) : Application(options) {
+Transparency::Transparency(const Options& options): Application(options) {
 	// init models
-	_knot.reset(new Model(knotPath));
-	_knot->scale = glm::vec3(0.8f, 0.8f, 0.8f);
+	_knot.reset(new Model(getAssetFullPath(knotRelPath)));
+	_knot->transform.scale = glm::vec3(0.8f, 0.8f, 0.8f);
 
 	// init light
 	_light.reset(new DirectionalLight());
-	_light->rotation = glm::angleAxis(glm::radians(45.0f), -glm::vec3(1.0f, 1.0f, 1.0f));
+	_light->transform.rotation = glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
 	// init camera
 	_camera.reset(new PerspectiveCamera(
 		glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
-	_camera->position.z = 10.0f;
+	_camera->transform.position.z = 10.0f;
 
 	// init shaders
 	initAlphaTestingShader();
@@ -35,7 +34,7 @@ Transparency::Transparency(const Options& options) : Application(options) {
 	_knotMaterial->transparent = 0.8f;
 
 	// init sphere texture
-	_transparentTexture.reset(new Texture2D(transparentTexturePath));
+	_transparentTexture.reset(new Texture2D(getAssetFullPath(transparentTextureRelPath)));
 
 	// init fullscreen quad
 	_fullscreenQuad.reset(new FullscreenQuad);
@@ -66,7 +65,7 @@ Transparency::~Transparency() {
 }
 
 void Transparency::initAlphaTestingShader() {
-	const char* vsCode =
+	const char* vsCode = 
 		"#version 330 core\n"
 		"layout(location = 0) in vec3 aPosition;\n"
 		"layout(location = 1) in vec3 aNormal;\n"
@@ -88,11 +87,11 @@ void Transparency::initAlphaTestingShader() {
 		"} \n";
 
 
-	// TODO: modify the following code to achieve alpha testing algorithm
-	// modify the code
+	// TODO: modify the following code to achieve the alpha testing algorithm
+	// modify the code here
 	// ------------------------------------------------------------------
 	const char* fsCode =
-		"#version 330 core\n"
+	"#version 330 core\n"
 		"in vec3 fPos;\n"
 		"in vec3 fNormal;\n"
 		"in vec2 fTexCoord;\n"
@@ -115,6 +114,7 @@ void Transparency::initAlphaTestingShader() {
 		"uniform DirectionalLight directionalLight;\n"
 		"uniform sampler2D transparentTexture;\n"
 
+
 		"void main() {\n"
 		"	vec4 texColor = texture(transparentTexture, fTexCoord);\n"
 		"	vec3 normal = normalize(fNormal);\n"
@@ -124,7 +124,7 @@ void Transparency::initAlphaTestingShader() {
 		"				   directionalLight.color * directionalLight.intensity;\n"
 		"	color = vec4(ambient + diffuse, 1.0f);\n"
 		"}\n";
-	// ------------------------------------------------------------------
+	 // ------------------------------------------------------------------
 
 	_alphaTestingShader.reset(new GLSLProgram);
 	_alphaTestingShader->attachVertexShader(vsCode);
@@ -195,14 +195,14 @@ void Transparency::initDepthPeelingShaders() {
 		"layout(location = 0) in vec3 aPosition;\n"
 		"layout(location = 1) in vec3 aNormal;\n"
 		"layout(location = 2) in vec2 aTexCoord;\n"
-
+		
 		"out vec3 fPos;\n"
 		"out vec3 fNormal;\n"
-
+		
 		"uniform mat4 projection;\n"
 		"uniform mat4 view;\n"
 		"uniform mat4 model;\n"
-
+		
 		"void main() {\n"
 		"	fPos = vec3(model * vec4(aPosition, 1.0f));\n"
 		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
@@ -218,7 +218,7 @@ void Transparency::initDepthPeelingShaders() {
 		"	fTexCoords = aTexCoords;\n"
 		"	gl_Position = vec4(aPosition, 0.0f, 1.0f);\n"
 		"}\n";
-
+	
 	const char* initFsCode =
 		"#version 330 core\n"
 		"in vec3 fPos;\n"
@@ -240,9 +240,12 @@ void Transparency::initDepthPeelingShaders() {
 
 		"uniform Material material;\n"
 		"uniform DirectionalLight directionalLight;\n"
-
+		
 		"vec3 lambertShading() {\n"
 		"	vec3 normal = normalize(fNormal);\n"
+		"	if (!gl_FrontFacing) { \n"
+		"		normal = -normal;\n"
+		"	}\n"
 		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
 		"	vec3 ambient = material.ka * material.albedo ;\n"
 		"	vec3 diffuse = material.kd * max(dot(lightDir, normal), 0.0f) * \n"
@@ -292,6 +295,9 @@ void Transparency::initDepthPeelingShaders() {
 
 		"vec3 lambertShading() {\n"
 		"	vec3 normal = normalize(fNormal);\n"
+		"	if (!gl_FrontFacing) { \n"
+		"		normal = -normal;\n"
+		"	}\n"
 		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
 		"	vec3 ambient = material.ka * material.albedo ;\n"
 		"	vec3 diffuse = material.kd * max(dot(lightDir, normal), 0.0f) * \n"
@@ -319,7 +325,7 @@ void Transparency::initDepthPeelingShaders() {
 
 		"uniform WindowExtent windowExtent;\n"
 		"uniform sampler2D blendTexture;\n"
-
+		
 		"void main() {\n"
 		"	float u = gl_FragCoord.x / windowExtent.width;\n"
 		"	float v = gl_FragCoord.y / windowExtent.height;\n"
@@ -371,21 +377,21 @@ void Transparency::initDepthPeelingResources() {
 	for (int i = 0; i < 2; ++i) {
 		_fbos[i].reset(new Framebuffer);
 		_colorTextures[i].reset(
-			new DataTexture(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+			new DataTexture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 		_depthTextures[i].reset(
-			new DataTexture(GL_DEPTH_COMPONENT32F, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
+			new DataTexture2D(GL_DEPTH_COMPONENT32F, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
 
 		_fbos[i]->bind();
-		_fbos[i]->attach(*_colorTextures[i], GL_COLOR_ATTACHMENT0);
-		_fbos[i]->attach(*_depthTextures[i], GL_DEPTH_ATTACHMENT);
+		_fbos[i]->attach(*_colorTextures[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+		_fbos[i]->attach(*_depthTextures[i], GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
 		_fbos[i]->unbind();
 	}
 
-	_colorBlendTexture.reset(new DataTexture(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+	_colorBlendTexture.reset(new DataTexture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 	_colorBlendFbo.reset(new Framebuffer);
 	_colorBlendFbo->bind();
-	_colorBlendFbo->attach(*_colorBlendTexture, GL_COLOR_ATTACHMENT0);
-	_colorBlendFbo->attach(*_depthTextures[0], GL_DEPTH_ATTACHMENT);
+	_colorBlendFbo->attach(*_colorBlendTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+	_colorBlendFbo->attach(*_depthTextures[0], GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
 	_colorBlendFbo->unbind();
 }
 
@@ -393,7 +399,7 @@ void Transparency::handleInput() {
 	const float angluarVelocity = 0.1f;
 	const float angle = angluarVelocity * static_cast<float>(_deltaTime);
 	const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
-	_knot->rotation = glm::angleAxis(angle, axis) * _knot->rotation;
+	_knot->transform.rotation = glm::angleAxis(angle, axis) * _knot->transform.rotation;
 }
 
 void Transparency::renderFrame() {
@@ -423,18 +429,18 @@ void Transparency::renderFrame() {
 void Transparency::renderWithAlphaTesting() {
 	_alphaTestingShader->use();
 	// 1 set transformation matrices
-	_alphaTestingShader->setMat4("projection", _camera->getProjectionMatrix());
-	_alphaTestingShader->setMat4("view", _camera->getViewMatrix());
-	_alphaTestingShader->setMat4("model", _knot->getModelMatrix());
+	_alphaTestingShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+	_alphaTestingShader->setUniformMat4("view", _camera->getViewMatrix());
+	_alphaTestingShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
 	// 2 set light
-	_alphaTestingShader->setVec3("directionalLight.direction", _light->getFront());
-	_alphaTestingShader->setFloat("directionalLight.intensity", _light->intensity);
-	_alphaTestingShader->setVec3("directionalLight.color", _light->color);
+	_alphaTestingShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+	_alphaTestingShader->setUniformFloat("directionalLight.intensity", _light->intensity);
+	_alphaTestingShader->setUniformVec3("directionalLight.color", _light->color);
 	// 3 set material
-	_alphaTestingShader->setVec3("material.albedo", _knotMaterial->albedo);
-	_alphaTestingShader->setFloat("material.ka", _knotMaterial->ka);
-	_alphaTestingShader->setVec3("material.kd", _knotMaterial->kd);
-	_alphaTestingShader->setFloat("material.transparent", _knotMaterial->transparent);
+	_alphaTestingShader->setUniformVec3("material.albedo", _knotMaterial->albedo);
+	_alphaTestingShader->setUniformFloat("material.ka", _knotMaterial->ka);
+	_alphaTestingShader->setUniformVec3("material.kd", _knotMaterial->kd);
+	_alphaTestingShader->setUniformFloat("material.transparent", _knotMaterial->transparent);
 	// 4 set texture
 	glActiveTexture(GL_TEXTURE0);
 	_transparentTexture->bind();
@@ -446,45 +452,44 @@ void Transparency::renderWithAlphaBlending() {
 	//  render transparent objects
 	_alphaBlendingShader->use();
 	// 1 set transformation matrices
-	_alphaBlendingShader->setMat4("projection", _camera->getProjectionMatrix());
-	_alphaBlendingShader->setMat4("view", _camera->getViewMatrix());
-	_alphaBlendingShader->setMat4("model", _knot->getModelMatrix());
+	_alphaBlendingShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+	_alphaBlendingShader->setUniformMat4("view", _camera->getViewMatrix());
+	_alphaBlendingShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
 	// 2 set light
-	_alphaBlendingShader->setVec3("directionalLight.direction", _light->getFront());
-	_alphaBlendingShader->setFloat("directionalLight.intensity", _light->intensity);
-	_alphaBlendingShader->setVec3("directionalLight.color", _light->color);
+	_alphaBlendingShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+	_alphaBlendingShader->setUniformFloat("directionalLight.intensity", _light->intensity);
+	_alphaBlendingShader->setUniformVec3("directionalLight.color", _light->color);
 	// 3 set material
-	_alphaBlendingShader->setVec3("material.albedo", _knotMaterial->albedo);
-	_alphaBlendingShader->setFloat("material.ka", _knotMaterial->ka);
-	_alphaBlendingShader->setVec3("material.kd", _knotMaterial->kd);
-	_alphaBlendingShader->setFloat("material.transparent", _knotMaterial->transparent);
+	_alphaBlendingShader->setUniformVec3("material.albedo", _knotMaterial->albedo);
+	_alphaBlendingShader->setUniformFloat("material.ka", _knotMaterial->ka);
+	_alphaBlendingShader->setUniformVec3("material.kd", _knotMaterial->kd);
+	_alphaBlendingShader->setUniformFloat("material.transparent", _knotMaterial->transparent);
 
 	// TODO: use two render passes to achieve alpha blending
 	// pass 1: Write the depth info to the zbuffer, while leave the color buffer unmodified.
-	//         This pass will record the depth info of the object to avoid backward part to
+	//         This pass will record the depth info of the object to avoid backward parts to
 	//         be rendered.
 	// write your code here
 	// ------------------------------------------------------------------------
 	// ...
 	// ------------------------------------------------------------------------
-
+	
 	_knot->draw();
-
+	
 	// pass 2: Write the color buffer using the zbuffer info from pass 1 with blending, 
-	//		   while leave the depth buffer unmodified.
+	//		   while leaving the depth buffer unmodified.
 	// write your code here
 	// ------------------------------------------------------------------------
 	// ...
 	// ------------------------------------------------------------------------
 
 	_knot->draw();
-	// restore: don't forget to restore OpenGL state before pass 1, which will avoid side effects
+	// restore: don't forget to restore the OpenGL state before pass 1, which will avoid side effects
 	//          to the object rendering afterwards.
 	// write your code here
 	// ------------------------------------------------------------------------
 	// ...
 	// ------------------------------------------------------------------------
-
 }
 
 void Transparency::renderWithDepthPeeling() {
@@ -500,18 +505,18 @@ void Transparency::renderWithDepthPeeling() {
 
 	_depthPeelingInitShader->use();
 	// 1.1 set transformation matrices
-	_depthPeelingInitShader->setMat4("projection", projection);
-	_depthPeelingInitShader->setMat4("view", view);
-	_depthPeelingInitShader->setMat4("model", _knot->getModelMatrix());
+	_depthPeelingInitShader->setUniformMat4("projection", projection);
+	_depthPeelingInitShader->setUniformMat4("view", view);
+	_depthPeelingInitShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
 	// 1.2 set light
-	_depthPeelingInitShader->setVec3("directionalLight.direction", _light->getFront());
-	_depthPeelingInitShader->setFloat("directionalLight.intensity", _light->intensity);
-	_depthPeelingInitShader->setVec3("directionalLight.color", _light->color);
+	_depthPeelingInitShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+	_depthPeelingInitShader->setUniformFloat("directionalLight.intensity", _light->intensity);
+	_depthPeelingInitShader->setUniformVec3("directionalLight.color", _light->color);
 	// 1.3 set material
-	_depthPeelingInitShader->setVec3("material.albedo", _knotMaterial->albedo);
-	_depthPeelingInitShader->setFloat("material.ka", _knotMaterial->ka);
-	_depthPeelingInitShader->setVec3("material.kd", _knotMaterial->kd);
-	_depthPeelingInitShader->setFloat("material.transparent", _knotMaterial->transparent);
+	_depthPeelingInitShader->setUniformVec3("material.albedo", _knotMaterial->albedo);
+	_depthPeelingInitShader->setUniformFloat("material.ka", _knotMaterial->ka);
+	_depthPeelingInitShader->setUniformVec3("material.kd", _knotMaterial->kd);
+	_depthPeelingInitShader->setUniformFloat("material.transparent", _knotMaterial->transparent);
 
 	_knot->draw();
 
@@ -531,18 +536,19 @@ void Transparency::renderWithDepthPeeling() {
 	// }
 	// ------------------------------------------------------------------------
 
+
 	// 3. final pass: blend the peeling result with the background color
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	_depthPeelingFinalShader->use();
-	// 3.1 set window extent
-	_depthPeelingFinalShader->setInt("windowExtent.width", _windowWidth);
-	_depthPeelingFinalShader->setInt("windowExtent.height", _windowHeight);
-	// 3.2 set blend texture
+	// 3.1 set the window extent
+	_depthPeelingFinalShader->setUniformInt("windowExtent.width", _windowWidth);
+	_depthPeelingFinalShader->setUniformInt("windowExtent.height", _windowHeight);
+	// 3.2 set the blend texture
 	glActiveTexture(GL_TEXTURE0);
 	_colorBlendTexture->bind();
-	// 3.3 set background color
-	_depthPeelingFinalShader->setVec4("backgroundColor", _clearColor);
+	// 3.3 set the background color
+	_depthPeelingFinalShader->setUniformVec4("backgroundColor", _clearColor);
 
 	_fullscreenQuad->draw();
 }

@@ -1,37 +1,28 @@
 #pragma once
 
-class Light : public Object3D {
-public:
-	Light() = default;
+#include "transform.h"
 
-	~Light() = default;
-
-public:
+struct Light {
+	Transform transform;
 	float intensity = 1.0f;
 	glm::vec3 color = { 1.0f, 1.0f, 1.0f };
 };
 
-class AmbientLight : public Light {
-public:
-	AmbientLight() = default;
+struct AmbientLight : public Light {
 
-	~AmbientLight() = default;
 };
 
-class DirectionalLight : public Light{
-public:
-	DirectionalLight() = default;
+struct DirectionalLight : public Light{
 
-	~DirectionalLight() = default;
 };
 
-class SpotLight : public Light {
-public:
-	SpotLight() = default;
+struct PointLight : public Light {
+	float kc = 1.0f;
+	float kl = 0.0f;
+	float kq = 0.2f;
+};
 
-	~SpotLight() = default;
-
-public:
+struct SpotLight : public Light {
 	float angle = glm::radians(60.0f);
 	float kc = 1.0f;
 	float kl = 0.0f;

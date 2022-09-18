@@ -10,7 +10,7 @@ Star::Star(const glm::vec2& position, float rotation, float radius, float aspect
 	//     _vertices.push_back( ... );
 	// }
 	// -------------------------------------
-
+	
 	glGenVertexArrays(1, &_vao);
 	glGenBuffers(1, &_vbo);
 

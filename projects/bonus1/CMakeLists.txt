@@ -18,7 +18,7 @@ include_directories(${THIRD_PARTY_LIBRARY_PATH}/stb)
 
 aux_source_directory(. PROJECT_SRC)
 
-set(PROJECT_HDR ./fullscreen_quad.h transparency.h)
+set(PROJECT_HDR transparency.h)
 
 set(BASE_HDR ../base/application.h
              ../base/frame_rate_indicator.h
@@ -27,17 +27,19 @@ set(BASE_HDR ../base/application.h
              ../base/camera.h
              ../base/frustum.h
              ../base/plane.h
-             ../base/object3d.h
+             ../base/transform.h
              ../base/model.h
              ../base/bounding_box.h
+             ../base/fullscreen_quad.h
              ../base/vertex.h
              ../base/light.h
              ../base/texture.h)
 
 set(BASE_SRC ../base/application.cpp
              ../base/glsl_program.cpp
-             ../base/camera.cpp 
-             ../base/object3d.cpp
+             ../base/camera.cpp
+             ../base/transform.cpp
+             ../base/fullscreen_quad.cpp
              ../base/model.cpp
              ../base/texture.cpp)
 

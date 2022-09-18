@@ -126,3 +126,13 @@ cd ./demo/winexe
 <div style="text-align:center">
     <img src="./demo/screenshots/bonus2.png" width="640"/>
 </div>
+
+##### PBR Viewer
+```shell
+cd ./demo/winexe
+./pbr_viewer.exe
+```
+
+<div style="text-align:center">
+    <img src="./demo/screenshots/pbr_viewer.png" width="640"/>
+</div>

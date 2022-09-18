@@ -3,6 +3,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <glm/ext.hpp>
+
 #include "glsl_program.h"
 
 GLSLProgram::GLSLProgram() {
@@ -80,7 +82,42 @@ void GLSLProgram::use() {
     glUseProgram(_handle);
 }
 
-void GLSLProgram::setBool(const std::string& name, bool value) const {
+int GLSLProgram::getUniformBlockSize(const std::string& name) const {
+    GLuint blockIndex = glGetUniformBlockIndex(_handle, name.c_str());
+    if (blockIndex == GL_INVALID_INDEX) {
+        return -1;
+    }
+
+    GLint blockSize;
+    glGetActiveUniformBlockiv(_handle, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+
+    return blockSize;
+}
+
+int GLSLProgram::getUniformBlockIndex(const std::string& name) const {
+    GLuint index = glGetUniformBlockIndex(_handle, name.c_str());
+    if (index == GL_INVALID_INDEX) {
+        return -1;
+    }
+
+    return index;
+}
+
+int GLSLProgram::getUniformBlockVariableOffset(const std::string& name) const {
+    GLuint index;
+    const char* queryNames[] = { name.c_str()};
+    glGetUniformIndices(_handle, 1, queryNames, &index);
+    if (index == GL_INVALID_INDEX) {
+        return -1;
+    }
+
+    GLint offset;
+    glGetActiveUniformsiv(_handle, 1, &index, GL_UNIFORM_OFFSET, &offset);
+
+    return offset;
+}
+
+void GLSLProgram::setUniformBool(const std::string& name, bool value) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
@@ -89,7 +126,7 @@ void GLSLProgram::setBool(const std::string& name, bool value) const {
     glUniform1i(location, static_cast<int>(value));
 }
 
-void GLSLProgram::setInt(const std::string& name, int value) const {
+void GLSLProgram::setUniformInt(const std::string& name, int value) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
@@ -98,7 +135,16 @@ void GLSLProgram::setInt(const std::string& name, int value) const {
     glUniform1i(location, value);
 }
 
-void GLSLProgram::setFloat(const std::string& name, float value) const {
+void GLSLProgram::setUniformUint(const std::string& name, uint32_t value) const {
+    GLint location = glGetUniformLocation(_handle, name.c_str());
+    if (location == -1) {
+        std::cerr << "find uniform " + name + " location failure" << std::endl;
+    }
+
+    glUniform1ui(location, value);
+}
+
+void GLSLProgram::setUniformFloat(const std::string& name, float value) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
@@ -107,49 +153,67 @@ void GLSLProgram::setFloat(const std::string& name, float value) const {
     glUniform1f(location, value);
 }
 
-void GLSLProgram::setVec2(const std::string& name, const glm::vec2& v2) const {
+void GLSLProgram::setUniformVec2(const std::string& name, const glm::vec2& v2) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform2fv(location, 1, &v2[0]);
+    glUniform2fv(location, 1, glm::value_ptr(v2));
 }
 
-void GLSLProgram::setVec3(const std::string& name, const glm::vec3& v3) const {
+void GLSLProgram::setUniformVec3(const std::string& name, const glm::vec3& v3) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform3fv(location, 1, &v3[0]);
+    glUniform3fv(location, 1, glm::value_ptr(v3));
 }
 
-void GLSLProgram::setVec4(const std::string& name, const glm::vec4& v4) const {
+void GLSLProgram::setUniformVec4(const std::string& name, const glm::vec4& v4) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform4fv(location, 1, &v4[0]);
+    glUniform4fv(location, 1, glm::value_ptr(v4));
 }
 
-void GLSLProgram::setMat3(const std::string& name, const glm::mat3& mat3) const {
+void GLSLProgram::setUniformMat2(const std::string& name, const glm::mat2& mat2) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform3fv(location, 1, &mat3[0][0]);
+    glUniform3fv(location, 1, glm::value_ptr(mat2));
 }
 
-void GLSLProgram::setMat4(const std::string& name, const glm::mat4& mat4) const {
+void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3) const {
     GLint location = glGetUniformLocation(_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniformMatrix4fv(location, 1, GL_FALSE, &mat4[0][0]);
+    glUniform3fv(location, 1, glm::value_ptr(mat3));
+}
+
+void GLSLProgram::setUniformMat4(const std::string& name, const glm::mat4& mat4) const {
+    GLint location = glGetUniformLocation(_handle, name.c_str());
+    if (location == -1) {
+        std::cerr << "find uniform " + name + " location failure" << std::endl;
+    }
+
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat4));
+}
+
+void GLSLProgram::setUniformBlockBinding(const std::string& name, uint32_t binding) const {
+    GLuint blockIndex = glGetUniformBlockIndex(_handle, name.c_str());
+    if (blockIndex == GL_INVALID_INDEX) {
+        std::cerr << "find uniform block " + name + " index failure" << std::endl;
+    }
+
+    glUniformBlockBinding(_handle, blockIndex, binding);
 }
 
 std::string GLSLProgram::readFile(const std::string& filePath) {
@@ -164,7 +228,7 @@ std::string GLSLProgram::readFile(const std::string& filePath) {
         return ss.str();
     }
     catch (std::ifstream::failure& e) {
-        throw std::runtime_error(std::string("read ") + filePath + "error: " + e.what());
+        throw std::runtime_error(std::string("read ") + filePath + " error: " + e.what());
     }
 }
 

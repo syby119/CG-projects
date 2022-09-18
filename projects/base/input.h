@@ -4,26 +4,36 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
 
-struct KeyboardInput {
-	std::array<int, GLFW_KEY_LAST + 1> keyStates = { GLFW_RELEASE };
-};
+struct Input {
+	struct Mouse {
+		struct {
+			bool left = false;
+			bool middle = false;
+			bool right = false;
+		} press;
 
-struct MouseInput {
-	struct {
-		bool left = false;
-		bool middle = false;
-		bool right = false;
-	} click;
+		struct {
+			float xNow = 0.0f;
+			float yNow = 0.0f;
+			float xOld = 0.0f;
+			float yOld = 0.0f;
+		} move;
 
-	struct {
-		double xOld = -1.0;
-		double yOld = -1.0;
-		double xCurrent = -1.0;
-		double yCurrent = -1.0;
-	} move;
+		struct {
+			float xOffset = 0.0f;
+			float yOffset = 0.0f;
+		} scroll;
+	} mouse;
 
-	struct {
-		double x = 0.0;
-		double y = 0.0;
-	} scroll;
+	struct Keyboard {
+		std::array<int, GLFW_KEY_LAST + 1> keyStates = { GLFW_RELEASE };
+	} keyboard;
+
+	void forwardState() {
+		mouse.move.xOld = mouse.move.xNow;
+		mouse.move.yOld = mouse.move.yNow;
+
+		mouse.scroll.xOffset = 0.0f;
+		mouse.scroll.yOffset = 0.0f;
+	}
 };

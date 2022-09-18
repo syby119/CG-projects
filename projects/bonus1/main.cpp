@@ -12,6 +12,7 @@ Options getOptions(int argc, char* argv[]) {
 	options.msaa = false;
 	options.glVersion = { 3, 3 };
 	options.backgroundColor = glm::vec4(0.051f, 0.142f, 0.191f, 1.0f);
+	options.assetRootDir = "../../media/";
 
 	return options;
 }

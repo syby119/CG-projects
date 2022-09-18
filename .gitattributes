@@ -7,11 +7,14 @@
 *.sh text eol=lf
 
 *.doc -text
+*.pptx -text
+*.pdf -text
 *.jpg -text
 *.jpeg -text
 *.png -text
+*.hdr -text
 *.bmp -text
 *.obj -text
-*.pdf -text
+*.gltf text
 *.dll -text
 *.lib -text

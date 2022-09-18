@@ -8,8 +8,7 @@
 #include "../base/camera.h"
 #include "../base/skybox.h"
 #include "../base/framebuffer.h"
-
-#include "fullscreen_quad.h"
+#include "../base/fullscreen_quad.h"
 
 enum class RenderMode {
 	AlphaTesting,
@@ -48,10 +47,10 @@ private:
 	std::unique_ptr<FullscreenQuad> _fullscreenQuad;
 
 	std::unique_ptr<Framebuffer> _colorBlendFbo;
-	std::unique_ptr<DataTexture> _colorBlendTexture;
+	std::unique_ptr<DataTexture2D> _colorBlendTexture;
 	std::unique_ptr<Framebuffer> _fbos[2];
-	std::unique_ptr<DataTexture> _colorTextures[2];
-	std::unique_ptr<DataTexture> _depthTextures[2];
+	std::unique_ptr<DataTexture2D> _colorTextures[2];
+	std::unique_ptr<DataTexture2D> _depthTextures[2];
 
 	std::unique_ptr<GLSLProgram> _depthPeelingInitShader;
 	std::unique_ptr<GLSLProgram> _depthPeelingShader;

@@ -6,26 +6,26 @@
 
 #include "frustum_culling.h"
 
-const std::string planetPath = "../../media/sphere.obj";
-const std::string planetTexturePath = "../../media/planet_Quom1200.png";
+const std::string planetRelPath = "obj/sphere.obj";
+const std::string planetTextureRelPath = "texture/miscellaneous/planet_Quom1200.png";
 
-const std::string asternoldPath = "../../media/rock.obj";
-const std::string asternoldTexturePath = "../../media/Rock-Texture-Surface.jpg";
+const std::string asternoldRelPath = "obj/rock.obj";
+const std::string asternoldTextureRelPath = "texture/miscellaneous/Rock-Texture-Surface.jpg";
 
 FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 	// init model matrices
 	initModelMatrices();
 
 	// init model
-	_planet.reset(new Model(planetPath));
-	_planet->scale = glm::vec3(10.0f, 10.0f, 10.0f);
+	_planet.reset(new Model(getAssetFullPath(planetRelPath)));
+	_planet->transform.scale = glm::vec3(10.0f, 10.0f, 10.0f);
 
-	_asternoid.reset(new Model(asternoldPath));
-	_instancedAsternoids.reset(new InstancedModel(asternoldPath, _modelMatrices));
+	_asternoid.reset(new Model(getAssetFullPath(asternoldRelPath)));
+	_instancedAsternoids.reset(new InstancedModel(getAssetFullPath(asternoldRelPath), _modelMatrices));
 
 	// init textures
-	auto planetTexture = std::make_shared<Texture2D>(planetTexturePath);
-	auto asternoidTexture = std::make_shared<Texture2D>(asternoldTexturePath);
+	auto planetTexture = std::make_shared<Texture2D>(getAssetFullPath(planetTextureRelPath));
+	auto asternoidTexture = std::make_shared<Texture2D>(getAssetFullPath(asternoldTextureRelPath));
 
 	// init materials
 	_lineMaterial.reset(new LineMaterial);
@@ -49,12 +49,13 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 		1.0f * _windowWidth / _windowHeight,
 		0.1f, 1000.0f));
 
-	_camera->position = glm::vec3(0.0f, 25.0f, 100.0f);
-	_camera->rotation = glm::angleAxis(-glm::radians(20.0f), _camera->getRight());
+	_camera->transform.position = glm::vec3(0.0f, 25.0f, 100.0f);
+	_camera->transform.rotation = glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
 
 	// init light
 	_light.reset(new DirectionalLight());
-	_light->rotation = glm::angleAxis(glm::radians(45.0f), -glm::vec3(1.0f, 1.0f, 1.0f));
+	_light->transform.rotation = 
+		glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f)));
 
 	// init visible array
 	_visibles.resize(_amount, 1);
@@ -260,7 +261,6 @@ void FrustumCulling::initGPUCullingResources() {
 	glGenBuffers(1, &_transformFeedbackResultBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, _transformFeedbackResultBuffer);
 	glBufferData(GL_ARRAY_BUFFER, _amount * sizeof(int), nullptr, GL_DYNAMIC_DRAW);
-	//glBufferData(GL_ARRAY_BUFFER, _amount * sizeof(_debug[0]), nullptr, GL_DYNAMIC_DRAW);
 
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, _transformFeedbackResultBuffer);
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
@@ -328,25 +328,25 @@ void FrustumCulling::initGPUCullingResources() {
 }
 
 void FrustumCulling::handleInput() {
-	if (_keyboardInput.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
 		glfwSetWindowShouldClose(_window, true);
 		return;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
-		_camera->position += _camera->getFront() * _cameraMoveSpeed * (float)_deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
+		_camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * (float)_deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
-		_camera->position -= _camera->getRight() * _cameraMoveSpeed * (float)_deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
+		_camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * (float)_deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
-		_camera->position -= _camera->getFront() * _cameraMoveSpeed * (float)_deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
+		_camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * (float)_deltaTime;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
-		_camera->position += _camera->getRight() * _cameraMoveSpeed * (float)_deltaTime;
+	if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
+		_camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * (float)_deltaTime;
 	}
 
 	if (glMultiDrawElementsIndirect == nullptr) {
@@ -364,15 +364,15 @@ void FrustumCulling::renderFrame() {
 	const glm::mat4 view = _camera->getViewMatrix();
 
 	// draw planet
-	if (frustum.intersect(_planet->getBoundingBox(), _planet->getModelMatrix())) {
+	if (frustum.intersect(_planet->getBoundingBox(), _planet->transform.getLocalMatrix())) {
 		_lambertShader->use();
-		_lambertShader->setMat4("projection", projection);
-		_lambertShader->setMat4("view", view);
-		_lambertShader->setMat4("model", _planet->getModelMatrix());
-		_lambertShader->setVec3("light.direction", _light->getFront());
-		_lambertShader->setVec3("light.color", _light->color);
-		_lambertShader->setFloat("light.intensity", _light->intensity);
-		_lambertShader->setVec3("material.kd", _planetMaterial->kd);
+		_lambertShader->setUniformMat4("projection", projection);
+		_lambertShader->setUniformMat4("view", view);
+		_lambertShader->setUniformMat4("model", _planet->transform.getLocalMatrix());
+		_lambertShader->setUniformVec3("light.direction", _light->transform.getFront());
+		_lambertShader->setUniformVec3("light.color", _light->color);
+		_lambertShader->setUniformFloat("light.intensity", _light->intensity);
+		_lambertShader->setUniformVec3("material.kd", _planetMaterial->kd);
 		glActiveTexture(GL_TEXTURE0);
 		_planetMaterial->mapKd->bind();
 
@@ -382,10 +382,10 @@ void FrustumCulling::renderFrame() {
 	// draw planet aabb
 	if (_showBoundingBox) {
 		_lineShader->use();
-		_lineShader->setMat4("projection", projection);
-		_lineShader->setMat4("view", view);
-		_lineShader->setMat4("model", _planet->getModelMatrix());
-		_lineShader->setVec3("material.color", _lineMaterial->color);
+		_lineShader->setUniformMat4("projection", projection);
+		_lineShader->setUniformMat4("view", view);
+		_lineShader->setUniformMat4("model", _planet->transform.getLocalMatrix());
+		_lineShader->setUniformVec3("material.color", _lineMaterial->color);
 		glLineWidth(_lineMaterial->width);
 
 		_planet->drawBoundingBox();
@@ -401,7 +401,7 @@ void FrustumCulling::renderFrame() {
 		}
 		break;
 	case Method::GPU:
-		// TODO: use transform feedback to perform GPU frustum culling
+		// TODO: use the transform feedback to perform GPU frustum culling
 		// write your code here
 		// ------------------------------------------------------------------
 		// _frustumCullingShader->use();
@@ -462,18 +462,18 @@ void FrustumCulling::renderAsternoids() {
 	const glm::mat4 view = _camera->getViewMatrix();
 
 	_lambertShader->use();
-	_lambertShader->setMat4("projection", projection);
-	_lambertShader->setMat4("view", view);
-	_lambertShader->setVec3("light.direction", _light->getFront());
-	_lambertShader->setVec3("light.color", _light->color);
-	_lambertShader->setFloat("light.intensity", _light->intensity);
-	_lambertShader->setVec3("material.kd", _asternoidMaterial->kd);
+	_lambertShader->setUniformMat4("projection", projection);
+	_lambertShader->setUniformMat4("view", view);
+	_lambertShader->setUniformVec3("light.direction", _light->transform.getFront());
+	_lambertShader->setUniformVec3("light.color", _light->color);
+	_lambertShader->setUniformFloat("light.intensity", _light->intensity);
+	_lambertShader->setUniformVec3("material.kd", _asternoidMaterial->kd);
 	glActiveTexture(GL_TEXTURE0);
 	_asternoidMaterial->mapKd->bind();
 
 	for (int i = 0; i < _amount; ++i) {
 		if (_visibles[i]) {
-			_lambertShader->setMat4("model", _modelMatrices[i]);
+			_lambertShader->setUniformMat4("model", _modelMatrices[i]);
 			_asternoid->draw();
 			++_drawAsternoidCount;
 		}
@@ -481,13 +481,13 @@ void FrustumCulling::renderAsternoids() {
 
 	if (_showBoundingBox) {
 		_lineShader->use();
-		_lineShader->setMat4("projection", projection);
-		_lineShader->setMat4("view", view);
+		_lineShader->setUniformMat4("projection", projection);
+		_lineShader->setUniformMat4("view", view);
 		glLineWidth(_lineMaterial->width);
-		_lineShader->setVec3("material.color", _lineMaterial->color);
+		_lineShader->setUniformVec3("material.color", _lineMaterial->color);
 
 		for (int i = 0; i < _amount; ++i) {
-			_lineShader->setMat4("model", _modelMatrices[i]);
+			_lineShader->setUniformMat4("model", _modelMatrices[i]);
 			_asternoid->drawBoundingBox();
 		}
 	}
@@ -518,12 +518,12 @@ void FrustumCulling::renderAsternoidsIndirect() {
 	}
 
 	_lambertInstancedShader->use();
-	_lambertInstancedShader->setMat4("projection", projection);
-	_lambertInstancedShader->setMat4("view", view);
-	_lambertInstancedShader->setVec3("light.direction", _light->getFront());
-	_lambertInstancedShader->setVec3("light.color", _light->color);
-	_lambertInstancedShader->setFloat("light.intensity", _light->intensity);
-	_lambertInstancedShader->setVec3("material.kd", _asternoidMaterial->kd);
+	_lambertInstancedShader->setUniformMat4("projection", projection);
+	_lambertInstancedShader->setUniformMat4("view", view);
+	_lambertInstancedShader->setUniformVec3("light.direction", _light->transform.getFront());
+	_lambertInstancedShader->setUniformVec3("light.color", _light->color);
+	_lambertInstancedShader->setUniformFloat("light.intensity", _light->intensity);
+	_lambertInstancedShader->setUniformVec3("material.kd", _asternoidMaterial->kd);
 	glActiveTexture(GL_TEXTURE0);
 	_asternoidMaterial->mapKd->bind();
 
@@ -546,10 +546,10 @@ void FrustumCulling::renderAsternoidsIndirect() {
 		}
 
 		_lineInstancedShader->use();
-		_lineInstancedShader->setMat4("projection", projection);
-		_lineInstancedShader->setMat4("view", view);
+		_lineInstancedShader->setUniformMat4("projection", projection);
+		_lineInstancedShader->setUniformMat4("view", view);
 		glLineWidth(_lineMaterial->width);
-		_lineInstancedShader->setVec3("material.color", _lineMaterial->color);
+		_lineInstancedShader->setUniformVec3("material.color", _lineMaterial->color);
 
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _indirectBuffer);
 		glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, 

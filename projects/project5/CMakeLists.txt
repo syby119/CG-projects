@@ -25,7 +25,7 @@ set(BASE_HDR ../base/application.h
              ../base/camera.h
              ../base/frustum.h
              ../base/plane.h
-             ../base/object3d.h
+             ../base/transform.h
              ../base/model.h
              ../base/bounding_box.h
              ../base/vertex.h
@@ -34,7 +34,7 @@ set(BASE_HDR ../base/application.h
 set(BASE_SRC ../base/application.cpp 
              ../base/glsl_program.cpp 
              ../base/camera.cpp 
-             ../base/object3d.cpp
+             ../base/transform.cpp
              ../base/model.cpp)
 
 add_executable(project5 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})

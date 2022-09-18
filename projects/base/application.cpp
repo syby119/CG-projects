@@ -1,7 +1,8 @@
 #include "application.h"
 
 Application::Application(const Options& options)
-	: _windowTitle(options.windowTitle),
+	: _assetRootDir(options.assetRootDir),
+	  _windowTitle(options.windowTitle),
 	  _windowWidth(options.windowWidth),
 	  _windowHeight(options.windowHeight),
 	  _clearColor(options.backgroundColor) {
@@ -52,9 +53,9 @@ Application::Application(const Options& options)
 	}
 
 	glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
-	glfwSetKeyCallback(_window, keyboardCallback);
-	glfwSetMouseButtonCallback(_window, mouseClickedCallback);
-	glfwSetCursorPosCallback(_window, cursorMovedCallback);
+	glfwSetKeyCallback(_window, keyCallback);
+	glfwSetMouseButtonCallback(_window, mouseButtonCallback);
+	glfwSetCursorPosCallback(_window, cursorPosCallback);
 	glfwSetScrollCallback(_window, scrollCallback);
 
 	_lastTimeStamp = std::chrono::high_resolution_clock::now();
@@ -78,6 +79,10 @@ void Application::run() {
 		glfwSwapBuffers(_window);
 		glfwPollEvents();
 	}
+}
+
+std::string Application::getAssetFullPath(const std::string& resourceRelPath) const {
+	return _assetRootDir + resourceRelPath;
 }
 
 void Application::updateTime() {
@@ -105,50 +110,50 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 	glViewport(0, 0, width, height);
 }
 
-void Application::cursorMovedCallback(GLFWwindow* window, double xPos, double yPos) {
+void Application::cursorPosCallback(GLFWwindow* window, double xPos, double yPos) {
 	Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-	app->_mouseInput.move.xCurrent = xPos;
-	app->_mouseInput.move.yCurrent = yPos;
+	app->_input.mouse.move.xNow = static_cast<float>(xPos);
+	app->_input.mouse.move.yNow = static_cast<float>(yPos);
 }
 
-void Application::mouseClickedCallback(GLFWwindow* window, int button, int action, int mods) {
+void Application::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (action == GLFW_PRESS) {
 		switch (button) {
 			case GLFW_MOUSE_BUTTON_LEFT:
-				app->_mouseInput.click.left = true;
+				app->_input.mouse.press.left = true;
 				break;
 			case GLFW_MOUSE_BUTTON_MIDDLE:
-				app->_mouseInput.click.middle = true;
+				app->_input.mouse.press.middle = true;
 				break;
 			case GLFW_MOUSE_BUTTON_RIGHT:
-				app->_mouseInput.click.right = true;
+				app->_input.mouse.press.right = true;
 				break;
 		}
 	} else if (action == GLFW_RELEASE) {
 		switch (button) {
 		case GLFW_MOUSE_BUTTON_LEFT:
-			app->_mouseInput.click.left = false;
+			app->_input.mouse.press.left = false;
 			break;
 		case GLFW_MOUSE_BUTTON_MIDDLE:
-			app->_mouseInput.click.middle = false;
+			app->_input.mouse.press.middle = false;
 			break;
 		case GLFW_MOUSE_BUTTON_RIGHT:
-			app->_mouseInput.click.right = false;
+			app->_input.mouse.press.right = false;
 			break;
 		}
-	}
+	} 
 }
 
 void Application::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
 	Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-	app->_mouseInput.scroll.x += xOffset;
-	app->_mouseInput.scroll.y += yOffset;
+	app->_input.mouse.scroll.xOffset = static_cast<float>(xOffset);
+	app->_input.mouse.scroll.yOffset = static_cast<float>(yOffset);
 }
 
-void Application::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void Application::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key != GLFW_KEY_UNKNOWN) {
 		Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-		app->_keyboardInput.keyStates[key] = action;
+		app->_input.keyboard.keyStates[key] = action;
 	}
 }

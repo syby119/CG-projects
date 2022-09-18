@@ -1,13 +1,13 @@
 #include "scene_roaming.h"
 
-const std::string modelPath = "../../media/bunny.obj";
+const std::string modelRelPath = "obj/bunny.obj";
 
 SceneRoaming::SceneRoaming(const Options& options): Application(options) {
 	// set input mode
 	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	_mouseInput.move.xOld = _mouseInput.move.xCurrent = 0.5 * _windowWidth;
-	_mouseInput.move.yOld = _mouseInput.move.yCurrent = 0.5 * _windowHeight;
-	glfwSetCursorPos(_window, _mouseInput.move.xCurrent, _mouseInput.move.yCurrent);
+	_input.mouse.move.xNow = _input.mouse.move.xOld = 0.5f * _windowWidth;
+	_input.mouse.move.yNow = _input.mouse.move.yOld = 0.5f * _windowHeight;
+	glfwSetCursorPos(_window, _input.mouse.move.xNow, _input.mouse.move.yNow);
 
 	// init cameras
 	_cameras.resize(2);
@@ -19,15 +19,15 @@ SceneRoaming::SceneRoaming(const Options& options): Application(options) {
 	// perspective camera
 	_cameras[0].reset(new PerspectiveCamera(
 		glm::radians(60.0f), aspect, 0.1f, 10000.0f));
-	_cameras[0]->position = glm::vec3(0.0f, 0.0f, 15.0f);
+	_cameras[0]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
 	// orthographic camera
 	_cameras[1].reset(new OrthographicCamera(
 		-4.0f * aspect, 4.0f * aspect, -4.0f, 4.0f, znear, zfar));
-	_cameras[1]->position = glm::vec3(0.0f, 0.0f, 15.0f);
+	_cameras[1]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
 	// init model
-	_bunny.reset(new Model(modelPath));
+	_bunny.reset(new Model(getAssetFullPath(modelRelPath)));
 
 	// init shader
 	initShader();
@@ -37,82 +37,80 @@ void SceneRoaming::handleInput() {
 	constexpr float cameraMoveSpeed = 5.0f;
 	constexpr float cameraRotateSpeed = 0.02f;
 
-	if (_keyboardInput.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
 		glfwSetWindowShouldClose(_window, true);
 		return ;
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_SPACE] == GLFW_PRESS) {
+	if (_input.keyboard.keyStates[GLFW_KEY_SPACE] == GLFW_PRESS) {
 		std::cout << "switch camera" << std::endl;
 		// switch camera
 		activeCameraIndex = (activeCameraIndex + 1) % _cameras.size();
-		_keyboardInput.keyStates[GLFW_KEY_SPACE] = GLFW_RELEASE;
+		_input.keyboard.keyStates[GLFW_KEY_SPACE] = GLFW_RELEASE;
 		return;
 	}
 
 	Camera* camera = _cameras[activeCameraIndex].get();
 
-	if (_keyboardInput.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
 		std::cout << "W" << std::endl;
 		// TODO: move the camera in its front direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->position = ...;
+		// camera->transform.position = ...;
 		// -------------------------------------------------
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
 		std::cout << "A" << std::endl;
 		// TODO: move the camera in its left direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->position = ...;
+		// camera->transform.position = ...;
 		// -------------------------------------------------
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
 		std::cout << "S" << std::endl;
 		// TODO: move the camera in its back direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->position = ...;
+		// camera->transform.position = ...;
 		// -------------------------------------------------
 	}
 
-	if (_keyboardInput.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
+	if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
 		std::cout << "D" << std::endl;
 		// TODO: move the camera in its right direction
 		// write your code here
 		// -------------------------------------------------
-		// camera->position = ...;
+		// camera->transform.position = ...;
 		// -------------------------------------------------
 	}
 
-	if (_mouseInput.move.xCurrent != _mouseInput.move.xOld) {
+	if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
 		std::cout << "mouse move in x direction" << std::endl;
 		// TODO: rotate the camera around world up: glm::vec3(0.0f, 1.0f, 0.0f)
 		// hint1: you should know how do quaternion work to represent rotation
-		// hint2: mouse_movement_in_x_direction = _mouseInput.move.xCurrent - _mouseInput.move.xOld
+		// hint2: mouse_movement_in_x_direction = _input.mouse.move.xNow - _input.mouse.move.xOld
 		// write your code here
 		// -----------------------------------------------------------------------------
-		// camera->rotation = ...
+		// camera->transform.rotation = ...
 		// -----------------------------------------------------------------------------
-		
-		_mouseInput.move.xOld = _mouseInput.move.xCurrent;
 	}
 
-	if (_mouseInput.move.yCurrent != _mouseInput.move.yOld) {
+	if (_input.mouse.move.yNow != _input.mouse.move.yOld) {
 		std::cout << "mouse move in y direction" << std::endl;
 		// TODO: rotate the camera around its local right
 		// hint1: you should know how do quaternion work to represent rotation
-		// hint2: mouse_movement_in_y_direction = _mouseInput.move.yCurrent - _mouseInput.move.yOld
+		// hint2: mouse_movement_in_y_direction = _input.mouse.move.yNow - _input.mouse.move.yOld
 		// write your code here
 		// -----------------------------------------------------------------------------
-		// camera->rotation = ...
+		// camera->transform.rotation = ...
 		// -----------------------------------------------------------------------------
-
-		_mouseInput.move.yOld = _mouseInput.move.yCurrent;
 	}
+
+	_input.forwardState();
 }
 
 void SceneRoaming::renderFrame() {
@@ -126,9 +124,9 @@ void SceneRoaming::renderFrame() {
 	glm::mat4 view = _cameras[activeCameraIndex]->getViewMatrix();
 	
 	_shader->use();
-	_shader->setMat4("projection", projection);
-	_shader->setMat4("view", view);
-	_shader->setMat4("model", _bunny->getModelMatrix());
+	_shader->setUniformMat4("projection", projection);
+	_shader->setUniformMat4("view", view);
+	_shader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
 
 	_bunny->draw();
 }

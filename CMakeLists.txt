@@ -40,8 +40,8 @@ set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 add_subdirectory(./projects/get_start)
 set_target_properties(get_start PROPERTIES FOLDER "demo")
 
-# add_subdirectory(./projects/pbr_viewer)
-# set_target_properties(pbr_viewer PROPERTIES FOLDER "demo")
+add_subdirectory(./projects/pbr_viewer)
+set_target_properties(pbr_viewer PROPERTIES FOLDER "demo")
 
 add_subdirectory(./projects/project1)
 set_target_properties(project1 PROPERTIES FOLDER "project")

@@ -1,9 +1,11 @@
 #pragma once
 
-#include "object3d.h"
 #include "frustum.h"
+#include "transform.h"
 
-class Camera : public Object3D {
+class Camera {
+public:
+	Transform transform;
 public:
 	glm::mat4 getViewMatrix() const;
 

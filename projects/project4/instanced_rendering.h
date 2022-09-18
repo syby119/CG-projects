@@ -31,7 +31,7 @@ private:
 
 	GLuint _instanceBuffer = {};
 
-	int _amount = 10000;
+	int _amount = 50000;
 	std::vector<glm::mat4> _modelMatrices;
 
 	enum RenderMode _renderMode = RenderMode::Ordinary;

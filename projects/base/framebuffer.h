@@ -31,11 +31,9 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void attach(const DataTexture& texture, GLenum attachment, int level = 0) {
-		bind();
+	void attach(const Texture& texture, GLenum attachment, GLenum textarget, int level = 0) {
 		glFramebufferTexture2D(GL_FRAMEBUFFER,
-			attachment, GL_TEXTURE_2D, texture.getHandle(), level);
-		unbind();
+			attachment, textarget, texture.getHandle(), level);
 	}
 
 	bool isComplete() const {

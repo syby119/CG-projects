@@ -47,21 +47,21 @@ public:
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
-	template <>
-	void update<bool>(const std::string& name, const bool& value) const {
-		const auto iter = _offsetMap.find(name);
-		if (iter == _offsetMap.end()) {
-			std::cerr << "cannot find " + name + " in the ubo" << std::endl;
-			return;
-		}
-
-		int intVal = static_cast<int>(value);
-		glBindBuffer(GL_UNIFORM_BUFFER, _handle);
-		glBufferSubData(GL_UNIFORM_BUFFER, iter->second, sizeof(int), &intVal);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
-
 private:
 	GLuint _handle {};
 	std::map<std::string, size_t> _offsetMap;
 };
+
+template <>
+inline void UniformBuffer::update<bool>(const std::string& name, const bool& value) const {
+	const auto iter = _offsetMap.find(name);
+	if (iter == _offsetMap.end()) {
+		std::cerr << "cannot find " + name + " in the ubo" << std::endl;
+		return;
+	}
+
+	int intVal = static_cast<int>(value);
+	glBindBuffer(GL_UNIFORM_BUFFER, _handle);
+	glBufferSubData(GL_UNIFORM_BUFFER, iter->second, sizeof(int), &intVal);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}

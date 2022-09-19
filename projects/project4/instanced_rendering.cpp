@@ -222,7 +222,7 @@ void InstancedRendering::renderFrame() {
 		ImGui::NewLine();
 
 		std::string fpsInfo = "avg fps: " + std::to_string(_fpsIndicator.getAverageFrameRate());
-		ImGui::Text(fpsInfo.c_str());
+		ImGui::Text("%s", fpsInfo.c_str());
 		ImGui::PlotLines("", _fpsIndicator.getDataPtr(), _fpsIndicator.getSize(), 0,
 			nullptr, 0.0f, std::numeric_limits<float>::max(), ImVec2(240.0f, 50.0f));
 

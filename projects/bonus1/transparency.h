@@ -29,7 +29,7 @@ public:
 
 	~Transparency();
 private:
-	enum class RenderMode _renderMode = RenderMode::AlphaTesting;
+	enum RenderMode _renderMode = RenderMode::AlphaTesting;
 
 	std::unique_ptr<Model> _knot;
 

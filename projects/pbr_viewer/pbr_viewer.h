@@ -27,7 +27,6 @@ public:
 private:
 	std::unique_ptr<Model> _model;
 	std::unique_ptr<GLSLProgram> _pbrShader;
-	enum DebugView _debugViewIndex;
 
 	std::unique_ptr<PerspectiveCamera> _camera;
 	std::unique_ptr<CameraController> _cameraController;

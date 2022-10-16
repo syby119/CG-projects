@@ -40,99 +40,61 @@ cd bin/Debug
 
 #### Windows Executables
 ##### Render a Triangle
-```shell
-cd ./demo/winexe
-./get_start.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/get_start.png" width="640"/>
+    <img src="./screenshots/get_start.png" width="640"/>
 </div>
 
 ##### Render the Chinese National Flag
-```shell
-cd ./demo/winexe
-./project1.exe
-```
 <div style="text-align:center">
-    <img src="./demo/screenshots/project1.png" width="640"/>
+    <img src="./screenshots/project1.png" width="640"/>
 </div>
 
 ##### Transformation Matrices
-```shell
-cd ./demo/winexe
-./project2.exe
-```
 <div style="text-align:center">
-    <img src="./demo/screenshots/project2.png" width="640"/>
+    <img src="./screenshots/project2.png" width="640"/>
 </div>
 
 ##### Scene Roaming
-```shell
-cd ./demo/winexe
-./project3.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/project3.png" width="640"/>
+    <img src="./screenshots/project3.png" width="640"/>
 </div>
 
 ##### Instanced Rendering
-```shell
-cd ./demo/winexe
-./project4.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/project4.png" width="640"/>
+    <img src="./screenshots/project4.png" width="640"/>
 </div>
 
 ##### Shading Tutorial
-```shell
-cd ./demo/winexe
-./project5.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/project5.png" width="640"/>
+    <img src="./screenshots/project5.png" width="640"/>
 </div>
 
 ##### Texture Mapping
-```shell
-cd ./demo/winexe
-./project6.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/project6.png" width="640"/>
+    <img src="./screenshots/project6.png" width="640"/>
 </div>
 
 ##### Transparency Rendering
-```shell
-cd ./demo/winexe
-./bonus1.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/bonus1.png" width="640"/>
+    <img src="./screenshots/bonus1.png" width="640"/>
 </div>
 
 ##### Frustum Culling
-```shell
-cd ./demo/winexe
-./bonus2.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/bonus2.png" width="640"/>
+    <img src="./screenshots/bonus2.png" width="640"/>
+</div>
+
+##### Shadow Mapping
+<div style="text-align:center">
+    <img src="./screenshots/bonus4.png" width="640"/>
+</div>
+
+##### Ray Tracing
+<div style="text-align:center">
+    <img src="./screenshots/bonus5.png" width="640"/>
 </div>
 
 ##### PBR Viewer
-```shell
-cd ./demo/winexe
-./pbr_viewer.exe
-```
-
 <div style="text-align:center">
-    <img src="./demo/screenshots/pbr_viewer.png" width="640"/>
+    <img src="./screenshots/pbr_viewer.png" width="640"/>
 </div>

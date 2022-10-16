@@ -9,7 +9,7 @@
 
 #include "../base/glsl_program.h"
 #include "../base/sampler.h"
-#include "../base/texture.h"
+#include "../base/texture2d.h"
 
 #include "vertex.h"
 #include "node.h"

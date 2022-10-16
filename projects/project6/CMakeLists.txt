@@ -33,6 +33,8 @@ set(BASE_HDR ../base/application.h
              ../base/vertex.h
              ../base/light.h
              ../base/texture.h
+             ../base/texture2d.h
+             ../base/texture_cubemap.h
              ../base/skybox.h)
 
 set(BASE_SRC ../base/application.cpp 
@@ -41,7 +43,9 @@ set(BASE_SRC ../base/application.cpp
              ../base/transform.cpp
              ../base/model.cpp
              ../base/skybox.cpp
-             ../base/texture.cpp)
+             ../base/texture.cpp
+             ../base/texture2d.cpp
+             ../base/texture_cubemap.cpp)
 
 add_executable(project6 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 

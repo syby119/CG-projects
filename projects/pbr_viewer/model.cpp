@@ -157,7 +157,7 @@ void Model::loadTextures(const tinygltf::Model& gltfModel) {
 			default: throw std::runtime_error("unsupported image data type");
 		}
 
-		std::unique_ptr<Texture2D> texture { new Texture2D(
+		std::unique_ptr<Texture2D> texture { new ImageTexture2D(
 				gltfImage.image.data(),
 				gltfImage.width,
 				gltfImage.height,
@@ -173,7 +173,9 @@ void Model::loadTextures(const tinygltf::Model& gltfModel) {
 				filterMode == GL_LINEAR_MIPMAP_NEAREST ||
 				filterMode == GL_NEAREST_MIPMAP_LINEAR ||
 				filterMode == GL_LINEAR_MIPMAP_LINEAR) {
+				texture->bind();
 				texture->generateMipmap();
+				texture->unbind();
 			}
 		}
 
@@ -660,7 +662,7 @@ void Model::printTextures() const {
 	std::cout << "+ Textures:" << std::endl;
 	for (size_t i = 0; i < _textures.size(); ++i) {
 		std::cout << "  + texture[" << i << "]: ";
-		Texture2D* tex2D = dynamic_cast<Texture2D*>(_textures[i].get());
+		ImageTexture2D* tex2D = dynamic_cast<ImageTexture2D*>(_textures[i].get());
 		if (tex2D) {
 			std::cout << tex2D->getUri() << std::endl;
 		} else {

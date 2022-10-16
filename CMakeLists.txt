@@ -62,7 +62,13 @@ add_subdirectory(./projects/project6)
 set_target_properties(project6 PROPERTIES FOLDER "project")
 
 add_subdirectory(./projects/bonus1)
-set_target_properties(bonus1 PROPERTIES FOLDER "project")
+set_target_properties(bonus1 PROPERTIES FOLDER "bonus")
 
 add_subdirectory(./projects/bonus2)
-set_target_properties(bonus2 PROPERTIES FOLDER "project")
+set_target_properties(bonus2 PROPERTIES FOLDER "bonus")
+
+add_subdirectory(./projects/bonus4)
+set_target_properties(bonus4 PROPERTIES FOLDER "bonus")
+
+# add_subdirectory(./projects/bonus5)
+# set_target_properties(bonus5 PROPERTIES FOLDER "bonus")

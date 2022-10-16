@@ -17,15 +17,21 @@ GLSLProgram::GLSLProgram() {
 GLSLProgram::GLSLProgram(GLSLProgram&& rhs) noexcept
     : _handle(rhs._handle),
       _vertexShaders(std::move(rhs._vertexShaders)),
+      _geometryShaders(std::move(rhs._geometryShaders)),
       _fragmentShaders(std::move(rhs._fragmentShaders)) {
     rhs._handle = 0;
     rhs._vertexShaders.clear();
+    rhs._geometryShaders.clear();
     rhs._fragmentShaders.clear();
 }
 
 GLSLProgram::~GLSLProgram() {
     for (const auto vertexShader : _vertexShaders) {
         glDeleteShader(vertexShader);
+    }
+
+    for (const auto geometryShader : _geometryShaders) {
+        glDeleteShader(geometryShader);
     }
 
     for (const auto fragmentShader : _fragmentShaders) {
@@ -44,15 +50,25 @@ void GLSLProgram::attachVertexShader(const std::string& code) {
     _vertexShaders.push_back(vertexShader);
 }
 
+void GLSLProgram::attachGeometryShader(const std::string& code) {
+    GLuint geometryShader = createShader(code, GL_GEOMETRY_SHADER);
+    glAttachShader(_handle, geometryShader);
+    _geometryShaders.push_back(geometryShader);
+}
+
 void GLSLProgram::attachFragmentShader(const std::string& code) {
     GLuint fragmentShader = createShader(code, GL_FRAGMENT_SHADER);
     glAttachShader(_handle, fragmentShader);
-    _vertexShaders.push_back(fragmentShader);
+    _fragmentShaders.push_back(fragmentShader);
 }
 
 void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     attachVertexShader(code);
+}
+
+void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
+
 }
 
 void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {

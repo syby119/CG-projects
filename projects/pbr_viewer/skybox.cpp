@@ -156,7 +156,7 @@ void Skybox::equirectangulerToCubemap(
         throw std::runtime_error("load " + equirectImagePath + " failure");
     }
 
-    std::unique_ptr<Texture2D> hdrTexture{ new Texture2D(
+    std::unique_ptr<Texture2D> hdrTexture{ new ImageTexture2D(
         data.get(), width, height, channels, GL_RGB16F, GL_RGB, GL_FLOAT, equirectImagePath)
     };
 
@@ -257,13 +257,16 @@ void Skybox::generateIrradianceMap(
     resolution = nextPow2(resolution);
 
     // create irradianceMap texture
-    irradianceMap.reset(new DataTextureCubemap(
+    irradianceMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+
+    irradianceMap->bind();
     irradianceMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     irradianceMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     irradianceMap->setParamterInt(GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     irradianceMap->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     irradianceMap->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    irradianceMap->unbind();
 
     // create irradiance shader
     std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
@@ -303,7 +306,7 @@ void Skybox::generateIrradianceMap(
     framebuffer->bind();
     for (uint32_t i = 0; i < 6; ++i) {
         shader->setUniformMat4("view", views[i]);
-        framebuffer->attach(*irradianceMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+        framebuffer->attachTexture2D(*irradianceMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         draw();
@@ -325,8 +328,10 @@ void Skybox::generatePrefilterMap(
     resolution = std::max(nextPow2(resolution), 1u << maxMipLevels);
 
     // create prefilterMap texture
-    prefilterMap.reset(new DataTextureCubemap(
+    prefilterMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+
+    prefilterMap->bind();
     prefilterMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     prefilterMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     prefilterMap->setParamterInt(GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -335,6 +340,7 @@ void Skybox::generatePrefilterMap(
 
     // generate mipmap so OpenGL automatically allocates the required memory
     prefilterMap->generateMipmap();
+    prefilterMap->unbind();
 
     // create irradiance shader
     std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
@@ -378,7 +384,7 @@ void Skybox::generatePrefilterMap(
         // render prefilter result to mipmap
         for (uint32_t i = 0; i < 6; ++i) {
             shader->setUniformMat4("view", views[i]);
-            framebuffer->attach(*prefilterMap, 
+            framebuffer->attachTexture2D(*prefilterMap, 
                 GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipLevel);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -407,12 +413,15 @@ void Skybox::generateBrdfLutMap(
     resolution = nextPow2(resolution);
 
     // create brdf look up table texture
-    brdfLutMap.reset(new DataTexture2D(
+    brdfLutMap.reset(new Texture2D(
         GL_RG16F, resolution, resolution, GL_RG, GL_FLOAT));
+    
+    brdfLutMap->bind();
     brdfLutMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     brdfLutMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     brdfLutMap->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     brdfLutMap->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    brdfLutMap->unbind();
 
     // create brdf look up table shader
     std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
@@ -433,7 +442,7 @@ void Skybox::generateBrdfLutMap(
 
     std::unique_ptr<Framebuffer> framebuffer{ new Framebuffer };
     framebuffer->bind();
-    framebuffer->attach(*brdfLutMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    framebuffer->attachTexture(*brdfLutMap, GL_COLOR_ATTACHMENT0);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

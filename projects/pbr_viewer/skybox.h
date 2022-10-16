@@ -4,14 +4,15 @@
 #include <string>
 #include <glm/glm.hpp>
 
-#include "../base/texture.h"
+#include "../base/texture2d.h"
+#include "../base/texture_cubemap.h"
 
 class Skybox {
 public:
 	// for IBL
-	std::unique_ptr<DataTextureCubemap> irradianceMap;
-	std::unique_ptr<DataTextureCubemap> prefilterMap;
-	std::unique_ptr<DataTexture2D> brdfLutMap;
+	std::unique_ptr<TextureCubemap> irradianceMap;
+	std::unique_ptr<TextureCubemap> prefilterMap;
+	std::unique_ptr<Texture2D> brdfLutMap;
 
 	float exposure = 4.5f;
 	float gamma = 2.2f;

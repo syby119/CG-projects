@@ -4,7 +4,7 @@
 #include "../base/model.h"
 #include "../base/light.h"
 #include "../base/glsl_program.h"
-#include "../base/texture.h"
+#include "../base/texture2d.h"
 #include "../base/camera.h"
 #include "../base/skybox.h"
 #include "../base/framebuffer.h"
@@ -47,10 +47,10 @@ private:
 	std::unique_ptr<FullscreenQuad> _fullscreenQuad;
 
 	std::unique_ptr<Framebuffer> _colorBlendFbo;
-	std::unique_ptr<DataTexture2D> _colorBlendTexture;
+	std::unique_ptr<Texture2D> _colorBlendTexture;
 	std::unique_ptr<Framebuffer> _fbos[2];
-	std::unique_ptr<DataTexture2D> _colorTextures[2];
-	std::unique_ptr<DataTexture2D> _depthTextures[2];
+	std::unique_ptr<Texture2D> _colorTextures[2];
+	std::unique_ptr<Texture2D> _depthTextures[2];
 
 	std::unique_ptr<GLSLProgram> _depthPeelingInitShader;
 	std::unique_ptr<GLSLProgram> _depthPeelingShader;

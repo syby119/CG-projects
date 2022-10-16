@@ -9,7 +9,7 @@
 #include "../base/glsl_program.h"
 #include "../base/camera.h"
 #include "../base/light.h"
-#include "../base/texture.h"
+#include "../base/texture2d.h"
 
 struct DrawElementsIndirectCommand {
 	unsigned int count;

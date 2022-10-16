@@ -18,6 +18,7 @@ include_directories(${THIRD_PARTY_LIBRARY_PATH}/stb)
 
 file(GLOB PROJECT_HDR ./*.h)
 file(GLOB PROJECT_SRC ./*.cpp)
+file(GLOB PROJECT_SHADERS ./*.vert ./*.geom ./*.frag)
 
 set(BASE_HDR ../base/application.h
              ../base/frame_rate_indicator.h
@@ -31,6 +32,8 @@ set(BASE_HDR ../base/application.h
              ../base/light.h
              ../base/sampler.h
              ../base/texture.h
+             ../base/texture2d.h
+             ../base/texture_cubemap.h
              ../base/fullscreen_quad.h)
 
 set(BASE_SRC ../base/application.cpp 
@@ -38,9 +41,33 @@ set(BASE_SRC ../base/application.cpp
              ../base/camera.cpp 
              ../base/transform.cpp
              ../base/texture.cpp
+             ../base/texture2d.cpp
+             ../base/texture_cubemap.cpp
              ../base/fullscreen_quad.cpp)
 
-add_executable(pbr_viewer ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
+add_executable(pbr_viewer ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR} ${PROJECT_SHADERS})
+
+source_group("Shader Files" FILES ${PROJECT_SHADERS})
+
+set(first True)
+foreach(shader ${PROJECT_SHADERS})
+    get_filename_component(name ${shader} NAME)
+
+    if (first)
+        set(cmd_comment "copy shaders to ${CMAKE_BINARY_DIR}/media/shader/pbr_viewer\n")
+        set(first False)
+    else()
+        set(cmd_comment "")
+    endif()
+    
+    add_custom_command(
+        TARGET pbr_viewer 
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E 
+        copy ${shader} ${CMAKE_BINARY_DIR}/media/shader/pbr_viewer/${name}
+        COMMENT ${cmd_comment}
+    )
+endforeach(shader)
 
 if(WIN32)
 set_target_properties(${PROJECT_NAME} PROPERTIES

@@ -60,7 +60,7 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
 
     try {
         // init texture
-        _texture.reset(new TextureCubemap(textureFilenames));
+        _texture.reset(new ImageTextureCubemap(textureFilenames));
 
         const char* vsCode =
             "#version 330 core\n"

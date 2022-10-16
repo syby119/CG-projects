@@ -55,14 +55,16 @@ private:
 		Normal,
 		Occlusion,
 		Emissive,
-	} _debugInput = { DebugInput::All };
+	};
+	enum DebugInput _debugInput = { DebugInput::All };
 
 	enum class SkyboxRenderMode : int {
 		Raw = 0,
 		Irradiance,
 		Prefilter,
 		BrdfLut
-	} _skyboxRenderMode = { SkyboxRenderMode::Raw };
+	};
+	enum SkyboxRenderMode _skyboxRenderMode = { SkyboxRenderMode::Raw };
 
 private:
 	void handleInput() override;

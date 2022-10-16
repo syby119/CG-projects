@@ -10,6 +10,10 @@ void Transform::setFromTRS(const glm::mat4& trs) {
 		glm::vec3(trs[2][0], trs[2][1], trs[2][2]) / scale[2]));
 }
 
+void Transform::lookAt(const glm::vec3& target, const glm::vec3& up) {
+	rotation = glm::quatLookAt(glm::normalize(target - position), up);
+}
+
 glm::vec3 Transform::getFront() const {
 	return rotation * getDefaultFront();
 }

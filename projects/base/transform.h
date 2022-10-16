@@ -13,6 +13,8 @@ public:
 public:
 	void setFromTRS(const glm::mat4& trs);
 
+	void lookAt(const glm::vec3& target, const glm::vec3& up = getDefaultUp());
+
 	glm::vec3 getFront() const;
 
 	glm::vec3 getUp() const;

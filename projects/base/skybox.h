@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "glsl_program.h"
-#include "texture.h"
+#include "texture_cubemap.h"
 
 class SkyBox {
 public:

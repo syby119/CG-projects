@@ -34,7 +34,7 @@ Transparency::Transparency(const Options& options): Application(options) {
 	_knotMaterial->transparent = 0.8f;
 
 	// init sphere texture
-	_transparentTexture.reset(new Texture2D(getAssetFullPath(transparentTextureRelPath)));
+	_transparentTexture.reset(new ImageTexture2D(getAssetFullPath(transparentTextureRelPath)));
 
 	// init fullscreen quad
 	_fullscreenQuad.reset(new FullscreenQuad);
@@ -377,21 +377,21 @@ void Transparency::initDepthPeelingResources() {
 	for (int i = 0; i < 2; ++i) {
 		_fbos[i].reset(new Framebuffer);
 		_colorTextures[i].reset(
-			new DataTexture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+			new Texture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 		_depthTextures[i].reset(
-			new DataTexture2D(GL_DEPTH_COMPONENT32F, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
+			new Texture2D(GL_DEPTH_COMPONENT32F, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
 
 		_fbos[i]->bind();
-		_fbos[i]->attach(*_colorTextures[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-		_fbos[i]->attach(*_depthTextures[i], GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
+		_fbos[i]->attachTexture(*_colorTextures[i], GL_COLOR_ATTACHMENT0);
+		_fbos[i]->attachTexture(*_depthTextures[i], GL_DEPTH_ATTACHMENT);
 		_fbos[i]->unbind();
 	}
 
-	_colorBlendTexture.reset(new DataTexture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+	_colorBlendTexture.reset(new Texture2D(GL_RGBA, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 	_colorBlendFbo.reset(new Framebuffer);
 	_colorBlendFbo->bind();
-	_colorBlendFbo->attach(*_colorBlendTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-	_colorBlendFbo->attach(*_depthTextures[0], GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
+	_colorBlendFbo->attachTexture(*_colorBlendTexture, GL_COLOR_ATTACHMENT0);
+	_colorBlendFbo->attachTexture(*_depthTextures[0], GL_DEPTH_ATTACHMENT);
 	_colorBlendFbo->unbind();
 }
 

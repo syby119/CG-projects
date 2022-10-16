@@ -24,8 +24,8 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 	_instancedAsternoids.reset(new InstancedModel(getAssetFullPath(asternoldRelPath), _modelMatrices));
 
 	// init textures
-	auto planetTexture = std::make_shared<Texture2D>(getAssetFullPath(planetTextureRelPath));
-	auto asternoidTexture = std::make_shared<Texture2D>(getAssetFullPath(asternoldTextureRelPath));
+	auto planetTexture = std::make_shared<ImageTexture2D>(getAssetFullPath(planetTextureRelPath));
+	auto asternoidTexture = std::make_shared<ImageTexture2D>(getAssetFullPath(asternoldTextureRelPath));
 
 	// init materials
 	_lineMaterial.reset(new LineMaterial);

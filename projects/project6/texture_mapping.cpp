@@ -25,9 +25,9 @@ TextureMapping::TextureMapping(const Options& options): Application(options) {
 
 	// init textures
 	std::shared_ptr<Texture2D> earthTexture = 
-		std::make_shared<Texture2D>(getAssetFullPath(earthTextureRelPath));
+		std::make_shared<ImageTexture2D>(getAssetFullPath(earthTextureRelPath));
 	std::shared_ptr<Texture2D> planetTexture = 
-		std::make_shared<Texture2D>(getAssetFullPath(planetTextureRelPath));
+		std::make_shared<ImageTexture2D>(getAssetFullPath(planetTextureRelPath));
 
 	// init materials
 	_simpleMaterial.reset(new SimpleMaterial);
@@ -249,7 +249,6 @@ void TextureMapping::renderFrame() {
 		_simpleShader->setUniformMat4("view", view);
 		_simpleShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
 		// 3. enable textures and transform textures to gpu
-		glActiveTexture(GL_TEXTURE0);
 		_simpleMaterial->mapKd->bind();
 		break;
 	case RenderMode::Blend:

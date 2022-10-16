@@ -33,7 +33,8 @@ set(BASE_HDR ../base/application.h
              ../base/bounding_box.h
              ../base/vertex.h
              ../base/light.h
-             ../base/texture.h)
+             ../base/texture.h
+             ../base/texture2d.h)
 
 set(BASE_SRC ../base/application.cpp 
              ../base/glsl_program.cpp 
@@ -41,6 +42,7 @@ set(BASE_SRC ../base/application.cpp
              ../base/transform.cpp
              ../base/model.cpp
              ../base/texture.cpp
+             ../base/texture2d.cpp
              ../base/instanced_model.cpp)
 
 add_executable(bonus2 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})

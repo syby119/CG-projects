@@ -9,26 +9,26 @@ const std::string modelRelPath = "gltf/DamagedHelmet.gltf";
 //const std::string modelRelPath = "gltf/drone/scene.gltf";
 //const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
 
-const std::string pbrVertShaderRelPath = "shader/pbr.vert";
-const std::string pbrFragShaderRelPath = "shader/pbr.frag";
+const std::string pbrVertShaderRelPath = "shader/pbr_viewer/pbr.vert";
+const std::string pbrFragShaderRelPath = "shader/pbr_viewer/pbr.frag";
 
-const std::string skyboxVertShaderRelPath = "shader/skybox.vert";
-const std::string skyboxFragShaderRelPath = "shader/skybox.frag";
+const std::string skyboxVertShaderRelPath = "shader/pbr_viewer/skybox.vert";
+const std::string skyboxFragShaderRelPath = "shader/pbr_viewer/skybox.frag";
 
-const std::string equirectVertShaderRelPath = "shader/filter_cube.vert";
-const std::string equirectFragShaderRelPath = "shader/equirectangular_to_cubemap.frag";
+const std::string equirectVertShaderRelPath = "shader/pbr_viewer/filter_cube.vert";
+const std::string equirectFragShaderRelPath = "shader/pbr_viewer/equirectangular_to_cubemap.frag";
 
-const std::string irradianceVertShaderRelPath = "shader/filter_cube.vert";
-const std::string irradianceFragShaderRelPath = "shader/irradiance.frag";
+const std::string irradianceVertShaderRelPath = "shader/pbr_viewer/filter_cube.vert";
+const std::string irradianceFragShaderRelPath = "shader/pbr_viewer/irradiance.frag";
 
-const std::string prefilterVertShaderRelPath = "shader/filter_cube.vert";
-const std::string prefilterFragShaderRelPath = "shader/prefilter.frag";
+const std::string prefilterVertShaderRelPath = "shader/pbr_viewer/filter_cube.vert";
+const std::string prefilterFragShaderRelPath = "shader/pbr_viewer/prefilter.frag";
 
-const std::string brdfLutVertShaderRelPath = "shader/brdf_lut.vert";
-const std::string brdfLutFragShaderRelPath = "shader/brdf_lut.frag";
+const std::string brdfLutVertShaderRelPath = "shader/pbr_viewer/brdf_lut.vert";
+const std::string brdfLutFragShaderRelPath = "shader/pbr_viewer/brdf_lut.frag";
 
-const std::string quadVertShaderRelPath = "shader/quad.vert";
-const std::string quadFragShaderRelPath = "shader/quad.frag";
+const std::string quadVertShaderRelPath = "shader/pbr_viewer/quad.vert";
+const std::string quadFragShaderRelPath = "shader/pbr_viewer/quad.frag";
 
 const std::string skyboxTextureRelPaths = "texture/hdr/newport_loft.hdr";
 

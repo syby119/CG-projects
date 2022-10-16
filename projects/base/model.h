@@ -33,6 +33,9 @@ public:
 
     virtual void drawBoundingBox() const;
 
+    const std::vector<uint32_t>& getIndices() const { return _indices; }
+    const std::vector<Vertex>& getVertices() const { return _vertices; }
+    const Vertex& getVertex(int i) const { return _vertices[i]; }
 public:
     Transform transform;
 

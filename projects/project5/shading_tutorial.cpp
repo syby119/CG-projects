@@ -227,7 +227,10 @@ void ShadingTutorial::initPhongShader() {
 }
 
 void ShadingTutorial::handleInput() {
-
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
 }
 
 void ShadingTutorial::renderFrame() {

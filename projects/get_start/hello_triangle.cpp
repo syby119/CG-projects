@@ -57,7 +57,10 @@ HelloTriangle::~HelloTriangle() {
 }
 
 void HelloTriangle::handleInput() {
-
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
 }
 
 void HelloTriangle::renderFrame() {

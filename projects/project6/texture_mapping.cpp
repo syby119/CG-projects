@@ -213,6 +213,11 @@ void TextureMapping::initCheckerShader() {
 }
 
 void TextureMapping::handleInput() {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
+
 	const float angluarVelocity = 0.1f;
 	const float angle = angluarVelocity * static_cast<float>(_deltaTime);
 	const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);

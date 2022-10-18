@@ -105,6 +105,11 @@ PbrViewer::~PbrViewer() {
 }
 
 void PbrViewer::handleInput() {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
+
 	if (!ImGui::GetIO().WantCaptureMouse) {
 		_cameraController->update(_input, _deltaTime);
 	}

@@ -30,7 +30,10 @@ RenderFlag::RenderFlag(const Options& options): Application(options) {
 }
 
 void RenderFlag::handleInput() {
-	// do nothing
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
 }
 
 void RenderFlag::renderFrame() {

@@ -165,6 +165,11 @@ ShadowMapping::~ShadowMapping() {
 }
 
 void ShadowMapping::handleInput() {
+	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+		glfwSetWindowShouldClose(_window, true);
+		return ;
+	}
+
 	constexpr float cameraMoveSpeed = 50.0f;
 	if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
 		_camera->transform.position += cameraMoveSpeed * _camera->transform.getFront() * _deltaTime;

@@ -7,6 +7,24 @@
 const std::string knotRelPath = "obj/knot.obj";
 const std::string transparentTextureRelPath = "texture/miscellaneous/transparent.png";
 
+const std::string alphaTestingVsRelPath = "shader/bonus1/model.vert";
+const std::string alphaTestingFsRelPath = "shader/bonus1/alpha_test.frag";
+
+const std::string alphaBlendingVsRelPath = "shader/bonus1/model.vert";
+const std::string alphaBlendingFsRelPath = "shader/bonus1/alpha_blend.frag";
+
+const std::string oitInitVsRelPath = "shader/bonus1/model.vert";
+const std::string oitInitFsRelPath = "shader/bonus1/oit_init.frag";
+
+const std::string oitPeelVsRelPath = "shader/bonus1/model.vert";
+const std::string oitPeelFsRelPath = "shader/bonus1/oit_peel.frag";
+
+const std::string oitBlendVsRelPath = "shader/bonus1/quad.vert";
+const std::string oitBlendFsRelPath = "shader/bonus1/oit_blend.frag";
+
+const std::string oitFinalVsRelPath = "shader/bonus1/quad.vert";
+const std::string oitFinalFsRelPath = "shader/bonus1/oit_final.frag";
+
 Transparency::Transparency(const Options& options): Application(options) {
 	// init models
 	_knot.reset(new Model(getAssetFullPath(knotRelPath)));
@@ -65,311 +83,39 @@ Transparency::~Transparency() {
 }
 
 void Transparency::initAlphaTestingShader() {
-	const char* vsCode = 
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexCoord;\n"
-
-		"out vec3 fPos;\n"
-		"out vec3 fNormal;\n"
-		"out vec2 fTexCoord;\n"
-
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-
-		"void main() {\n"
-		"	fPos = vec3(model * vec4(aPosition, 1.0f));\n"
-		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
-		"	fTexCoord = aTexCoord;\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"} \n";
-
-
-	// TODO: modify the following code to achieve the alpha testing algorithm
-	// modify the code here
-	// ------------------------------------------------------------------
-	const char* fsCode =
-	"#version 330 core\n"
-		"in vec3 fPos;\n"
-		"in vec3 fNormal;\n"
-		"in vec2 fTexCoord;\n"
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 albedo;\n"
-		"	float ka;\n"
-		"	vec3 kd;\n"
-		"	float transparent;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"uniform Material material;\n"
-		"uniform DirectionalLight directionalLight;\n"
-		"uniform sampler2D transparentTexture;\n"
-
-
-		"void main() {\n"
-		"	vec4 texColor = texture(transparentTexture, fTexCoord);\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
-		"	vec3 ambient = material.ka * material.albedo;\n"
-		"	vec3 diffuse = material.kd * texColor.rgb * max(dot(lightDir, normal), 0.0f) * \n"
-		"				   directionalLight.color * directionalLight.intensity;\n"
-		"	color = vec4(ambient + diffuse, 1.0f);\n"
-		"}\n";
-	 // ------------------------------------------------------------------
-
+	// TODO: modify the alpha_testing.frag code to achieve the alpha testing algorithm
 	_alphaTestingShader.reset(new GLSLProgram);
-	_alphaTestingShader->attachVertexShader(vsCode);
-	_alphaTestingShader->attachFragmentShader(fsCode);
+	_alphaTestingShader->attachVertexShaderFromFile(getAssetFullPath(alphaTestingVsRelPath));
+	_alphaTestingShader->attachFragmentShaderFromFile(getAssetFullPath(alphaTestingFsRelPath));
 	_alphaTestingShader->link();
 }
 
 void Transparency::initAlphaBlendingShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexCoord;\n"
-
-		"out vec3 fPos;\n"
-		"out vec3 fNormal;\n"
-
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-
-		"void main() {\n"
-		"	fPos = vec3(model * vec4(aPosition, 1.0f));\n"
-		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"} \n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"in vec3 fPos;\n"
-		"in vec3 fNormal;\n"
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 albedo;\n"
-		"	float ka;\n"
-		"	vec3 kd;\n"
-		"	float transparent;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"uniform Material material;\n"
-		"uniform DirectionalLight directionalLight;\n"
-
-		"void main() {\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
-		"	vec3 ambient = material.ka * material.albedo ;\n"
-		"	vec3 diffuse = material.kd * max(dot(lightDir, normal), 0.0f) * \n"
-		"				   directionalLight.color * directionalLight.intensity;\n"
-		"	color = vec4(ambient + diffuse, material.transparent);\n"
-		"}\n";
-
 	_alphaBlendingShader.reset(new GLSLProgram);
-	_alphaBlendingShader->attachVertexShader(vsCode);
-	_alphaBlendingShader->attachFragmentShader(fsCode);
+	_alphaBlendingShader->attachVertexShaderFromFile(getAssetFullPath(alphaBlendingVsRelPath));
+	_alphaBlendingShader->attachFragmentShaderFromFile(getAssetFullPath(alphaBlendingFsRelPath));
 	_alphaBlendingShader->link();
 }
 
 void Transparency::initDepthPeelingShaders() {
-	const char* shadeVsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexCoord;\n"
-		
-		"out vec3 fPos;\n"
-		"out vec3 fNormal;\n"
-		
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-		
-		"void main() {\n"
-		"	fPos = vec3(model * vec4(aPosition, 1.0f));\n"
-		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* blendVsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec2 aPosition;\n"
-		"layout(location = 1) in vec2 aTexCoords;\n"
-		"out vec2 fTexCoords;\n"
-		"void main() {\n"
-		"	fTexCoords = aTexCoords;\n"
-		"	gl_Position = vec4(aPosition, 0.0f, 1.0f);\n"
-		"}\n";
-	
-	const char* initFsCode =
-		"#version 330 core\n"
-		"in vec3 fPos;\n"
-		"in vec3 fNormal;\n"
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 albedo;\n"
-		"	float ka;\n"
-		"	vec3 kd;\n"
-		"	float transparent;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"uniform Material material;\n"
-		"uniform DirectionalLight directionalLight;\n"
-		
-		"vec3 lambertShading() {\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	if (!gl_FrontFacing) { \n"
-		"		normal = -normal;\n"
-		"	}\n"
-		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
-		"	vec3 ambient = material.ka * material.albedo ;\n"
-		"	vec3 diffuse = material.kd * max(dot(lightDir, normal), 0.0f) * \n"
-		"				   directionalLight.color * directionalLight.intensity;\n"
-		"	return ambient + diffuse;\n"
-		"}\n"
-
-		"void main() {\n"
-		"	vec3 premultiedColor = lambertShading() * material.transparent;\n"
-		"	color = vec4(premultiedColor, 1.0f - material.transparent);\n"
-		"}\n";
-
-	const char* peelFsCode =
-		"#version 330 core\n"
-		"in vec3 fPos;\n"
-		"in vec3 fNormal;\n"
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 albedo;\n"
-		"	float ka;\n"
-		"	vec3 kd;\n"
-		"	float transparent;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"struct WindowExtent {\n"
-		"	int width;\n"
-		"	int height;\n"
-		"};\n"
-
-		"uniform Material material;\n"
-		"uniform DirectionalLight directionalLight;\n"
-		"uniform sampler2D depthTexture;\n"
-		"uniform WindowExtent windowExtent;\n"
-
-		"float getPeelingDepth() {\n"
-		"	float u = gl_FragCoord.x / windowExtent.width;\n"
-		"	float v = gl_FragCoord.y / windowExtent.height;\n"
-		"	return texture(depthTexture, vec2(u, v)).r;\n"
-		"}\n"
-
-		"vec3 lambertShading() {\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	if (!gl_FrontFacing) { \n"
-		"		normal = -normal;\n"
-		"	}\n"
-		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
-		"	vec3 ambient = material.ka * material.albedo ;\n"
-		"	vec3 diffuse = material.kd * max(dot(lightDir, normal), 0.0f) * \n"
-		"				   directionalLight.color * directionalLight.intensity;\n"
-		"	return ambient + diffuse;\n"
-		"}\n"
-
-		"void main() {\n"
-		"	if (gl_FragCoord.z <= getPeelingDepth()) {\n"
-		"		discard;\n"
-		"	}\n"
-
-		"	vec3 premultiedColor = lambertShading() * material.transparent;\n"
-		"	color = vec4(premultiedColor, material.transparent);\n"
-		"}\n";
-
-	const char* blendFsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-
-		"struct WindowExtent {\n"
-		"	int width;\n"
-		"	int height;\n"
-		"};\n"
-
-		"uniform WindowExtent windowExtent;\n"
-		"uniform sampler2D blendTexture;\n"
-		
-		"void main() {\n"
-		"	float u = gl_FragCoord.x / windowExtent.width;\n"
-		"	float v = gl_FragCoord.y / windowExtent.height;\n"
-		"	color = texture(blendTexture, vec2(u, v));\n"
-		"}\n";
-
-	const char* finalFsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-
-		"struct WindowExtent {\n"
-		"	int width;\n"
-		"	int height;\n"
-		"};\n"
-
-		"uniform WindowExtent windowExtent;\n"
-		"uniform sampler2D blendTexture;\n"
-		"uniform vec4 backgroundColor;\n"
-
-		"void main() {\n"
-		"	float u = gl_FragCoord.x / windowExtent.width;\n"
-		"	float v = gl_FragCoord.y / windowExtent.height;\n"
-		"	vec4 frontColor = texture(blendTexture, vec2(u, v));\n"
-		"	color = frontColor + backgroundColor * frontColor.a;\n"
-		"}\n";
-
 	_depthPeelingInitShader.reset(new GLSLProgram);
-	_depthPeelingInitShader->attachVertexShader(shadeVsCode);
-	_depthPeelingInitShader->attachFragmentShader(initFsCode);
+	_depthPeelingInitShader->attachVertexShaderFromFile(getAssetFullPath(oitInitVsRelPath));
+	_depthPeelingInitShader->attachFragmentShaderFromFile(getAssetFullPath(oitInitFsRelPath));
 	_depthPeelingInitShader->link();
 
 	_depthPeelingShader.reset(new GLSLProgram);
-	_depthPeelingShader->attachVertexShader(shadeVsCode);
-	_depthPeelingShader->attachFragmentShader(peelFsCode);
+	_depthPeelingShader->attachVertexShaderFromFile(getAssetFullPath(oitPeelVsRelPath));
+	_depthPeelingShader->attachFragmentShaderFromFile(getAssetFullPath(oitPeelFsRelPath));
 	_depthPeelingShader->link();
 
 	_depthPeelingBlendShader.reset(new GLSLProgram);
-	_depthPeelingBlendShader->attachVertexShader(blendVsCode);
-	_depthPeelingBlendShader->attachFragmentShader(blendFsCode);
+	_depthPeelingBlendShader->attachVertexShaderFromFile(getAssetFullPath(oitBlendVsRelPath));
+	_depthPeelingBlendShader->attachFragmentShaderFromFile(getAssetFullPath(oitBlendFsRelPath));
 	_depthPeelingBlendShader->link();
 
 	_depthPeelingFinalShader.reset(new GLSLProgram);
-	_depthPeelingFinalShader->attachVertexShader(blendVsCode);
-	_depthPeelingFinalShader->attachFragmentShader(finalFsCode);
+	_depthPeelingFinalShader->attachVertexShaderFromFile(getAssetFullPath(oitFinalVsRelPath));
+	_depthPeelingFinalShader->attachFragmentShaderFromFile(getAssetFullPath(oitFinalFsRelPath));
 	_depthPeelingFinalShader->link();
 }
 
@@ -442,8 +188,7 @@ void Transparency::renderWithAlphaTesting() {
 	_alphaTestingShader->setUniformVec3("material.kd", _knotMaterial->kd);
 	_alphaTestingShader->setUniformFloat("material.transparent", _knotMaterial->transparent);
 	// 4 set texture
-	glActiveTexture(GL_TEXTURE0);
-	_transparentTexture->bind();
+	_transparentTexture->bind(0);
 
 	_knot->draw();
 }

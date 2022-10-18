@@ -15,6 +15,32 @@ const std::string arrowRelPath = "obj/arrow.obj";
 const std::string sphereRelPath = "obj/sphere.obj";
 const std::string cubeRelPath = "obj/cube.obj";
 
+const std::string lightVsRelPath = "shader/bonus4/light.vert";
+const std::string lightFsRelPath = "shader/bonus4/light.frag";
+
+const std::string directionalDepthVsRelPath = "shader/bonus4/directional_depth.vert";
+const std::string directionalDepthFsRelPath = "shader/bonus4/directional_depth.frag";
+
+const std::string quadVsRelPath = "shader/bonus4/quad.vert";
+const std::string quadFsRelPath = "shader/bonus4/quad.frag";
+
+const std::string omnidirectionalDepthVsRelPath = "shader/bonus4/omnidirectional_depth.vert";
+const std::string omnidirectionalDepthGsRelPath = "shader/bonus4/omnidirectional_depth.geom";
+const std::string omnidirectionalDepthFsRelPath = "shader/bonus4/omnidirectional_depth.frag";
+
+const std::string cubeVsRelPath = "shader/bonus4/cube.vert";
+const std::string cubeFsRelPath = "shader/bonus4/cube.frag";
+
+const std::string directionalDepthCsmVsRelPath = "shader/bonus4/directional_depth_csm.vert";
+const std::string directionalDepthCsmGsRelPath = "shader/bonus4/directional_depth_csm.geom";
+const std::string directionalDepthCsmFsRelPath = "shader/bonus4/directional_depth_csm.frag";
+
+const std::string quadCsmVsRelPath = "shader/bonus4/quad_csm.vert";
+const std::string quadCsmFsRelPath = "shader/bonus4/quad_csm.frag";
+
+const std::string lambertVsRelPath = "shader/bonus4/lambert.vert";
+const std::string lambertFsRelPath = "shader/bonus4/lambert.frag";
+
 ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
 	// init bunnies
 	for (int i = 0; i < 9; ++i) {
@@ -110,8 +136,8 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
 	_depthTextureArray->bind();
 	_depthTextureArray->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	_depthTextureArray->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	_depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	_depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	_depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	_depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	_depthTextureArray->setParamterFloatVector(GL_TEXTURE_BORDER_COLOR, borderColor);
 	_depthTextureArray->unbind();
 
@@ -125,6 +151,11 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(_window, true);
 	ImGui_ImplOpenGL3_Init();
+
+	// render a frame ahead of time to fix the bug in Ubuntu
+	_enableCascadeShadowMapping = true;
+	renderFrame();
+	_enableCascadeShadowMapping = false;
 }
 
 ShadowMapping::~ShadowMapping() {
@@ -241,343 +272,74 @@ void ShadowMapping::initShaders() {
 }
 
 void ShadowMapping::initLambertShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexCoord;\n"
-
-		"out vec3 fPosition;\n"
-		"out vec4 fPositionInLightSpace;\n"
-		"out vec3 fNormal;\n"
-
-		"uniform mat4 model;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 projection;\n"
-		"uniform mat4 lightSpaceMatrix;\n"
-
-		"void main() {\n"
-		"	fPosition = vec3(model * vec4(aPosition, 1.0f));\n"
-		"	fPositionInLightSpace = lightSpaceMatrix * vec4(fPosition, 1.0f);\n"
-		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	// TODO: change the code here to render soft shadows, including
+	// TODO: change the lambert.frag code to render soft shadows, including
 	// + shadow mapping for the directional light
 	// + omnidirectional shadow mapping for the point light
 	// + cascade shadow mapping for the directional light
-	// -------------------------------------------------------------------
-	const char* fsCode =
-		"#version 330 core\n"
-
-		"in vec3 fPosition;\n"
-		"in vec4 fPositionInLightSpace;\n"
-		"in vec3 fNormal;\n"
-
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 ka;\n"
-		"	vec3 kd;\n"
-		"};\n"
-
-		"struct AmbientLight {\n"
-		"	vec3 color;\n"
-		"	float intensity;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"struct PointLight {\n"
-		"	vec3 position;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"	float kc;\n"
-		"	float kl;\n"
-		"	float kq;\n"
-		"};\n"
-
-		"uniform mat4 view;\n"
-		"uniform vec3 viewPosition;\n"
-
-		"uniform Material material;\n"
-
-		"uniform AmbientLight ambientLight;\n"
-		"uniform DirectionalLight directionalLight;\n"
-		"uniform PointLight pointLight;\n"
-		"uniform float pointLightZfar;\n"
-
-		"uniform int directionalFilterRadius;\n"
-		"uniform sampler2D depthTexture;\n"
-
-		"uniform mat4 lightSpaceMatrices[16];\n"
-		"uniform float cascadeZfars[16];\n"
-		"uniform float cascadeBiasModifiers[16];\n"
-		"uniform int cascadeCount;\n"
-		"uniform sampler2DArray depthTextureArray;\n"
-
-		"uniform bool enableOmnidirectionalPCF;\n"
-		"uniform samplerCube depthCubeTexture;\n"
-
-		"vec3 calcAmbientLight() {\n"
-		"	return ambientLight.color * ambientLight.intensity * material.ka;\n"
-		"}\n"
-
-		"vec3 calcDirectionalLight(vec3 normal) {\n"
-		"	vec3 lightDir = normalize(-directionalLight.direction);\n"
-		"	vec3 diffuse = directionalLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;\n"
-		"	return directionalLight.intensity * diffuse ;\n"
-		"}\n"
-
-		"vec3 calcPointLight(vec3 normal) {\n"
-		"	vec3 lightDir = normalize(pointLight.position - fPosition);\n"
-		"	vec3 diffuse = pointLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;\n"
-		"	float distance = length(pointLight.position - fPosition);\n"
-		"	float attenuation = 1.0f / (pointLight.kc + pointLight.kl * distance + pointLight.kq * distance * distance);\n"
-		"	return pointLight.intensity * attenuation * diffuse;\n"
-		"}\n"
-
-		"void main() {\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	vec3 ambient = calcAmbientLight();\n"
-		"	vec3 diffuse = calcDirectionalLight(normal) + calcPointLight(normal);\n"
-		"	color = vec4(ambient + diffuse, 1.0f);\n"
-		"}\n";
-		// ---------------------------------------------------------------------------------------------------
-
 	_lambertShader.reset(new GLSLProgram);
-	_lambertShader->attachVertexShader(vsCode);
-	_lambertShader->attachFragmentShader(fsCode);
+	_lambertShader->attachVertexShaderFromFile(getAssetFullPath(lambertVsRelPath));
+	_lambertShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
 	_lambertShader->link();
 }
 
 void ShadowMapping::initLightShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-		"void main() {\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-		"void main() {\n"
-		"	color = vec4(1.0f);\n"
-		"}\n";
-
 	_lightShader.reset(new GLSLProgram);
-	_lightShader->attachVertexShader(vsCode);
-	_lightShader->attachFragmentShader(fsCode);
+	_lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath));
+	_lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath));
 	_lightShader->link();
 }
 
 void ShadowMapping::initDirectionalDepthShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-
-		"uniform mat4 lightSpaceMatrix;\n"
-		"uniform mat4 model;\n"
-
-		"void main() {\n"
-		"	gl_Position = lightSpaceMatrix * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"void main() {\n"
-		"	// gl_FragDepth = gl_FragCoord.z;\n"
-		"}\n";
-
 	_directionalDepthShader.reset(new GLSLProgram);
-	_directionalDepthShader->attachVertexShader(vsCode);
-	_directionalDepthShader->attachFragmentShader(fsCode);
+	_directionalDepthShader->attachVertexShaderFromFile(getAssetFullPath(directionalDepthVsRelPath));
+	_directionalDepthShader->attachFragmentShaderFromFile(getAssetFullPath(directionalDepthFsRelPath));
 	_directionalDepthShader->link();
 }
 
 void ShadowMapping::initOmnidirectionalDepthShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-
-		"uniform mat4 model;\n"
-
-		"void main() {\n"
-		"	gl_Position = model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* gsCode =
-		"#version 330 core\n"
-		"layout(triangles) in;\n"
-		"layout(triangle_strip, max_vertices = 18) out;\n"
-
-		"uniform mat4 lightSpaceMatrices[6];\n"
-		"out vec4 fPosition;\n"
-		"void main() {\n"
-		"	for (int i = 0; i < 6; ++i) {;\n"
-		"		gl_Layer = i;\n"
-		"		for (int j = 0; j < 3; ++j) {\n"
-		"			fPosition = gl_in[j].gl_Position;\n"
-		"			gl_Position = lightSpaceMatrices[i] * fPosition;\n"
-		"			EmitVertex();\n"
-		"		}\n"
-		"		EndPrimitive();\n"
-		"	}\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"in vec4 fPosition;\n"
-
-		"uniform vec3 lightPosition;\n"
-		"uniform float zFar;\n"
-
-		"void main() {\n"
-		"	gl_FragDepth = length(fPosition.xyz - lightPosition) / zFar;\n"
-		"}\n";
-
 	_omnidirectionalDepthShader.reset(new GLSLProgram);
-	_omnidirectionalDepthShader->attachVertexShader(vsCode);
-	_omnidirectionalDepthShader->attachGeometryShader(gsCode);
-	_omnidirectionalDepthShader->attachFragmentShader(fsCode);
+
+	_omnidirectionalDepthShader->attachVertexShaderFromFile(
+		getAssetFullPath(omnidirectionalDepthVsRelPath));
+	_omnidirectionalDepthShader->attachGeometryShaderFromFile(
+		getAssetFullPath(omnidirectionalDepthGsRelPath));
+	_omnidirectionalDepthShader->attachFragmentShaderFromFile(
+		getAssetFullPath(omnidirectionalDepthFsRelPath));
+	
 	_omnidirectionalDepthShader->link();
 }
 
 void ShadowMapping::initDirectionalCascadeDepthShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"uniform mat4 model;\n"
-		"void main() {\n"
-		"	gl_Position = model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* gsCode =
-		"#version 400 core\n"
-		"#define MATRIX_COUNT 5\n"
-
-		"layout(triangles, invocations = MATRIX_COUNT) in;\n"
-		"layout(triangle_strip, max_vertices = 3) out;\n"
-
-		"uniform mat4 lightSpaceMatrices[MATRIX_COUNT];\n"
-
-		"void main() {\n"
-		"	for (int i = 0; i < 3; ++i) {\n"
-		"		gl_Position = lightSpaceMatrices[gl_InvocationID] * gl_in[i].gl_Position;\n"
-		"		gl_Layer = gl_InvocationID;\n"
-		"		EmitVertex();\n"
-		"	}\n"
-		"	EndPrimitive();"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"void main() {\n"
-		"}\n";
-
 	_directionalCascadeDepthShader.reset(new GLSLProgram);
-	_directionalCascadeDepthShader->attachVertexShader(vsCode);
-	_directionalCascadeDepthShader->attachGeometryShader(gsCode);
-	_directionalCascadeDepthShader->attachFragmentShader(fsCode);
+
+	_directionalCascadeDepthShader->attachVertexShaderFromFile(
+		getAssetFullPath(directionalDepthCsmVsRelPath));
+	_directionalCascadeDepthShader->attachGeometryShaderFromFile(
+		getAssetFullPath(directionalDepthCsmGsRelPath));
+	_directionalCascadeDepthShader->attachFragmentShaderFromFile(
+		getAssetFullPath(directionalDepthCsmFsRelPath));
+
 	_directionalCascadeDepthShader->link();
 }
 
 void ShadowMapping::initQuadShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec2 aPosition;\n"
-		"layout(location = 1) in vec2 aTexCoord;\n"
-		"out vec2 fTexCoord;\n"
-		"void main() {\n"
-		"	fTexCoord = aTexCoord;\n"
-		"	gl_Position = vec4(aPosition, 0.0f, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-		"in vec2 fTexCoord;\n"
-
-		"uniform sampler2D depthTexture;\n"
-
-		"void main() {\n"
-		"	float depth = texture(depthTexture, fTexCoord).r;\n"
-		"	color = vec4(vec3(depth), 1.0f);\n"
-		"}\n";
-
 	_quadShader.reset(new GLSLProgram);
-	_quadShader->attachVertexShader(vsCode);
-	_quadShader->attachFragmentShader(fsCode);
+	_quadShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+	_quadShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
 	_quadShader->link();
 }
 
 void ShadowMapping::initQuadCascadeShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec2 aPosition;\n"
-		"layout(location = 1) in vec2 aTexCoord;\n"
-		"out vec2 fTexCoord;\n"
-		"void main() {\n"
-		"	fTexCoord = aTexCoord;\n"
-		"	gl_Position = vec4(aPosition, 0.0f, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-		"in vec2 fTexCoord;\n"
-
-		"uniform int level;\n"
-		"uniform sampler2DArray depthTextureArray;\n"
-
-		"void main() {\n"
-		"	float depth = texture(depthTextureArray, vec3(fTexCoord, level)).r;\n"
-		"	color = vec4(vec3(depth), 1.0f);\n"
-		"}\n";
-
 	_quadCascadeShader.reset(new GLSLProgram);
-	_quadCascadeShader->attachVertexShader(vsCode);
-	_quadCascadeShader->attachFragmentShader(fsCode);
+	_quadCascadeShader->attachVertexShaderFromFile(getAssetFullPath(quadCsmVsRelPath));
+	_quadCascadeShader->attachFragmentShaderFromFile(getAssetFullPath(quadCsmFsRelPath));
 	_quadCascadeShader->link();
 }
 
 void ShadowMapping::initCubeShader() {
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-
-		"out vec3 fPosition;\n"
-
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-
-		"void main() {\n"
-		"	fPosition = (model * vec4(aPosition, 1.0f)).xyz;"
-		"	gl_Position = projection * mat4(mat3(view)) * vec4(fPosition, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-		"in vec3 fPosition;\n"
-		"uniform samplerCube depthCubeTexture;\n"
-		"void main() {\n"
-		"	color = vec4(texture(depthCubeTexture, fPosition).rrr, 1.0f);\n"
-		"}\n";
-
 	_cubeShader.reset(new GLSLProgram);
-	_cubeShader->attachVertexShader(vsCode);
-	_cubeShader->attachFragmentShader(fsCode);
+	_cubeShader->attachVertexShaderFromFile(getAssetFullPath(cubeVsRelPath));
+	_cubeShader->attachFragmentShaderFromFile(getAssetFullPath(cubeFsRelPath));
 	_cubeShader->link();
 }
 
@@ -587,8 +349,7 @@ void ShadowMapping::renderDirectionalLightShadowMap() {
 
 	if (!_enableCascadeShadowMapping) {
 		_framebuffer->attachTexture(*_depthTexture, GL_DEPTH_ATTACHMENT);
-	}
-	else {
+	} else {
 		_framebuffer->attachTexture(*_depthTextureArray, GL_DEPTH_ATTACHMENT);
 	}
 
@@ -599,8 +360,7 @@ void ShadowMapping::renderDirectionalLightShadowMap() {
 
 	if (!_enableCascadeShadowMapping) {
 		shader->setUniformMat4("lightSpaceMatrix", _directionalLightSpaceMatrix);
-	}
-	else {
+	} else {
 		for (size_t i = 0; i < _directionalLightSpaceMatrices.size(); ++i) {
 			shader->setUniformMat4(
 				"lightSpaceMatrices[" + std::to_string(i) + "]", _directionalLightSpaceMatrices[i]);
@@ -688,8 +448,7 @@ void ShadowMapping::renderScene() {
 		_lambertShader->setUniformInt("depthTexture", 0);
 		_depthTexture->bind(0);
 		_lambertShader->setUniformInt("cascadeCount", 0);
-	}
-	else {
+	} else {
 		_lambertShader->setUniformInt("depthTextureArray", 2);
 		_depthTextureArray->bind(2);
 		_lambertShader->setUniformInt("cascadeCount", static_cast<int>(_directionalLightSpaceMatrices.size()));
@@ -770,10 +529,12 @@ void ShadowMapping::renderDebugView() {
 			_quadCascadeShader->use();
 			_quadCascadeShader->setUniformInt("depthTextureArray", 0);
 			_depthTextureArray->bind(0);
-			int level = static_cast<int>(_debugView) - static_cast<int>(DebugView::CascadeDepthTextureLevel0);
-			_quadCascadeShader->setUniformInt("level", level);
+			_quadCascadeShader->setUniformInt("level", 
+				static_cast<int>(_debugView) - static_cast<int>(DebugView::CascadeDepthTextureLevel0));
 
 			_quad->draw();
+			break;
+		default:
 			break;
 	}
 }

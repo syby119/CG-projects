@@ -10,7 +10,7 @@ Options getOptions(int argc, char* argv[]) {
 	options.windowResizable = false;
 	options.vSync = true;
 	options.msaa = true;
-	options.glVersion = { 4, 6 };
+	options.glVersion = { 4, 0 };
 	options.backgroundColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
 	options.assetRootDir = "../../media/";
 

@@ -1,8 +1,7 @@
 #include <iostream>
 #include <cstdlib>
-#include "frustum_culling.h"
 
-#define INDIRECT_DRAW_SUPPORT
+#include "frustum_culling.h"
 
 Options getOptions(int argc, char* argv[]) {
 	Options options;
@@ -12,7 +11,7 @@ Options getOptions(int argc, char* argv[]) {
 	options.windowResizable = false;
 	options.vSync = true;
 	options.msaa = true;
-#ifdef INDIRECT_DRAW_SUPPORT
+#ifndef __APPLE__
 	options.glVersion = { 4, 3 };
 #else
 	options.glVersion = { 4, 0 };
@@ -29,10 +28,12 @@ int main(int argc, char* argv[]) {
 	try {
 		FrustumCulling app(options);
 		app.run();
-	} catch (std::exception& e) {
+	}
+	catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
-	} catch (...) {
+	}
+	catch (...) {
 		std::cerr << "Unknown Error" << std::endl;
 		return EXIT_FAILURE;
 	}

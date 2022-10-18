@@ -7,6 +7,8 @@ class Camera {
 public:
 	Transform transform;
 public:
+	virtual ~Camera() = default;
+	
 	glm::mat4 getViewMatrix() const;
 
 	virtual glm::mat4 getProjectionMatrix() const = 0;

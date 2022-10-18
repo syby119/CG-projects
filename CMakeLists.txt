@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -14,6 +14,8 @@ add_subdirectory(./external/glad)
 set_target_properties(glad PROPERTIES FOLDER "lib")
 
 add_subdirectory(./external/glm)
+
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "utility")
 
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)

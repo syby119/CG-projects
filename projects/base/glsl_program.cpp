@@ -68,7 +68,8 @@ void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
 }
 
 void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
-
+    const std::string& code = readFile(filePath);
+    attachGeometryShader(code);
 }
 
 void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {

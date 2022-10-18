@@ -12,6 +12,16 @@ const std::string planetTextureRelPath = "texture/miscellaneous/planet_Quom1200.
 const std::string asternoldRelPath = "obj/rock.obj";
 const std::string asternoldTextureRelPath = "texture/miscellaneous/Rock-Texture-Surface.jpg";
 
+const std::string aabbVsRelPath = "shader/bonus2/aabb.vert";
+const std::string aabbInstancedVsRelPath = "shader/bonus2/aabb_instanced.vert";
+const std::string aabbFsRelPath = "shader/bonus2/aabb.frag";
+
+const std::string lambertVsRelPath = "shader/bonus2/lambert.vert";
+const std::string lambertInstancedVsRelPath = "shader/bonus2/lambert_instanced.vert";
+const std::string lambertFsRelPath = "shader/bonus2/lambert.frag";
+
+const std::string frustumCullingVsRelPath = "shader/bonus2/frustum_culling.vert";
+
 FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 	// init model matrices
 	initModelMatrices();
@@ -131,124 +141,24 @@ void FrustumCulling::initModelMatrices() {
 }
 
 void FrustumCulling::initShaders() {
-	const char* lineVsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-		"void main() {\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* lineVsInstancedCode = 
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in mat4 aInstanceMatrix;\n"
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"void main() {\n"
-		"	gl_Position = projection * view * aInstanceMatrix * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* lineFsCode =
-		"#version 330 core\n"
-		"out vec4 color;\n"
-		"struct Material {\n"
-		"	vec3 color;\n"
-		"};\n"
-		"uniform Material material;\n"
-		"void main() { \n"
-		"	color = vec4(material.color, 1.0f);\n"
-		"}\n";
-
 	_lineShader.reset(new GLSLProgram);
-	_lineShader->attachVertexShader(lineVsCode);
-	_lineShader->attachFragmentShader(lineFsCode);
+	_lineShader->attachVertexShaderFromFile(getAssetFullPath(aabbVsRelPath));
+	_lineShader->attachFragmentShaderFromFile(getAssetFullPath(aabbFsRelPath));
 	_lineShader->link();
 
 	_lineInstancedShader.reset(new GLSLProgram);
-	_lineInstancedShader->attachVertexShader(lineVsInstancedCode);
-	_lineInstancedShader->attachFragmentShader(lineFsCode);
+	_lineInstancedShader->attachVertexShaderFromFile(getAssetFullPath(aabbInstancedVsRelPath));
+	_lineInstancedShader->attachFragmentShaderFromFile(getAssetFullPath(aabbFsRelPath));
 	_lineInstancedShader->link();
 
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexture;\n"
-
-		"out vec3 fPosition;\n"
-		"out vec3 fNormal;\n"
-		"out vec2 fTexCoord;\n"
-
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 model;\n"
-		"void main() {\n"
-		"	fPosition = vec3(model * vec4(aPosition, 1.0f));\n"
-		"	fNormal = mat3(transpose(inverse(model))) * aNormal;\n"
-		"	fTexCoord = aTexture;\n"
-		"	gl_Position = projection * view * model * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* vsInstancedCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in vec3 aNormal;\n"
-		"layout(location = 2) in vec2 aTexture;\n"
-		"layout(location = 3) in mat4 aInstanceMatrix;\n"
-
-		"out vec3 fPosition;\n"
-		"out vec3 fNormal;\n"
-		"out vec2 fTexCoord;\n"
-
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"void main() {\n"
-		"	fPosition = vec3(aInstanceMatrix * vec4(aPosition, 1.0f));\n"
-		"	fNormal = mat3(transpose(inverse(aInstanceMatrix))) * aNormal;\n"
-		"	fTexCoord = aTexture;\n"
-		"	gl_Position = projection * view * aInstanceMatrix * vec4(aPosition, 1.0f);\n"
-		"}\n";
-
-	const char* fsCode =
-		"#version 330 core\n"
-		"in vec3 fPosition;\n"
-		"in vec3 fNormal;\n"
-		"in vec2 fTexCoord;\n"
-		"out vec4 color;\n"
-
-		"struct Material {\n"
-		"	vec3 kd;\n"
-		"};\n"
-
-		"struct DirectionalLight {\n"
-		"	vec3 direction;\n"
-		"	float intensity;\n"
-		"	vec3 color;\n"
-		"};\n"
-
-		"uniform Material material;\n"
-		"uniform sampler2D mapKd;\n"
-		"uniform DirectionalLight light;\n"
-
-		"void main() {\n"
-		"	vec3 normal = normalize(fNormal);\n"
-		"	vec3 lightDir = normalize(-light.direction);\n"
-		"	vec3 diffuse = light.intensity * light.color * max(dot(lightDir, normal), 0.0f) * \n"
-		"				   material.kd * texture(mapKd, fTexCoord).rgb;\n"
-		"	color = vec4(diffuse, 1.0f);\n"
-		"}\n";
-
 	_lambertShader.reset(new GLSLProgram);
-	_lambertShader->attachVertexShader(vsCode);
-	_lambertShader->attachFragmentShader(fsCode);
+	_lambertShader->attachVertexShaderFromFile(getAssetFullPath(lambertVsRelPath));
+	_lambertShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
 	_lambertShader->link();
 
 	_lambertInstancedShader.reset(new GLSLProgram);
-	_lambertInstancedShader->attachVertexShader(vsInstancedCode);
-	_lambertInstancedShader->attachFragmentShader(fsCode);
+	_lambertInstancedShader->attachVertexShaderFromFile(getAssetFullPath(lambertInstancedVsRelPath));
+	_lambertInstancedShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
 	_lambertInstancedShader->link();
 }
 
@@ -289,39 +199,10 @@ void FrustumCulling::initGPUCullingResources() {
 
 	glBindVertexArray(0);
 
-	// TODO: Modify the following code to achieve GPU frustum culling
-	// --------------------------------------------------------------------
-	const char* vsCode =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 aPosition;\n"
-		"layout(location = 1) in mat4 aInstanceMatrix;\n"
-		"out int visible;\n"
-
-		"struct BoundingBox {\n"
-		"	vec3 min;\n"
-		"	vec3 max;\n"
-		"};\n"
-
-		"struct Plane {\n"
-		"	vec3 normal;\n"
-		"	float signedDistance;\n"
-		"};\n"
-
-		"struct Frustum {\n"
-		"	Plane planes[6];\n"
-		"};\n"
-
-		"uniform BoundingBox boundingBox;\n"
-		"uniform Frustum frustum;\n"
-
-		"void main() {\n"
-		"	visible = 1;\n"
-		"}\n";
-	// --------------------------------------------------------------------
-
 	// create frustum culling shader
+	// TODO: Modify the frustum_culling.vert code to achieve GPU frustum culling
 	_frustumCullingShader.reset(new GLSLProgram);
-	_frustumCullingShader->attachVertexShader(vsCode);
+	_frustumCullingShader->attachVertexShaderFromFile(getAssetFullPath(frustumCullingVsRelPath));
 	_frustumCullingShader->setTransformFeedbackVaryings(
 		{ "visible" }, GL_INTERLEAVED_ATTRIBS);
 	_frustumCullingShader->link();

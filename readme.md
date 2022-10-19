@@ -22,7 +22,7 @@ You can find more materials in [Bilibili](https://space.bilibili.com/52683403/ch
 #### How to run
 
 ##### Preliminaries
-+ install cmake >= 3.15
++ install cmake >= 3.20
 + C++ Compiler supports at least C++14
 
 ##### Build and Compile

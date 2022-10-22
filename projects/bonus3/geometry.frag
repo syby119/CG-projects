@@ -9,6 +9,6 @@ in vec2 texCoord;
 
 void main() {
     gPosition = position;
-    gNormal = normal;
+    gNormal = gl_FrontFacing ? normal : -normal;
     gAlbedo = vec3(0.95f);
 }

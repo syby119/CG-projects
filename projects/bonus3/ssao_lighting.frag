@@ -25,7 +25,6 @@ void main() {
     vec3 albedo = texture(gAlbedo, screenTexCoord).rgb;
     float occlusion = texture(ssaoResult, screenTexCoord).x;
 
-    //TODO
-
+    //TODO: perform lambert shading
     fragColor = vec4(normal, 1.0f);
 }

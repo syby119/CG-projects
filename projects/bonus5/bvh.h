@@ -125,4 +125,8 @@ private:
     static AABB getTriangleAABB(const Triangle& triangle);
 
     static AABB getSphereAABB(const Sphere& sphere);
+
+    static bool intersectPrimitive(const Ray& ray, const Primitive& primitive, Interaction& isect);
+
+    static bool intersectSphere(const Ray& ray, const Sphere& sphere, Interaction& isect);
 };

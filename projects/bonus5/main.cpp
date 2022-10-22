@@ -7,8 +7,8 @@ Options getOptions(int argc, char* argv[]) {
 	Options options;
 	options.windowTitle = "RayTracing";
 	// TODO: change appropriate resolution for debugging
-	options.windowWidth = 1280;
-	options.windowHeight = 720;
+	options.windowWidth = 640;
+	options.windowHeight = 360;
 	options.windowResizable = false;
 	options.vSync = true;
 	options.msaa = false;

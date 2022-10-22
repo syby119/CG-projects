@@ -35,6 +35,24 @@ public:
         );
     }
 
+    bool intersect(const Ray& ray, const glm::vec3& invDir, const int negDir[3]) const {
+        const auto& box = *this;
+        const auto& o = ray.o;
+        const auto& dir = ray.dir;
+
+        float tMinX = (box[negDir[0]].x - o.x) * invDir.x;
+        float tMaxX = (box[1 - negDir[0]].x - o.x) * invDir.x;
+        float tMinY = (box[negDir[1]].y - o.y) * invDir.y;
+        float tMaxY = (box[1 - negDir[1]].y - o.y) * invDir.y;
+        float tMinZ = (box[negDir[2]].z - o.z) * invDir.z;
+        float tMaxZ = (box[1 - negDir[2]].z - o.z) * invDir.z;
+        
+        float tMin = std::max(tMinX, std::max(tMinY, tMinZ));
+        float tMax = std::min(tMaxX, std::min(tMaxY, tMaxZ));
+
+        return tMin < tMax && tMin < ray.tMax && tMax > 0;
+    }
+
     float surfaceArea() const {
         glm::vec3 diagonal = pMax - pMin;
         return 2 * (diagonal.x * diagonal.y + diagonal.x * diagonal.z + diagonal.y * diagonal.z);

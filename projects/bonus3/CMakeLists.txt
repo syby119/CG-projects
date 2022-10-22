@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 project(bonus3)
 
 set(THIRD_PARTY_LIBRARY_PATH ${CMAKE_SOURCE_DIR}/external)
+set(SHADER_TARGET_PATH ${CMAKE_BINARY_DIR}/media/shader/bonus3)
 
 include_directories(${THIRD_PARTY_LIBRARY_PATH}/glm)
 
@@ -47,6 +48,14 @@ set(BASE_SRC ../base/application.cpp
 add_executable(bonus3 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR} ${PROJECT_SHADERS})
 
 source_group("Shader Files" FILES ${PROJECT_SHADERS})
+
+add_custom_command(
+    TARGET bonus3
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E
+    make_directory ${SHADER_TARGET_PATH}
+    COMMENT "make directory ${SHADER_TARGET_PATH}"
+)
 
 set(first True)
 foreach(shader ${PROJECT_SHADERS})

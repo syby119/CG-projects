@@ -2,6 +2,10 @@
 #include <string>
 #include <unordered_map>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
@@ -19,7 +23,7 @@ const std::string quadFsRelPath = "shader/bonus5/quad.frag";
 const std::string raytracingVsRelPath = "shader/bonus5/quad.vert";
 const std::string raytracingFsRelPath = "shader/bonus5/raytracing.frag";
 
-const std::vector<std::string> skyBoxTextureRelPaths = {
+const std::vector<std::string> skyboxTextureRelPaths = {
 	"texture/skyboxrt/right.jpg",
 	"texture/skyboxrt/left.jpg",
 	"texture/skyboxrt/top.jpg",
@@ -29,13 +33,13 @@ const std::vector<std::string> skyBoxTextureRelPaths = {
 };
 
 RayTracing::RayTracing(const Options& options): Application(options) {
-	lucy.reset(new Model(getAssetFullPath(lucyRelPath)));
+	_lucy.reset(new Model(getAssetFullPath(lucyRelPath)));
 
 	std::vector<std::string> skyBoxTexturePaths;
-	for (size_t i = 0; i < skyBoxTextureRelPaths.size(); ++i) {
-		skyBoxTexturePaths.push_back(getAssetFullPath(skyBoxTextureRelPaths[i]));
+	for (size_t i = 0; i < skyboxTextureRelPaths.size(); ++i) {
+		skyBoxTexturePaths.push_back(getAssetFullPath(skyboxTextureRelPaths[i]));
 	}
-	skyBox.reset(new ImageTextureCubemap(skyBoxTexturePaths));
+	_skybox.reset(new ImageTextureCubemap(skyBoxTexturePaths));
 
 	_camera.reset(new PerspectiveCamera(
 		glm::radians(60.0f), static_cast<float>(_windowWidth) / _windowHeight, 0.1f, 1000.0f));
@@ -60,7 +64,7 @@ RayTracing::RayTracing(const Options& options): Application(options) {
 		_sampleFramebuffers[i].reset(new Framebuffer);
 		_sampleFramebuffers[i]->bind();
 		_sampleFramebuffers[i]->drawBuffers({ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
-		
+
 		_outFrames[i].reset(new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 		_outFrames[i]->bind();
 		_outFrames[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -83,13 +87,33 @@ RayTracing::RayTracing(const Options& options): Application(options) {
 		_sampleFramebuffers[i]->unbind();
 	}
 
-	createScene1();
+	createRenderScene(_renderSceneIndex);
+
+	// init imGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(_window, true);
+	ImGui_ImplOpenGL3_Init();
+}
+
+RayTracing::~RayTracing() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void RayTracing::handleInput() {
 	if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
 		glfwSetWindowShouldClose(_window, true);
-		return ;
+		return;
+	}
+
+	static int lastSceneIndex = _renderSceneIndex;
+	if (lastSceneIndex != _renderSceneIndex) {
+		createRenderScene(_renderSceneIndex);
+		lastSceneIndex = _renderSceneIndex;
+		_sampleCount = 0;
 	}
 }
 
@@ -97,74 +121,109 @@ void RayTracing::renderFrame() {
 	showFpsInWindowTitle();
 
 	glDisable(GL_DEPTH_TEST);
-	
+
 	glm::mat4 cameraToWorld = glm::inverse(_camera->getViewMatrix());
 	glm::mat4 cameraToScreen = _camera->getProjectionMatrix();
 	glm::mat4 screenToRaster = glm::scale(glm::mat4(1.0f), glm::vec3(float(_windowWidth) / 2.0f,
-							   float(_windowHeight) / 2.0f, 1.0f)) * 
-							   glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-	
+		float(_windowHeight) / 2.0f, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+
 	glm::mat4 rasterToScreen = glm::inverse(screenToRaster);
 	glm::mat4 rasterToCamera = glm::inverse(cameraToScreen) * rasterToScreen;
-	
-	_sampleFramebuffers[currentWriteBufferID]->bind();
-	raytracingProgram->use();
-	raytracingProgram->setUniformUint("totalSamples", sampleCount);
-	raytracingProgram->setUniformMat4("camera.cameraToWorld", cameraToWorld);
-	raytracingProgram->setUniformMat4("camera.rasterToCamera", rasterToCamera);
 
-	raytracingProgram->setUniformInt("sky", 0);
-	skyBox->bind(0);
+	_sampleFramebuffers[_currentWriteBufferID]->bind();
+	_raytracingShader->use();
+	_raytracingShader->setUniformUint("totalSamples", _sampleCount);
+	_raytracingShader->setUniformMat4("camera.cameraToWorld", cameraToWorld);
+	_raytracingShader->setUniformMat4("camera.rasterToCamera", rasterToCamera);
+
+	_raytracingShader->setUniformInt("sky", 0);
+	_skybox->bind(0);
 	
 	_sphereBuffer->bind(1);
-	raytracingProgram->setUniformInt("sphereBuffer", 1);
+	_raytracingShader->setUniformInt("sphereBuffer", 1);
 
-	raytracingProgram->setUniformInt("materialBuffer", 2);
+	_raytracingShader->setUniformInt("materialBuffer", 2);
 	_materialBuffer->bind(2);
 
-	raytracingProgram->setUniformInt("primitiveBuffer", 3);
+	_raytracingShader->setUniformInt("primitiveBuffer", 3);
 	_primitiveBuffer->bind(3);
 
-	raytracingProgram->setUniformInt("RTResult", 4);
-	_outFrames[currentReadBufferID]->bind(4);
+	_raytracingShader->setUniformInt("RTResult", 4);
+	_outFrames[_currentReadBufferID]->bind(4);
 
-	raytracingProgram->setUniformInt("oldRngState", 5);
-	_rngStates[currentReadBufferID]->bind(5);
+	_raytracingShader->setUniformInt("oldRngState", 5);
+	_rngStates[_currentReadBufferID]->bind(5);
 
 	_indexBuffer->bind(6);
-	raytracingProgram->setUniformInt("triangleIndexBuffer", 6);
+	_raytracingShader->setUniformInt("triangleIndexBuffer", 6);
 	_vertexBuffer->bind(7);
-	raytracingProgram->setUniformInt("vertexBuffer", 7);
+	_raytracingShader->setUniformInt("vertexBuffer", 7);
 
 	_bvhBuffer->bind(8);
-	raytracingProgram->setUniformInt("bvh", 8);
+	_raytracingShader->setUniformInt("bvh", 8);
 
 	_screenQuad->draw();
 
-	_sampleFramebuffers[currentWriteBufferID]->unbind();
+	_sampleFramebuffers[_currentWriteBufferID]->unbind();
 	
 	// render the result to the screen
-	drawScreenProgram->use();
-	drawScreenProgram->setUniformInt("frame", 0);
+	_drawScreenShader->use();
+	_drawScreenShader->setUniformInt("frame", 0);
 	
-	_outFrames[currentWriteBufferID]->bind(0);
+	_outFrames[_currentWriteBufferID]->bind(0);
 	_screenQuad->draw();
 
 	// update
-	++sampleCount;
-	std::swap(currentReadBufferID, currentWriteBufferID);
+	++_sampleCount;
+	std::swap(_currentReadBufferID, _currentWriteBufferID);
+
+	// render UI
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Once, ImVec2(0.0f, 0.0f));
+
+	const auto flags =
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoSavedSettings;
+
+	if (!ImGui::Begin("Control Panel", nullptr, flags)) {
+		ImGui::End();
+	} else {
+		ImGui::Text("switch scenes");
+		ImGui::Separator();
+		static const char* scenes[] = {
+			"scene 1", "scene 2", "scene 3"
+		};
+
+		ImGui::Combo("##1", &_renderSceneIndex, scenes, IM_ARRAYSIZE(scenes));
+
+		ImGui::NewLine();
+
+		ImGui::Text("statistics");
+		ImGui::Separator();
+		ImGui::Text("samples: %u", _sampleCount);
+
+		ImGui::End();
+	}
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void RayTracing::initShaders() {
-	raytracingProgram.reset(new GLSLProgram);
-	raytracingProgram->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath));
-	raytracingProgram->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath));
-	raytracingProgram->link();
+	// TODO: modify raytracing.frag code to achieve raytracing
+	_raytracingShader.reset(new GLSLProgram);
+	_raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath));
+	_raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath));
+	_raytracingShader->link();
 
-	drawScreenProgram.reset(new GLSLProgram);
-	drawScreenProgram->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-	drawScreenProgram->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
-	drawScreenProgram->link();
+	_drawScreenShader.reset(new GLSLProgram);
+	_drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+	_drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
+	_drawScreenShader->link();
 }
 
 int RayTracing::getBufferHeight(size_t nObjects, size_t objectSize, size_t texComponent) const {
@@ -173,10 +232,10 @@ int RayTracing::getBufferHeight(size_t nObjects, size_t objectSize, size_t texCo
 }
 
 void RayTracing::createBalls() {
-    balls.push_back(Sphere(glm::vec3(0.0f, -1000.0f, 0.0f), 1000.0f));
-	ballMaterials.push_back(Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.5f, 0.5f, 0.5f)));
-	for (int a = -12; a < 12; a++) {
-        for (int b = -12; b < 12; b++) {
+    _balls.push_back(Sphere(glm::vec3(0.0f, -1000.0f, 0.0f), 1000.0f));
+	_ballMaterials.push_back(Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.5f, 0.5f, 0.5f)));
+	for (int a = -12; a < 12; ++a) {
+        for (int b = -12; b < 12; ++b) {
             auto chooseMat = randomFloat();
             glm::vec3 center(a + 0.9f * randomFloat(), 0.2f, b + 0.9f * randomFloat());
 	
@@ -202,21 +261,30 @@ void RayTracing::createBalls() {
 					material.albedo = glm::vec3(1.0f, 1.0f, 1.0f);
                 }
 
-				balls.push_back(Sphere(center, randomFloat(0.15f, 0.2f)));
-				ballMaterials.push_back(material);
+				_balls.push_back(Sphere(center, randomFloat(0.15f, 0.2f)));
+				_ballMaterials.push_back(material);
             }
         }
     }
 	
 	// init three big sphere
-	balls.push_back(Sphere(glm::vec3(4.0f, 1.0f, 5.0f), 1.0f));
-	ballMaterials.push_back(Material(Material::Type::Dielectric, 1.5f, 0.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
+	_balls.push_back(Sphere(glm::vec3(4.0f, 1.0f, 5.0f), 1.0f));
+	_ballMaterials.push_back(Material(Material::Type::Dielectric, 1.5f, 0.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
 	
-	balls.push_back(Sphere(glm::vec3(-8.0f, 2.0f, 14.0f), 2.0f));
-	ballMaterials.push_back(Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.2f, 0.4f, 0.8f)));
+	_balls.push_back(Sphere(glm::vec3(-8.0f, 2.0f, 14.0f), 2.0f));
+	_ballMaterials.push_back(Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.2f, 0.4f, 0.8f)));
 	
-	balls.push_back(Sphere(glm::vec3(3.0f, 3.0f, -8.0f), 2.0f));
-	ballMaterials.push_back(Material(Material::Type::Metal, 1.0f, 0.0f, glm::vec3(0.7f, 0.6f, 0.5f)));
+	_balls.push_back(Sphere(glm::vec3(3.0f, 3.0f, -8.0f), 2.0f));
+	_ballMaterials.push_back(Material(Material::Type::Metal, 1.0f, 0.0f, glm::vec3(0.7f, 0.6f, 0.5f)));
+}
+
+void RayTracing::createRenderScene(int index) {
+	switch (index) {
+		case 0: createScene1(); break;
+		case 1: createScene2(); break;
+		case 2: createScene3(); break;
+		default: createScene3(); break;
+	}
 }
 
 void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres, 
@@ -271,8 +339,7 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 		_sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		_sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		_sphereBuffer->unbind();
-	}
-	else {
+	} else {
 		_sphereBuffer.reset(new Texture2D(GL_RGBA32F, BufferWidth, 
 			getBufferHeight(1, sizeof(Sphere), Sphere::getTexDataComponent()), 
 			GL_RGBA, GL_FLOAT, nullptr));
@@ -340,8 +407,7 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 		_indexBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		_indexBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		_indexBuffer->unbind();
-	}
-	else {
+	} else {
 		_vertexBuffer.reset(new Texture2D(
 			GL_RGBA32F, BufferWidth, 
 			getBufferHeight(1, sizeof(Vertex), Sphere::getTexDataComponent()), 
@@ -351,6 +417,7 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 			getBufferHeight(1, sizeof(glm::ivec3), Triangle::getIndexTexDataComponent()),
 			GL_RGB_INTEGER, GL_INT, nullptr));
 	}
+
 	if (!materials.empty()) {
 		for (auto& material : materials) {
 			material.type = static_cast<Material::Type>(toFloatLayout(static_cast<int>(material.type)));
@@ -365,14 +432,14 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 		_materialBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		_materialBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		_materialBuffer->unbind();
-	}
-	else {
+	} else {
 		_materialBuffer.reset(new Texture2D(GL_RGB32F, BufferWidth, 
 			getBufferHeight(1, sizeof(Material), Material::getTexDataComponent()),
 			GL_RGB, GL_FLOAT, nullptr));
 	}
+
 	if (!primitives.empty()) {
-		if (!useBVH) {
+		if (!_useBVH) {
 			std::vector<ShaderPrimitive> orderedPrim(roundUp(primitives.size(), BufferWidth));
 			int primCnt = 0;
 			for (const auto& prim : primitives) {
@@ -391,11 +458,10 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 			_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			_primitiveBuffer->unbind();
-			raytracingProgram->use();
-			raytracingProgram->setUniformInt("nPrimitives", static_cast<int>(primitives.size()));
+			_raytracingShader->use();
+			_raytracingShader->setUniformInt("nPrimitives", static_cast<int>(primitives.size()));
 
-		}
-		else {
+		} else {
 			// build BVH
 			BVH bvh(primitives);
 			auto& linearBVH = bvh.nodes;
@@ -437,7 +503,6 @@ void RayTracing::createPrimitiveBuffer(const std::vector<Sphere>& spheres,
 			_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			_primitiveBuffer->unbind();
 		}
-		
 	}
 
 	std::cout << "Scene Statistics" << std::endl;
@@ -451,7 +516,7 @@ void RayTracing::createScene1() {
 	_camera->transform.position = glm::vec3(0.0f, 0.0f, 12.0f);
 	_camera->transform.lookAt(glm::vec3(0.0f));
 
-	useBVH = false;
+	_useBVH = false;
 
 	createPrimitiveBuffer(
 		{
@@ -473,25 +538,28 @@ void RayTracing::createScene2() {
 	_camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
 	_camera->transform.lookAt(glm::vec3(0.0f));
 
-	useBVH = true;
+	_useBVH = true;
 
 	createPrimitiveBuffer(
-		balls, 
+		_balls, 
 		{},
 		{},
-		ballMaterials,
+		_ballMaterials,
 		{});
 }
 
 void RayTracing::createScene3() {
+	_camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
+	_camera->transform.lookAt(glm::vec3(0.0f));
+
 	glm::mat4 scaleT = glm::scale(glm::mat4(1.0f), glm::vec3(0.6f, 0.6f, 0.6f));
 	glm::mat4 rotateT = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	useBVH = true;
+	_useBVH = true;
 
 	std::vector<glm::mat4> transformations = {
 		rotateT * scaleT,
-		glm::translate(glm::mat4(1.0f), glm::vec3( -4.0f, 0.0f, 2.0f)) * rotateT * scaleT,
+		glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.0f,  2.0f)) * rotateT * scaleT,
 		glm::translate(glm::mat4(1.0f), glm::vec3( 4.0f, 0.0f, -2.0f)) * rotateT * scaleT
 	};
 
@@ -502,10 +570,10 @@ void RayTracing::createScene3() {
 	};
 
 	createPrimitiveBuffer(
-		balls, 
-		{ lucy.get(), lucy.get(), lucy.get() },
+		_balls, 
+		{ _lucy.get(), _lucy.get(), _lucy.get() },
 		transformations,
-		ballMaterials,
+		_ballMaterials,
 		modelMaterials);
 }
 

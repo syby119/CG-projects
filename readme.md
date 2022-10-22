@@ -84,6 +84,11 @@ cd bin/Debug
     <img src="./screenshots/bonus2.png" width="640"/>
 </div>
 
+##### Post Processing
+<div style="text-align:center">
+    <img src="./screenshots/bonus3.png" width="640"/>
+</div>
+
 ##### Shadow Mapping
 <div style="text-align:center">
     <img src="./screenshots/bonus4.png" width="640"/>

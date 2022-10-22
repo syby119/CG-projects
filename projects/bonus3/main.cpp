@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "postprocessing.h"
+#include "post_processing.h"
 
 Options getOptions(int argc, char* argv[]) {
 	Options options;

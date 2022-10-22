@@ -15,6 +15,6 @@ uniform mat4 projection;
 in vec2 screenTexCoord;
 
 void main() {
-    // TODO
+    // TODO: perform SSAO
     ssaoResult = 1.0f;
 }

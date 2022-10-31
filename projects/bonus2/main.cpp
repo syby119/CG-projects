@@ -11,7 +11,7 @@ Options getOptions(int argc, char* argv[]) {
 	options.windowResizable = false;
 	options.vSync = true;
 	options.msaa = true;
-#ifndef __APPLE__
+#ifdef _WIN32
 	options.glVersion = { 4, 3 };
 #else
 	options.glVersion = { 4, 0 };

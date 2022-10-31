@@ -1,4 +1,4 @@
-#version 400 core
+#version 330 core
 
 #define M_PI 3.14159265359
 
@@ -62,7 +62,7 @@ void main() {
     // https://placeholderart.wordpress.com/2015/07/28/
     vec3 accumColor = vec3(0.0f);
     float totalWeight = 0.0f;
-    for (uint i = 0; i < numSamples; ++i) {
+    for (uint i = 0u; i < numSamples; ++i) {
         vec2 Xi = hammersley(i, numSamples);
         vec3 H = importanceSampleGGX(Xi, N, roughness);
         vec3 L = normalize(2.0f * dot(V, H) * H - V);

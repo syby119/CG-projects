@@ -73,7 +73,6 @@ private:
 	GLenum _transformFeedback = {};
 	GLenum _transformFeedbackResultBuffer = {};
 	std::unique_ptr<GLSLProgram> _frustumCullingShader;
-	GLenum _transformFeedbackRenderVao = {};
 
 	// indirect draw resources
 	bool _indirectDrawEnabled = false;

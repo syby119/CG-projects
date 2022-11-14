@@ -97,11 +97,6 @@ FrustumCulling::~FrustumCulling() {
 		_transformFeedbackResultBuffer = 0;
 	}
 
-	if (_transformFeedbackRenderVao) {
-		glDeleteVertexArrays(1, &_transformFeedbackRenderVao);
-		_transformFeedbackRenderVao = 0;
-	}
-
 	// destroy indirect draw resources
 	if (_indirectBuffer) {
 		glDeleteBuffers(1, &_indirectBuffer);
@@ -174,30 +169,6 @@ void FrustumCulling::initGPUCullingResources() {
 
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, _transformFeedbackResultBuffer);
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-
-	// create render objects
-	glGenVertexArrays(1, &_transformFeedbackRenderVao);
-	glBindVertexArray(_transformFeedbackRenderVao);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, _instancedAsternoids->getInstacenVbo());
-
-	constexpr GLsizei stride = sizeof(glm::mat4);
-	constexpr GLsizei unitSize = sizeof(glm::vec4);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, stride, (void*)(0 * unitSize));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (void*)(1 * unitSize));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, stride, (void*)(2 * unitSize));
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, stride, (void*)(3 * unitSize));
-
-	glVertexAttribDivisor(0, 1);
-	glVertexAttribDivisor(1, 1);
-	glVertexAttribDivisor(2, 1);
-	glVertexAttribDivisor(3, 1);
-
-	glBindVertexArray(0);
 
 	// create frustum culling shader
 	// TODO: Modify the frustum_culling.vert code to achieve GPU frustum culling

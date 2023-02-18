@@ -1,6 +1,6 @@
 ## CG Projects
 
-#### Introduction
+### Introduction
 This is the assignments for the Computer Graphics course, through which you'll learn how to:
 + construct the simplest framework for a Computer Graphics program;
 + display geometry and pixel data on the screen;
@@ -8,7 +8,7 @@ This is the assignments for the Computer Graphics course, through which you'll l
 + use GLSL, a Shading Language compatible with OpenGL;
 
 This will help you understanding:
-+ the basic concepts in Computer Graphics: 
++ the basic concepts in Computer Graphics:
     + geometry
     + lighting
     + texture
@@ -19,87 +19,98 @@ Basically, I follow the [Learning OpenGL](https://learnopengl-cn.github.io/) tut
 
 You can find more materials in [Bilibili](https://space.bilibili.com/52683403/channel/collectiondetail?sid=749547&ctype=0)
 
-#### How to run
+### Get the repository
+```shell
+git clone --depth=1 https://github.com/syby119/CG-projects.git
+cd CG-projects
+git submodule init
+git submodule update
+```
 
-##### Preliminaries
-+ install cmake >= 3.20
+### How to run
+
+#### Preliminaries
++ CMake >= 3.20
 + C++ Compiler supports at least C++14
 
-##### Build and Compile
+#### Build and Compile
 ```shell
 cmake -Bbuild .
-cd build
-cmake --build . --parallel 8
+cmake --build build --config Release --parallel 8
 ```
 
-##### Run
+#### Run
 ```shell
-cd bin/Debug
-./project1.exe
+cd build/bin/Release
+./pbr_viewer.exe
 ```
 
-#### Windows Executables
-##### Render a Triangle
 <div style="text-align:center">
-    <img src="./screenshots/get_start.png" width="640"/>
+    <img src="./screenshots/run_demo.png" width="100%"/>
 </div>
 
-##### Render the Chinese National Flag
+### How to run in Browser
+
+#### Preliminaries
++ CMake >= 3.20
++ Python >= 3.6
++ [Emscripten](https://emscripten.org/)
++ [emcmake compatible CMake generator](https://badlydrawnrod.github.io/posts/2020/05/19/emcmake-with-emscripten/)
+
+#### Switch Branch
+```shell
+git remote set-branches origin web
+git fetch --depth=1 origin web
+git checkout web
+```
+
+#### Build and Compile
+```shell
+python build_webassembly.py -Dbuild_web
+```
+
+#### Run
+```shell
+cd build_web/bin/browser
+python run_webassembly.py pbr_viewer.html
+```
+
 <div style="text-align:center">
-    <img src="./screenshots/project1.png" width="640"/>
+    <img src="./screenshots/run_demo_web.png" width="100%"/>
 </div>
 
-##### Transformation Matrices
-<div style="text-align:center">
-    <img src="./screenshots/project2.png" width="640"/>
-</div>
+### Screenshots
 
-##### Scene Roaming
-<div style="text-align:center">
-    <img src="./screenshots/project3.png" width="640"/>
-</div>
+| **get_start: triangle**                              | **pbr_viewer: PBR/IBL**                               |
+| :--------------------------------------------------: | :---------------------------------------------------: |
+| <img src="./screenshots/get_start.png" width="100%"> | <img src="./screenshots/pbr_viewer.png" width="100%"> |
+| **project1: geometry**                               | **bonus1: transparency**                              |
+| <img src="./screenshots/project1.png" width="80%">   | <img src="./screenshots/bonus1.png" width="100%">     |
+| **project2: transformation**                         | **bonus2: frustum culling**                           |
+| <img src="./screenshots/project2.png" width="100%">  | <img src="./screenshots/bonus2.png" width="100%">     |
+| **project3: scene roaming**                          | **bonus3: post processing**                           |
+| <img src="./screenshots/project3.png" width="100%">  | <img src="./screenshots/bonus3.png" width="100%">     |
+| **project4: instanced rendering**                    | **bonus4: shadow mapping**                            |
+| <img src="./screenshots/project4.png" width="100%">  | <img src="./screenshots/bonus4.png" width="100%">     |
+| **project5: shading tutorial**                       | **bonus5: raytracing**                                |
+| <img src="./screenshots/project5.png" width="100%">  | <img src="./screenshots/bonus5.png" width="100%">     |
+| **project6: texture mapping**                        |                                                       |
+| <img src="./screenshots/project6.png" width="100%">  |                                                       |
 
-##### Instanced Rendering
-<div style="text-align:center">
-    <img src="./screenshots/project4.png" width="640"/>
-</div>
+### Platform
 
-##### Shading Tutorial
-<div style="text-align:center">
-    <img src="./screenshots/project5.png" width="640"/>
-</div>
-
-##### Texture Mapping
-<div style="text-align:center">
-    <img src="./screenshots/project6.png" width="640"/>
-</div>
-
-##### Transparency Rendering
-<div style="text-align:center">
-    <img src="./screenshots/bonus1.png" width="640"/>
-</div>
-
-##### Frustum Culling
-<div style="text-align:center">
-    <img src="./screenshots/bonus2.png" width="640"/>
-</div>
-
-##### Post Processing
-<div style="text-align:center">
-    <img src="./screenshots/bonus3.png" width="640"/>
-</div>
-
-##### Shadow Mapping
-<div style="text-align:center">
-    <img src="./screenshots/bonus4.png" width="640"/>
-</div>
-
-##### Ray Tracing
-<div style="text-align:center">
-    <img src="./screenshots/bonus5.png" width="640"/>
-</div>
-
-##### PBR Viewer
-<div style="text-align:center">
-    <img src="./screenshots/pbr_viewer.png" width="640"/>
-</div>
+|                | **Windows 10** | **WSL 2** | **Ubuntu 20.04** | **MacOS** | **Chrome 107 Windows10** |
+| :------------: | :------------: | :-------: | :--------------: | :-------: | :----------------------: |
+| **get_start**  | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project1**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project2**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project3**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project4**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project5**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project6**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus1**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus2**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus3**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus4**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus5**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **pbr_viewer** | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |

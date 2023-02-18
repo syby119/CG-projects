@@ -15,18 +15,24 @@ Transformation::Transformation(const Options& options): Application(options) {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 
-	std::string err;
+	std::string warn, err;
 
 	std::string modelPath = getAssetFullPath(modelRelPath);
 	std::string::size_type index = modelPath.find_last_of("/");
 	std::string mtlBaseDir = modelPath.substr(0, index + 1);
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, modelPath.c_str(), mtlBaseDir.c_str())) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials,
+		&warn, &err, modelPath.c_str(), mtlBaseDir.c_str())) {
 		throw std::runtime_error("load " + modelPath + " failure: " + err);
 	}
 
+	if (!warn.empty()) {
+		std::cerr << "Loading model " + modelPath + " warnings: " << std::endl;
+		std::cerr << warn << std::endl;
+	}
+
 	if (!err.empty()) {
-		std::cerr << err << std::endl;
+		throw std::runtime_error("Loading model " + modelPath + " error:\n" + err);
 	}
 
 	std::vector<Vertex> vertices;

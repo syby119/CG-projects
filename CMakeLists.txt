@@ -23,6 +23,7 @@ set(GLFW_BUILD_DOCS OFF)
 add_subdirectory(./external/glfw)
 set_target_properties(glfw PROPERTIES FOLDER "lib/glfw")
 set_target_properties(uninstall PROPERTIES FOLDER "lib/glfw")
+set_target_properties(update_mappings PROPERTIES FOLDER "lib/glfw")
 
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")

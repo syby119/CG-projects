@@ -1,0 +1,12 @@
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "external/tinygltf"]
+	path = external/tinygltf
+	url = https://github.com/syoyo/tinygltf.git
+[submodule "external/tinyobjloader"]
+	path = external/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git

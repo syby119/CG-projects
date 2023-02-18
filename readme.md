@@ -1,5 +1,7 @@
 ## CG Projects
 
+[![Build](https://github.com/syby119/CG-projects/actions/workflows/build.yml/badge.svg?branch=web)](https://github.com/syby119/CG-projects/actions/workflows/build.yml)
+
 ### Introduction
 This is the assignments for the Computer Graphics course, through which you'll learn how to:
 + construct the simplest framework for a Computer Graphics program;

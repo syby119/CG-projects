@@ -29,21 +29,7 @@ set(BASE_SRC ../base/application.cpp
 
 add_executable(project4 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 
-if(MSVC)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-elseif(XCODE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-else()
-    if (CMAKE_BUILD_TYPE MATCHES Debug)
-        set_target_properties(${PROJECT_NAME} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Debug")
-    else()
-        set_target_properties(${PROJECT_NAME} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/Release")
-    endif()
-endif()
+configure_project(${PROJECT_NAME})
 
 target_include_directories(project4 PUBLIC ${THIRD_PARTY_LIBRARY_PATH}/glm)
 target_include_directories(project4 PUBLIC ${THIRD_PARTY_LIBRARY_PATH}/glad/include)

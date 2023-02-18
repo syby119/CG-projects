@@ -20,7 +20,7 @@ vec2 hammersley(uint i, uint n) {
     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
     float rdi = float(bits) * 2.3283064365386963e-10; // divide 0x100000000
 
-	return vec2(float(i)/float(n), rdi);
+    return vec2(float(i)/float(n), rdi);
 }
 
 // http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_slides.pdf
@@ -44,11 +44,11 @@ vec3 importanceSampleGGX(vec2 Xi, vec3 N, float roughness) {
 }
 
 float distributionGGX(float NdotH, float roughness) {
-	float alpha = roughness * roughness;
-	float alpha2 = alpha * alpha;
-	float denom = NdotH * NdotH * (alpha2 - 1.0f) + 1.0f;
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float denom = NdotH * NdotH * (alpha2 - 1.0f) + 1.0f;
 
-	return alpha2 / (M_PI * denom * denom); 
+    return alpha2 / (M_PI * denom * denom); 
 }
 
 void main() {

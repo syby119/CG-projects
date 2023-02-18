@@ -2,11 +2,11 @@
 out vec4 color;
 
 struct Material {
-	vec3 color;
+    vec3 color;
 };
 
 uniform Material material;
 
 void main() { 
-	color = vec4(material.color, 1.0f);
+    color = vec4(material.color, 1.0f);
 }

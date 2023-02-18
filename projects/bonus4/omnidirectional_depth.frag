@@ -5,5 +5,5 @@ uniform vec3 lightPosition;
 uniform float zFar;
 
 void main() {
-	gl_FragDepth = length(fPosition.xyz - lightPosition) / zFar;
+    gl_FragDepth = length(fPosition.xyz - lightPosition) / zFar;
 }

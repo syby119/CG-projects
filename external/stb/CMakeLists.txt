@@ -1,8 +1,10 @@
-# Created By Yun Yang
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 project(stb)
 
-aux_source_directory(. STB_SRC)
+file(GLOB STB_HDR *.h)
+file(GLOB STB_SRC *.c*)
 
-add_library(stb ${STB_SRC})
+add_library(stb ${STB_HDR} ${STB_SRC})
+
+target_include_directories(stb INTERFACE .)

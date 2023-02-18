@@ -62,8 +62,15 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
         // init texture
         _texture.reset(new ImageTextureCubemap(textureFilenames));
 
+        const char* version =
+#ifdef USE_GLES
+            "300 es"
+#else
+            "330 core"
+#endif
+            ;
+
         const char* vsCode =
-            "#version 330 core\n"
             "layout(location = 0) in vec3 aPosition;\n"
             "out vec3 texCoord;\n"
             "uniform mat4 projection;\n"
@@ -74,7 +81,6 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
             "}\n";
 
         const char* fsCode =
-            "#version 330 core\n"
             "out vec4 color;\n"
             "in vec3 texCoord;\n"
             "uniform samplerCube cubemap;\n"
@@ -83,8 +89,8 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
             "}\n";
 
         _shader.reset(new GLSLProgram);
-        _shader->attachVertexShader(vsCode);
-        _shader->attachFragmentShader(fsCode);
+        _shader->attachVertexShader(vsCode, version);
+        _shader->attachFragmentShader(fsCode, version);
         _shader->link();
     } catch (const std::exception&) {
         cleanup();

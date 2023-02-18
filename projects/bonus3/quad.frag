@@ -6,6 +6,6 @@ in vec2 screenTexCoord;
 
 uniform sampler2D frame;
 
-void main() {	
-    FragColor = texture(frame, screenTexCoord);	
+void main() {
+    FragColor = texture(frame, screenTexCoord);
 }

@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 
-#include <glad/glad.h>
+#include "gl_utility.h"
 
 class UniformBuffer {
 public:

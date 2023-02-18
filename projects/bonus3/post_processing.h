@@ -13,9 +13,9 @@
 
 class PostProcessing : public Application {
 public:
-	PostProcessing(const Options& options);
+    PostProcessing(const Options& options);
 
-	~PostProcessing();
+    ~PostProcessing();
 
 private: 
     std::unique_ptr<Model> _bunny;

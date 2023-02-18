@@ -13,6 +13,10 @@ project(cg_projects LANGUAGES C CXX VERSION 1.1)
 include("cmake/configure_project.cmake")
 include("cmake/hardlink_shaders.cmake")
 
+if (EMSCRIPTEN)
+    include("cmake/preload_files.cmake")
+endif()
+
 # build in source in not recommended
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(WARNING "The binary directory of CMake should not \
@@ -33,16 +37,21 @@ endif()
 file(COPY "media/" DESTINATION "media")
 
 # add libraries
-set(GLFW_BUILD_EXAMPLES OFF)
-set(GLFW_BUILD_TESTS OFF)
-set(GLFW_BUILD_DOCS OFF)
-add_subdirectory(./external/glfw)
-set_target_properties(glfw PROPERTIES FOLDER "lib/glfw")
-set_target_properties(uninstall PROPERTIES FOLDER "lib/glfw")
-set_target_properties(update_mappings PROPERTIES FOLDER "lib/glfw")
+if(EMSCRIPTEN)
+    message(STATUS "use GLFW in Emscripten")
+    message(STATUS "use OpenGL/ES in Emscripten")
+else()
+    set(GLFW_BUILD_EXAMPLES OFF)
+    set(GLFW_BUILD_TESTS OFF)
+    set(GLFW_BUILD_DOCS OFF)
+    add_subdirectory(./external/glfw)
+    set_target_properties(glfw PROPERTIES FOLDER "lib/glfw")
+    set_target_properties(uninstall PROPERTIES FOLDER "lib/glfw")
+    set_target_properties(update_mappings PROPERTIES FOLDER "lib/glfw")
 
-add_subdirectory(./external/glad)
-set_target_properties(glad PROPERTIES FOLDER "lib")
+    add_subdirectory(./external/glad)
+    set_target_properties(glad PROPERTIES FOLDER "lib")
+endif()
 
 add_subdirectory(./external/glm)
 set_target_properties(glm PROPERTIES FOLDER "lib/glm")

@@ -92,19 +92,19 @@ struct BVHNode {
 };
 
 uniform sampler2D RTResult;
-uniform usampler2D oldRngState;
+uniform highp usampler2D oldRngState;
 
-uniform uint totalSamples;
-uniform int nPrimitives;
+uniform highp uint totalSamples;
+uniform highp int nPrimitives;
 
 // Scene Config 
 uniform samplerCube sky;
 uniform sampler2D sphereBuffer;
 uniform sampler2D vertexBuffer;
-uniform isampler2D triangleIndexBuffer;
+uniform highp isampler2D triangleIndexBuffer;
 uniform sampler2D materialBuffer;
-uniform isampler2D primitiveBuffer;
-uniform sampler2D bvh;
+uniform highp isampler2D primitiveBuffer;
+uniform highp sampler2D bvh;
 
 uniform Camera camera;
 
@@ -157,7 +157,7 @@ bool intersect(inout Ray ray, inout Interaction isect);
  *     ray: the ray
  *     box: the AABB that will be checked
  *     isect: record the shape and material of the primitive
- *     invDir: vec3(1.0f / ray.dir.x, 1.0f / ray.dir.y, 1.0f / ray.dir.z)
+ *     invDir: vec3(1.0 / ray.dir.x, 1.0 / ray.dir.y, 1.0 / ray.dir.z)
  * Return: true if the ray hit AABB
  */
 bool intersectAABB(inout Ray ray, inout AABB box, inout vec3 invDir);
@@ -312,7 +312,7 @@ void getSphereData(sampler2D data, int idx, out Sphere sphere);
  * Return: the vertex index data of triangle
  * Usage: getTriangleIndexData(triangleIndexBuffer, primitive.shapeIdx, idx)
  */
-void getTriangleIndexData(isampler2D data, int idx, out TriangleIndex triIdx);
+void getTriangleIndexData(highp isampler2D data, int idx, out TriangleIndex triIdx);
 
 /**
  * Summary: get the vertex data of triangle
@@ -334,7 +334,7 @@ void getTriangleData(sampler2D data, inout TriangleIndex idx, out Triangle trian
  * Return: the get primitive data
  * Usage: getPrimitiveData(primitiveBuffer, BVHNode.firstVal, primitive);
  */
-void getPrimitiveData(isampler2D data, int idx, out Primitive primitive);
+void getPrimitiveData(highp isampler2D data, int idx, out Primitive primitive);
 
 /**
  * Summary: get BVHNode data
@@ -345,7 +345,7 @@ void getPrimitiveData(isampler2D data, int idx, out Primitive primitive);
  * Return: the get BVHNode data
  * Usage: getBVHNodeData(bvh, BVHNode.firstVal or BVHNode.secondVal , node)
  */
-void getBVHNodeData(sampler2D data, int idx, out BVHNode node);
+void getBVHNodeData(highp sampler2D data, int idx, out BVHNode node);
 
 void main() {
     rngInit();
@@ -354,11 +354,11 @@ void main() {
 }
 
 Ray generateRay(vec2 u) {
-    vec4 pixelPos = vec4(gl_FragCoord.x - 0.5f + u.x, gl_FragCoord.y - 0.5f + u.y, 0.0f, 1.0f);
+    vec4 pixelPos = vec4(gl_FragCoord.x - 0.5 + u.x, gl_FragCoord.y - 0.5 + u.y, 0.0, 1.0);
     Ray ray;
-    ray.o = vec3(camera.cameraToWorld * vec4(0.0f, 0.0f, 0.0f, 1.0f));
-    vec3 localRayDir = (camera.rasterToCamera * pixelPos).xyz - vec3(0.0f, 0.0f, 0.0f);
-    ray.dir = normalize(vec3(camera.cameraToWorld * vec4(localRayDir.xyz, 0.0f)));
+    ray.o = vec3(camera.cameraToWorld * vec4(0.0, 0.0, 0.0, 1.0));
+    vec3 localRayDir = (camera.rasterToCamera * pixelPos).xyz - vec3(0.0, 0.0, 0.0);
+    ray.dir = normalize(vec3(camera.cameraToWorld * vec4(localRayDir.xyz, 0.0)));
     ray.tMax = INFINITY;
     return ray;
 }
@@ -369,21 +369,22 @@ vec3 getHitPoint(inout Ray ray, float t) {
 
 vec4 trace(inout Ray ray) {
     // TODO: change the code here to trace the ray through the scene
-    return vec4(texture(sky, ray.dir).rgb, 1.0f);
+    return vec4(texture(sky, ray.dir).rgb, 1.0);
 }
 
 vec3 gammaCorrection(vec3 color) {
-    return pow(color, vec3(1.0f / 2.2f));
+    return pow(color, vec3(1.0 / 2.2));
 }
 
 vec3 inverseGammaCorrection(vec3 color) {
-    return pow(color, vec3(2.2f));
+    return pow(color, vec3(2.2));
 }
 
 void outputSample(vec4 color) {
     vec3 rst = texture(RTResult, screenTexCoord).rgb;
     fragColor = vec4(gammaCorrection(
-        (inverseGammaCorrection(rst) * totalSamples + color.rgb) / (totalSamples + 1u)), 1.0f);
+        (inverseGammaCorrection(rst) * float(totalSamples) + color.rgb) / \
+        float(totalSamples + 1u)), 1.0);
     fragRngState = rngState;
 }
 
@@ -399,21 +400,27 @@ bool intersectAABB(inout Ray ray, inout AABB box, inout vec3 invDir) {
 
 bool solveQuadraticEquation(float a, float b, float c, out float x1, out float x2) {
     // Find quadratic discriminant
-    float discrim = b * b - 4 * a * c;
-    if (discrim < 0) return false;
+    float discrim = b * b - 4.0 * a * c;
+    if (discrim < 0.0) {
+        return false;
+    }
+
     float rootDiscrim = sqrt(discrim);
 
     // Compute quadratic _t_ values
     float q;
-    if (b < 0)
-        q = -.5 * (b - rootDiscrim);
-    else
-        q = -.5 * (b + rootDiscrim);
+    if (b < 0.0) {
+        q = -0.5 * (b - rootDiscrim);
+    } else {
+        q = -0.5 * (b + rootDiscrim);
+    }
+
     x1 = float(q / a);
     x2 = float(c / q);
     if (x1 > x2) {
         swap(x1, x2);
     }
+
     return true;
 }
 
@@ -436,35 +443,35 @@ bool intersectTriangle(inout Ray ray, inout Triangle mesh, inout Interaction ise
 
 // sample 
 vec3 uniformSampleHemiSphere(vec2 u) {
-    float z = 1 - u.x;
-    float sinTheta = sqrt(max(0.0f, 1.0f - z * z));
-    float phi = 2 * Pi * u.y;
+    float z = 1.0 - u.x;
+    float sinTheta = sqrt(max(0.0, 1.0 - z * z));
+    float phi = 2.0 * Pi * u.y;
     
     return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, z);
 }
 
 vec3 cosineWeightedSampleHeimiSphere(vec2 u) {
     float sinTheta = sqrt(u.x);
-    float cosTheta = sqrt(1 - sinTheta * sinTheta);
-    float phi = 2 * Pi * u.y;
+    float cosTheta = sqrt(1.0 - sinTheta * sinTheta);
+    float phi = 2.0 * Pi * u.y;
 
     return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
 vec3 uniformSampleSphere(vec2 u) {
-    float cosTheta = 1 - 2 * u.x;
-    float sinTheta = sqrt(max(0.0f, 1 - cosTheta * cosTheta));
-    float phi = 2 * Pi * u.y;
+    float cosTheta = 1.0 - 2.0 * u.x;
+    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+    float phi = 2.0 * Pi * u.y;
 
     return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
 // material
 float fresnelSchlick(float cosTheta, float ior) {
-    float r0 = (1.0f - ior) / (1.0f + ior);
+    float r0 = (1.0 - ior) / (1.0 + ior);
     r0 = r0 * r0;
 
-    return r0 + (1 - r0) * pow(1 - cosTheta, 5);
+    return r0 + (1.0 - r0) * pow(1.0 - cosTheta, 5.0);
 }
 
 bool lambertianScatterFunction(inout Ray ray, inout Interaction isect) {
@@ -501,10 +508,10 @@ LocalCoord createLocalCoord(inout vec3 n) {
     LocalCoord res;
     res.n = normalize(n);
     if (abs(res.n.x) > abs(res.n.y)) {
-        res.s = normalize(vec3(-res.n.z, 0.0f, res.n.x));
+        res.s = normalize(vec3(-res.n.z, 0.0, res.n.x));
     }
     else {
-        res.s = normalize(vec3(0.0f, -res.n.z, res.n.y));
+        res.s = normalize(vec3(0.0, -res.n.z, res.n.y));
     }
     res.t = normalize(cross(res.n, res.s));
     return res;
@@ -525,19 +532,20 @@ void swap(inout float a, inout float b) {
     b = tmp;
 }
 
-vec2 getSampleIdx(isampler2D data, int idx) {
+vec2 getISampleIdx(highp isampler2D data, int idx) {
     ivec2 texSize = textureSize(data, 0);
     int x = idx % texSize.x;
     int y = idx / texSize.x;
-    return vec2((x + 0.5f) / texSize.x, (y + 0.5f) / texSize.y);
+    return vec2((float(x) + 0.5) / float(texSize.x), (float(y) + 0.5) / float(texSize.y));
 }
 
 vec2 getSampleIdx(sampler2D data, int idx) {
     ivec2 texSize = textureSize(data, 0);
     int x = idx % texSize.x;
     int y = idx / texSize.x;
-    return vec2((x + 0.5f) / texSize.x, (y + 0.5f) / texSize.y);
+    return vec2((float(x) + 0.5) / float(texSize.x), (float(y) + 0.5) / float(texSize.y));
 }
+
 void getVec3FromTexture(sampler2D data, vec2 texCoord, out vec3 v) {
     v = texture(data, texCoord).rgb;
 }
@@ -563,8 +571,8 @@ void getSphereData(sampler2D data, int idx, out Sphere sphere) {
     sphere.radius = v.w;
 }
 
-void getTriangleIndexData(isampler2D data, int idx, out TriangleIndex triIdx) {
-    ivec3 v = texture(data, getSampleIdx(data, idx)).xyz;
+void getTriangleIndexData(highp isampler2D data, int idx, out TriangleIndex triIdx) {
+    ivec3 v = texture(data, getISampleIdx(data, idx)).xyz;
     triIdx.v[0] = v.x;
     triIdx.v[1] = v.y;
     triIdx.v[2] = v.z;
@@ -582,17 +590,18 @@ void getTriangleData(sampler2D data, inout TriangleIndex idx, out Triangle trian
     }
 }
 
-void getPrimitiveData(isampler2D data, int idx, out Primitive primitive) {
-    ivec3 v = texture(data, getSampleIdx(data, idx)).xyz;
+void getPrimitiveData(highp isampler2D data, int idx, out Primitive primitive) {
+    ivec3 v = texture(data, getISampleIdx(data, idx)).xyz;
     primitive.shapeType = v.x;
     primitive.shapeIdx = v.y;
     primitive.materialIdx = v.z;
 }
 
-void getBVHNodeData(sampler2D data, int idx, out BVHNode node) {
+void getBVHNodeData(highp sampler2D data, int idx, out BVHNode node) {
     vec3 v[3];
     int vid = idx * 3;
     for (int i = 0; i < 3; ++i) {
+        // warning: will this function work properly with highp sampler2D -> sampler2D ? 
         getVec3FromTexture(data, getSampleIdx(data, vid + i), v[i]);
     }
     node.box.pMin = v[0];

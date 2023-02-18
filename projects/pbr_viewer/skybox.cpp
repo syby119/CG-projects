@@ -29,7 +29,7 @@ Skybox::Skybox(
 }
 
 Skybox::Skybox(Skybox&& rhs) noexcept
-	: _vao(rhs._vao), 
+    : _vao(rhs._vao), 
       _vbo(rhs._vbo), 
       _texture(rhs._texture),
       irradianceMap(std::move(rhs.irradianceMap)),
@@ -60,7 +60,7 @@ void Skybox::draw() const {
 }
 
 void Skybox::createVertexResources() {
-	GLfloat vertices[] = {
+    GLfloat vertices[] = {
         // back face
         -1.0f, -1.0f, -1.0f, // bottom-left
          1.0f,  1.0f, -1.0f, // top-right
@@ -103,7 +103,7 @@ void Skybox::createVertexResources() {
          1.0f,  1.0f,  1.0f, // bottom-right
         -1.0f,  1.0f, -1.0f, // top-left
         -1.0f,  1.0f,  1.0f  // bottom-left
-	};
+    };
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
@@ -130,9 +130,15 @@ void Skybox::equirectangulerToCubemap(
     glGenTextures(1, &_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
     for (uint32_t i = 0; i < 6; ++i) {
+#ifdef __EMSCRIPTEN__
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+            0, GL_RGBA16F, resolution, resolution, 0, GL_RGBA, GL_HALF_FLOAT, nullptr);
+#else
         glTexImage2D(
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
             0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
+#endif
     }
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -156,55 +162,46 @@ void Skybox::equirectangulerToCubemap(
         throw std::runtime_error("load " + equirectImagePath + " failure");
     }
 
-    std::unique_ptr<Texture2D> hdrTexture{ new ImageTexture2D(
-        data.get(), width, height, channels, GL_RGB16F, GL_RGB, GL_FLOAT, equirectImagePath)
-    };
+    ImageTexture2D hdrTexture(
+        data.get(), width, height, channels, GL_RGB16F, GL_RGB, GL_FLOAT, equirectImagePath);
 
     // create sampler for equirect texture
-    std::unique_ptr<Sampler> hdrSampler{ new Sampler };
-    hdrSampler->setInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    hdrSampler->setInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    hdrSampler->setInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    hdrSampler->setInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    Sampler hdrSampler;
+    hdrSampler.setInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    hdrSampler.setInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    hdrSampler.setInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    hdrSampler.setInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // create mapping shader
-    std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
-    shader->attachVertexShaderFromFile(equirectToCubemapVsFilepath);
-    shader->attachFragmentShaderFromFile(equirectToCubemapFsFilepath);
-    shader->link();
+    GLSLProgram shader;
+    const std::string version = getVersion();
+    shader.attachVertexShaderFromFile(equirectToCubemapVsFilepath, version);
+    shader.attachFragmentShaderFromFile(equirectToCubemapFsFilepath, version);
+    shader.link();
 
-    // create framebuffer
-    std::unique_ptr<Framebuffer> framebuffer{ new Framebuffer };
+    const glm::mat4 projection = getProjection();
+    const std::array<glm::mat4, 6> views = getViews();
+
+    shader.use();
+    shader.setUniformMat4("projection", projection);
+    shader.setUniformInt("equirectangularMap", 0);
+    hdrTexture.bind(0);
+    hdrSampler.bind(0);
 
     // remember previous viewport
     glm::ivec4 viewport;
     glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 
-    // draw
+    // create framebuffer
+    Framebuffer framebuffer;
+    framebuffer.bind();
+
     glViewport(0, 0, resolution, resolution);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 
-    framebuffer->bind();
-
-    const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    const glm::mat4 views[] = {
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-    };
-
-    shader->use();
-    shader->setUniformMat4("projection", projection);
-    shader->setUniformInt("equirectangularMap", 0);
-    hdrTexture->bind(0);
-    hdrSampler->bind(0);
-
     for (uint32_t i = 0; i < 6; ++i) {
-        shader->setUniformMat4("view", views[i]);
+        shader.setUniformMat4("view", views[i]);
         glFramebufferTexture2D(
             GL_FRAMEBUFFER, 
             GL_COLOR_ATTACHMENT0, 
@@ -212,17 +209,23 @@ void Skybox::equirectangulerToCubemap(
             _texture, 
             0);
 
+        GLenum status = framebuffer.checkStatus();
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            throw std::runtime_error("convert equirectanguler map to cubemap failure, " +
+                framebuffer.getDiagnostic(status));
+        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         draw();
     }
 
-    framebuffer->unbind();
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    framebuffer.unbind();
     
     // restore viewport
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    hdrTexture->unbind();
-    hdrSampler->unbind(0);
+    hdrTexture.unbind();
+    hdrSampler.unbind(0);
 
     // generate mipmap
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
@@ -257,8 +260,13 @@ void Skybox::generateIrradianceMap(
     resolution = nextPow2(resolution);
 
     // create irradianceMap texture
+#ifdef __EMSCRIPTEN__
+    irradianceMap.reset(new TextureCubemap(
+        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
+#else
     irradianceMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+#endif
 
     irradianceMap->bind();
     irradianceMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -269,49 +277,49 @@ void Skybox::generateIrradianceMap(
     irradianceMap->unbind();
 
     // create irradiance shader
-    std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
-    shader->attachVertexShaderFromFile(irradianceConvolutionVsFilepath);
-    shader->attachFragmentShaderFromFile(irradianceConvolutionFsFilepath);
-    shader->link();
+    GLSLProgram shader;
+    const std::string version = getVersion();
+    shader.attachVertexShaderFromFile(irradianceConvolutionVsFilepath, version);
+    shader.attachFragmentShaderFromFile(irradianceConvolutionFsFilepath, version);
+    shader.link();
 
-    // create a framebuffer
-    std::unique_ptr<Framebuffer> framebuffer{ new Framebuffer };
+    const glm::mat4 projection = getProjection();
+    const std::array<glm::mat4, 6> views = getViews();
+
+    shader.use();
+    shader.setUniformMat4("projection", projection);
+    shader.setUniformInt("environmentMap", 0);
+    shader.setUniformFloat("deltaTheta", deltaTheta);
+    shader.setUniformFloat("deltaPhi", deltaPhi);
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 
     // remember previous viewport
     glm::ivec4 viewport;
     glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 
+    // use the framebuffer to render to cubemap
+    Framebuffer framebuffer;
+    framebuffer.bind();
     glViewport(0, 0, resolution, resolution);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    const glm::mat4 views[] = {
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-    };
-
-    shader->use();
-    shader->setUniformMat4("projection", projection);
-    shader->setUniformInt("environmentMap", 0);
-    shader->setUniformFloat("deltaTheta", deltaTheta);
-    shader->setUniformFloat("deltaPhi", deltaPhi);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
-
-    framebuffer->bind();
     for (uint32_t i = 0; i < 6; ++i) {
-        shader->setUniformMat4("view", views[i]);
-        framebuffer->attachTexture2D(*irradianceMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+        shader.setUniformMat4("view", views[i]);
+        framebuffer.attachTexture2D(
+            *irradianceMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
+
+        GLenum status = framebuffer.checkStatus();
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            throw std::runtime_error("generate irradiance map failure, " + 
+                framebuffer.getDiagnostic(status));
+        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         draw();
     }
-    framebuffer->unbind();
+    framebuffer.unbind();
 
     // restore OpenGL states
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
@@ -328,8 +336,13 @@ void Skybox::generatePrefilterMap(
     resolution = std::max(nextPow2(resolution), 1u << maxMipLevels);
 
     // create prefilterMap texture
+#ifdef __EMSCRIPTEN__
+    prefilterMap.reset(new TextureCubemap(
+        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
+#else
     prefilterMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+#endif
 
     prefilterMap->bind();
     prefilterMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -342,50 +355,52 @@ void Skybox::generatePrefilterMap(
     prefilterMap->generateMipmap();
     prefilterMap->unbind();
 
-    // create irradiance shader
-    std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
-    shader->attachVertexShaderFromFile(prefilterVsFilepath);
-    shader->attachFragmentShaderFromFile(prefilterFsFilepath);
-    shader->link();
+    // create irradiance shader    
+    GLSLProgram shader;
+    const std::string version = getVersion();
+    shader.attachVertexShaderFromFile(prefilterVsFilepath, version);
+    shader.attachFragmentShaderFromFile(prefilterFsFilepath, version);
+    shader.link();
+
+    const glm::mat4 projection = getProjection();
+    const std::array<glm::mat4, 6> views = getViews();
+    
+    shader.use();
+    shader.setUniformInt("environmentMap", 0);
+    shader.setUniformMat4("projection", projection);
+    shader.setUniformUint("numSamples", numSamples);
 
     // remember previous viewport
     glm::ivec4 viewport;
     glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 
     // create framebuffer
-    std::unique_ptr<Framebuffer> framebuffer{ new Framebuffer };
-    framebuffer->bind();
-
-    const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    const glm::mat4 views[] = {
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-    };
-    
-    shader->use();
-    shader->setUniformInt("environmentMap", 0);
-    shader->setUniformMat4("projection", projection);
-    shader->setUniformUint("numSamples", numSamples);
-
+    Framebuffer framebuffer;
+    framebuffer.bind();
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
     
     uint32_t mipResolution = resolution;
     for (uint32_t mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
         // set roughness
-        float roughness = static_cast<float>(mipLevel) / static_cast<float>(maxMipLevels - 1);
-        shader->setUniformFloat("roughness", roughness);
+        float roughness = static_cast<float>(mipLevel) / (maxMipLevels - 1);
+        shader.setUniformFloat("roughness", roughness);
+        
         // fit viewport to mipResolution
         glViewport(0, 0, mipResolution, mipResolution);
+
         // render prefilter result to mipmap
         for (uint32_t i = 0; i < 6; ++i) {
-            shader->setUniformMat4("view", views[i]);
-            framebuffer->attachTexture2D(*prefilterMap, 
+            shader.setUniformMat4("view", views[i]);
+            framebuffer.attachTexture2D(*prefilterMap, 
                 GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipLevel);
+
+            GLenum status = framebuffer.checkStatus();
+            if (status != GL_FRAMEBUFFER_COMPLETE) {
+                throw std::runtime_error("generate prefilter map failure, " + 
+                    framebuffer.getDiagnostic(status));
+            }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             draw();
@@ -394,7 +409,7 @@ void Skybox::generatePrefilterMap(
         mipResolution >>= 1;
     }
 
-    framebuffer->unbind();
+    framebuffer.unbind();
 
     // restore OpenGL states
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
@@ -424,10 +439,11 @@ void Skybox::generateBrdfLutMap(
     brdfLutMap->unbind();
 
     // create brdf look up table shader
-    std::unique_ptr<GLSLProgram> shader{ new GLSLProgram };
-    shader->attachVertexShaderFromFile(brdfLutVsFilepath);
-    shader->attachFragmentShaderFromFile(brdfLutFsFilepath);
-    shader->link();
+    GLSLProgram shader;
+    const std::string version = getVersion();
+    shader.attachVertexShaderFromFile(brdfLutVsFilepath, version);
+    shader.attachFragmentShaderFromFile(brdfLutFsFilepath, version);
+    shader.link();
 
     // create a empty vao for rendering
     // https://forums.developer.nvidia.com/t/30167
@@ -438,27 +454,56 @@ void Skybox::generateBrdfLutMap(
     glm::ivec4 viewport;
     glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 
-    glViewport(0, 0, resolution, resolution);
-
-    std::unique_ptr<Framebuffer> framebuffer{ new Framebuffer };
-    framebuffer->bind();
-    framebuffer->attachTexture(*brdfLutMap, GL_COLOR_ATTACHMENT0);
+    Framebuffer framebuffer;
+    framebuffer.bind();
+    framebuffer.attachTexture2D(*brdfLutMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    GLenum status = framebuffer.checkStatus();
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("generate brdf lookup table failure, " + 
+            framebuffer.getDiagnostic(status));
+    }
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, resolution, resolution);
 
-    shader->use();
-    shader->setUniformUint("numSamples", numSamples);
+    shader.use();
+    shader.setUniformUint("numSamples", numSamples);
     glBindVertexArray(emptyVao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
 
-    framebuffer->unbind();
+    framebuffer.unbind();
 
     glDeleteVertexArrays(1, &emptyVao);
 
     // restore OpenGL states
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+}
+
+glm::mat4 Skybox::getProjection() {
+    return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+}
+
+std::array<glm::mat4, 6> Skybox::getViews() {
+    return std::array<glm::mat4, 6> {
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+}
+
+std::string Skybox::getVersion() {
+    return
+#ifdef USE_GLES
+        "300 es"
+#else
+        "330 core"
+#endif
+    ;
 }
 
 uint32_t Skybox::nextPow2(uint32_t n) {
@@ -469,8 +514,7 @@ uint32_t Skybox::nextPow2(uint32_t n) {
         n |= n >> 8;
         n |= n >> 16;
         return n + 1;
-    }
-    else {
+    } else {
         return n == 0 ? 1 : n;
     }
 }

@@ -9,10 +9,10 @@
 #include "primitive.h"
 
 struct Node {
-	std::string name;
-	int index = -1;
-	Node* parent = nullptr;
-	std::vector<Node*> children;
-	Transform transform;
-	std::vector<Primitive> primitives;
+    std::string name;
+    int index = -1;
+    Node* parent = nullptr;
+    std::vector<Node*> children;
+    Transform transform;
+    std::vector<Primitive> primitives;
 };

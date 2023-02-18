@@ -4,32 +4,33 @@
 #include <sstream>
 #include <vector>
 
-#include <glad/glad.h>
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include "gl_utility.h"
+
 class Texture {
 public:
-	Texture();
+    Texture();
 
-	Texture(Texture&& rhs) noexcept;
+    Texture(Texture&& rhs) noexcept;
 
-	virtual ~Texture();
+    virtual ~Texture();
 
-	virtual void bind(int slot = 0) const = 0;
+    virtual void bind(int slot = 0) const = 0;
 
-	virtual void unbind() const = 0;
+    virtual void unbind() const = 0;
 
-	virtual void generateMipmap() const = 0;
+    virtual void generateMipmap() const = 0;
 
-	virtual void setParamterInt(GLenum name, int value) const = 0;
+    virtual void setParamterInt(GLenum name, int value) const = 0;
 
-	GLuint getHandle() const;
+    GLuint getHandle() const;
 
 protected:
-	GLuint _handle = {};
+    GLuint _handle = {};
 
-	void check();
+    void check();
 
-	virtual void cleanup();
+    virtual void cleanup();
 };

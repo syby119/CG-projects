@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <regex>
 #include <sstream>
 #include <stdexcept>
 
@@ -50,10 +51,31 @@ void GLSLProgram::attachVertexShader(const std::string& code) {
     _vertexShaders.push_back(vertexShader);
 }
 
+void GLSLProgram::attachVertexShader(
+    const std::string& code, 
+    const std::string& version
+) {
+    const std::string header = generateVertexShaderHeader(version);
+    attachVertexShader(header + code);
+}
+
 void GLSLProgram::attachGeometryShader(const std::string& code) {
+#ifndef __EMSCRIPTEN__
     GLuint geometryShader = createShader(code, GL_GEOMETRY_SHADER);
     glAttachShader(_handle, geometryShader);
     _geometryShaders.push_back(geometryShader);
+#else
+    std::cerr << "Geometry shader is not supported by WebGL" << std::endl;
+    throw std::logic_error("Not implemented");
+#endif
+}
+
+void GLSLProgram::attachGeometryShader(
+    const std::string& code, 
+    const std::string& version
+) {
+    const std::string header = generateGeometryShaderHeader(version);
+    attachGeometryShader(header + code);
 }
 
 void GLSLProgram::attachFragmentShader(const std::string& code) {
@@ -62,19 +84,93 @@ void GLSLProgram::attachFragmentShader(const std::string& code) {
     _fragmentShaders.push_back(fragmentShader);
 }
 
+void GLSLProgram::attachFragmentShader(
+    const std::string& code, 
+    const std::string& version
+) {
+    const std::string header = generateFragmentShaderHeader(version);
+    attachFragmentShader(header + code);
+}
+
 void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
-    attachVertexShader(code);
+    try {
+        attachVertexShader(code);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << " error" << std::endl;
+        throw;
+    }
+}
+
+void GLSLProgram::attachVertexShaderFromFile(
+    const std::string& filePath,
+    const std::string& version
+) {
+    const std::string& code = readFile(filePath);
+    const std::string& header = generateVertexShaderHeader(version);
+    const std::string generatedCode = replaceShaderHeader(code, header);
+
+    try {
+        attachVertexShader(generatedCode);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << 
+            " with version " << version << " error" << std::endl;
+        throw;
+    }
 }
 
 void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
-    attachGeometryShader(code);
+    try {
+        attachGeometryShader(code);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << " error" << std::endl;
+        throw;
+    }
+}
+
+void GLSLProgram::attachGeometryShaderFromFile(
+    const std::string& filePath,
+    const std::string& version
+) {
+    const std::string& code = readFile(filePath);
+    const std::string& header = generateGeometryShaderHeader(version);
+    const std::string generatedCode = replaceShaderHeader(code, header);
+
+    try {
+        attachGeometryShader(generatedCode);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << 
+            " with version " << version << " error" << std::endl;
+        throw;
+    }
 }
 
 void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
-    attachFragmentShader(code);
+    try {
+        attachFragmentShader(code);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << " error" << std::endl;
+        throw;
+    }
+}
+
+void GLSLProgram::attachFragmentShaderFromFile(
+    const std::string& filePath,
+    const std::string& version
+) {
+    const std::string& code = readFile(filePath);
+    const std::string& header = generateFragmentShaderHeader(version);
+    const std::string generatedCode = replaceShaderHeader(code, header);
+
+    try {
+        attachFragmentShader(generatedCode);
+    } catch(const std::runtime_error&) {
+        std::cerr << "Compile " << filePath << 
+            " with version " << version << " error" << std::endl;
+        throw;
+    }
 }
 
 void GLSLProgram::setTransformFeedbackVaryings(
@@ -97,6 +193,10 @@ void GLSLProgram::link() {
 
 void GLSLProgram::use() {
     glUseProgram(_handle);
+}
+
+void GLSLProgram::unuse() {
+    glUseProgram(0);
 }
 
 int GLSLProgram::getUniformBlockSize(const std::string& name) const {
@@ -269,4 +369,28 @@ GLuint GLSLProgram::createShader(const std::string& code, GLenum shaderType) {
     }
 
     return shader;
+}
+
+std::string GLSLProgram::generateVertexShaderHeader(const std::string& version) {
+    return "#version " + version + "\n";
+}
+
+std::string GLSLProgram::generateGeometryShaderHeader(const std::string& version) {
+    return "#version " + version + "\n";
+}
+
+std::string GLSLProgram::generateFragmentShaderHeader(const std::string& version) {
+    return
+        "#version " + version + "\n"
+#ifdef USE_GLES
+        "precision highp float;\n"
+        "precision highp int;\n"
+        "precision highp sampler2DArray;\n"
+#endif
+        ;
+}
+
+std::string GLSLProgram::replaceShaderHeader(const std::string& code, const std::string& header) {
+    std::regex regex(R"(\#version[ \t]+[1-4][0-6][0-9]([ \t]+\w+|))");
+    return std::regex_replace(code, regex, header);
 }

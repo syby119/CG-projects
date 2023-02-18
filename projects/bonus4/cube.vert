@@ -8,6 +8,6 @@ uniform mat4 view;
 uniform mat4 model;
 
 void main() {
-	fPosition = (model * vec4(aPosition, 1.0f)).xyz;
-	gl_Position = projection * mat4(mat3(view)) * vec4(fPosition, 1.0f);
+    fPosition = (model * vec4(aPosition, 1.0f)).xyz;
+    gl_Position = projection * mat4(mat3(view)) * vec4(fPosition, 1.0f);
 }

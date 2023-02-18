@@ -32,7 +32,7 @@ PostProcessing::PostProcessing(const Options& options) : Application(options) {
     _bunny->transform.position = glm::vec3(0.0f, 2.5f, 0.0f);
 
     _camera.reset(new PerspectiveCamera(
-		glm::radians(60.0f), static_cast<float>(_windowWidth) / _windowHeight, 0.1f, 1000.0f));
+        glm::radians(60.0f), static_cast<float>(_windowWidth) / _windowHeight, 0.1f, 1000.0f));
     _camera->transform.position = glm::vec3(4.0f, 6.0f, 10.0f);
     _camera->transform.lookAt(glm::vec3(0.0f));
 
@@ -64,9 +64,17 @@ PostProcessing::PostProcessing(const Options& options) : Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
+#if defined(__EMSCRIPTEN__)
+    ImGui_ImplOpenGL3_Init("#version 100");
+#elif defined(USE_GLES)
+    ImGui_ImplOpenGL3_Init("#version 150");
+#else
     ImGui_ImplOpenGL3_Init();
+#endif
 }
 
 PostProcessing::~PostProcessing() {
@@ -88,29 +96,62 @@ void PostProcessing::renderFrame() {
 }
 
 void  PostProcessing::initGeometryPassResources() {
-    _gPosition.reset(new Texture2D(GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
+    // texture2d of (GL_RGB32F, GL_RGB, GL_FLOAT) is not renderable in WebGL2.0.
+    // So we need to change the it to (GL_RGBA32F, GL_RGBA, GL_FLOAT) instead.
+    constexpr GLint colorIFormat = 
+#ifdef USE_GLES
+        GL_RGBA32F
+#else
+        GL_RGB32F
+#endif
+        ;
+
+    constexpr GLenum colorFormat = 
+#ifdef USE_GLES
+        GL_RGBA
+#else
+        GL_RGB
+#endif
+        ;
+        
+    _gPosition.reset(new Texture2D(
+        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gPosition->bind();
     _gPosition->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gPosition->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     _gPosition->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     _gPosition->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    _gPosition->unbind();
 
-    _gNormal.reset(new Texture2D(GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
+    _gNormal.reset(new Texture2D(
+        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gNormal->bind();
     _gNormal->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gNormal->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     _gNormal->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     _gNormal->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    _gNormal->unbind();
 
-    _gAlbedo.reset(new Texture2D(GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
+    _gAlbedo.reset(new Texture2D(
+        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gAlbedo->bind();
     _gAlbedo->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gAlbedo->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     _gAlbedo->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     _gAlbedo->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    _gBufferFBO->attachTexture(*_gAlbedo, GL_COLOR_ATTACHMENT2);
+    _gNormal->unbind();
 
-    _gDepth.reset(new Texture2D(GL_DEPTH_COMPONENT, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
+    constexpr GLint depthIFormat = 
+#ifdef USE_GLES
+        GL_DEPTH_COMPONENT32F
+#else
+        GL_DEPTH_COMPONENT
+#endif
+        ;
+
+    _gDepth.reset(new Texture2D(
+        depthIFormat, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
+
     _gDepth->bind();
     _gDepth->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gDepth->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -123,15 +164,28 @@ void  PostProcessing::initGeometryPassResources() {
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2 });
-    _gBufferFBO->attachTexture(*_gPosition, GL_COLOR_ATTACHMENT0);
-    _gBufferFBO->attachTexture(*_gNormal, GL_COLOR_ATTACHMENT1);
-    _gBufferFBO->attachTexture(*_gAlbedo, GL_COLOR_ATTACHMENT2);
-    _gBufferFBO->attachTexture(*_gDepth, GL_DEPTH_ATTACHMENT);
+    _gBufferFBO->attachTexture2D(*_gPosition, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    _gBufferFBO->attachTexture2D(*_gNormal, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);
+    _gBufferFBO->attachTexture2D(*_gAlbedo, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D);
+    _gBufferFBO->attachTexture2D(*_gDepth, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
+
+    if (_gBufferFBO->checkStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("_gBufferFBO is imcomplete for rendering");
+    }
+
     _gBufferFBO->unbind();
 
+    const char* version =
+#ifdef USE_GLES
+        "300 es"
+#else
+        "330 core"
+#endif
+    ;
+
     _gBufferShader.reset(new GLSLProgram);
-    _gBufferShader->attachVertexShaderFromFile(getAssetFullPath(geometryVsRelPath));
-    _gBufferShader->attachFragmentShaderFromFile(getAssetFullPath(geometryFsRelPath));
+    _gBufferShader->attachVertexShaderFromFile(getAssetFullPath(geometryVsRelPath), version);
+    _gBufferShader->attachFragmentShaderFromFile(getAssetFullPath(geometryFsRelPath), version);
     _gBufferShader->link();
 }
 
@@ -147,7 +201,12 @@ void PostProcessing::initSSAOPassResources() {
         _ssaoResult[i]->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         _ssaoResult[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
-    _ssaoFBO->attachTexture(*_ssaoResult[0], GL_COLOR_ATTACHMENT0);
+    _ssaoFBO->attachTexture2D(*_ssaoResult[0], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    
+    if (_ssaoFBO->checkStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("_ssaoFBO is imcomplete for rendering");
+    }
+
     _ssaoFBO->unbind();
 
     _ssaoBlurFBO.reset(new Framebuffer);
@@ -185,21 +244,29 @@ void PostProcessing::initSSAOPassResources() {
     _ssaoNoise->setParamterInt(GL_TEXTURE_WRAP_T, GL_REPEAT);
     _ssaoNoise->unbind();
 
+    const char* version =
+#ifdef USE_GLES
+        "300 es"
+#else
+        "330 core"
+#endif
+    ;
+
     // TODO: modify ssao.frag
     _ssaoShader.reset(new GLSLProgram);
-    _ssaoShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _ssaoShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoFsRelPath));
+    _ssaoShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _ssaoShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoFsRelPath), version);
     _ssaoShader->link();
 
     _ssaoBlurShader.reset(new GLSLProgram);
-    _ssaoBlurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _ssaoBlurShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoBlurFsRelPath));
+    _ssaoBlurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _ssaoBlurShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoBlurFsRelPath), version);
     _ssaoBlurShader->link();
 
     // TODO: modify ssao_lighting.frag
     _ssaoLightingShader.reset(new GLSLProgram);
-    _ssaoLightingShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _ssaoLightingShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoLightingFsRelPath));
+    _ssaoLightingShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _ssaoLightingShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoLightingFsRelPath), version);
     _ssaoLightingShader->link();
 }
 
@@ -214,9 +281,10 @@ void PostProcessing::initBloomPassResources() {
     _bloomMap->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     _bloomMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     _bloomMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    _bloomFBO->attachTexture(*_bloomMap, GL_COLOR_ATTACHMENT0);
+    _bloomFBO->attachTexture2D(*_bloomMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     for (int i = 0; i < 2; ++i) {
-        _brightColorMap[i].reset(new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+        _brightColorMap[i].reset(new Texture2D(
+            GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
         _brightColorMap[i]->bind();
         _brightColorMap[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         _brightColorMap[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -224,7 +292,12 @@ void PostProcessing::initBloomPassResources() {
         _brightColorMap[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 
-    _bloomFBO->attachTexture(*_gDepth, GL_DEPTH_ATTACHMENT);
+    _bloomFBO->attachTexture2D(*_gDepth, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
+    
+    if (_bloomFBO->checkStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("_bloomFBO is imcomplete for rendering");
+    }
+
     _bloomFBO->unbind();
 
     _brightColorFBO.reset(new Framebuffer);
@@ -236,39 +309,56 @@ void PostProcessing::initBloomPassResources() {
     _blurFBO->bind();
     _blurFBO->drawBuffer(GL_COLOR_ATTACHMENT0);
     _blurFBO->unbind();
+    
+    const char* version =
+#ifdef USE_GLES
+        "300 es"
+#else
+        "330 core"
+#endif
+    ;
 
     _lightShader.reset(new GLSLProgram);
-    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath));
-    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath));
+    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath), version);
+    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath), version);
     _lightShader->link();
 
     // TODO: modify extract_bright_color.frag
     _brightColorShader.reset(new GLSLProgram);
-    _brightColorShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _brightColorShader->attachFragmentShaderFromFile(getAssetFullPath(brightColorFsRelPath));
+    _brightColorShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _brightColorShader->attachFragmentShaderFromFile(getAssetFullPath(brightColorFsRelPath), version);
     _brightColorShader->link();
 
     // TODO: modify gaussian_blur.frag
     _blurShader.reset(new GLSLProgram);
-    _blurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _blurShader->attachFragmentShaderFromFile(getAssetFullPath(gaussianBlurFsRelPath));
+    _blurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _blurShader->attachFragmentShaderFromFile(getAssetFullPath(gaussianBlurFsRelPath), version);
     _blurShader->link();
 
     _blendShader.reset(new GLSLProgram);
-    _blendShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _blendShader->attachFragmentShaderFromFile(getAssetFullPath(blendBloomMapFsRelPath));
+    _blendShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _blendShader->attachFragmentShaderFromFile(getAssetFullPath(blendBloomMapFsRelPath), version);
     _blendShader->link();
 }
 
 void PostProcessing::initShaders() {
+    const char* version =
+#ifdef USE_GLES
+        "300 es"
+#else
+        "330 core"
+#endif
+    ;
+    
     _drawScreenShader.reset(new GLSLProgram);
-    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
-    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
+    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
     _drawScreenShader->link();
 }
 
 void PostProcessing::renderScene() {
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+
     // deferred rendering: geometry pass
     _gBufferFBO->bind();
     glEnable(GL_DEPTH_TEST);
@@ -289,10 +379,9 @@ void PostProcessing::renderScene() {
     // deferred rendering: lighting passes
     // + SSAO pass
     if (_enableSSAO) {
-        _ssaoFBO->bind();
-        _ssaoFBO->attachTexture(*_ssaoResult[0], GL_COLOR_ATTACHMENT0);
-
         glDisable(GL_DEPTH_TEST);
+
+        _ssaoFBO->bind();
 
         _ssaoShader->use();
         _ssaoShader->setUniformInt("gPosition", 0);
@@ -301,7 +390,7 @@ void PostProcessing::renderScene() {
         _gNormal->bind(1);
         _ssaoShader->setUniformInt("noiseMap", 2);
         _ssaoNoise->bind(2);
-        for (int i = 0; i < _sampleVecs.size(); ++i) {
+        for (size_t i = 0; i < _sampleVecs.size(); ++i) {
             _ssaoShader->setUniformVec3("sampleVecs[" + std::to_string(i) + "]", _sampleVecs[i]);
         }
 
@@ -311,24 +400,29 @@ void PostProcessing::renderScene() {
         _screenQuad->draw();
 
         _ssaoFBO->unbind();
+
         _ssaoBlurFBO->bind();
-        glDisable(GL_DEPTH_TEST);
+
         _currentReadBuffer = 0;
         _currentWriteBuffer = 1;
         _ssaoBlurShader->use();
         for (int pass = 0; pass < 5; ++pass) {
-            _ssaoBlurFBO->attachTexture(*_ssaoResult[_currentWriteBuffer], GL_COLOR_ATTACHMENT0);
+            _ssaoBlurFBO->attachTexture2D(*_ssaoResult[_currentWriteBuffer], 
+                GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
             _ssaoBlurShader->setUniformInt("ssaoResult", 0);
             _ssaoResult[_currentReadBuffer]->bind(0);
             _screenQuad->draw();
+
             std::swap(_currentReadBuffer, _currentWriteBuffer);
         }
+
         _ssaoBlurFBO->unbind();
     } else {
         _currentReadBuffer = 0;
         static const std::vector<float> ones(_windowWidth * _windowHeight, 1.0f);
         _ssaoResult[0]->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, _windowWidth, _windowHeight, 0, GL_RED, GL_FLOAT, ones.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 
+            _windowWidth, _windowHeight, 0, GL_RED, GL_FLOAT, ones.data());
         _ssaoResult[0]->unbind();
     }
 
@@ -399,7 +493,6 @@ void PostProcessing::renderUI() {
         ImGui::Separator();
         ImGui::Checkbox("bloom", &_enableBloom);
         ImGui::Checkbox("ssao", &_enableSSAO);
-
         ImGui::End();
     }
 
@@ -409,7 +502,8 @@ void PostProcessing::renderUI() {
 
 void PostProcessing::extractBrightColor(const Texture2D& sceneMap) {
     _brightColorFBO->bind();
-    _brightColorFBO->attachTexture(*_brightColorMap[0], GL_COLOR_ATTACHMENT0);
+    _brightColorFBO->attachTexture2D(
+        *_brightColorMap[0], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     _brightColorShader->use();
     _brightColorShader->setUniformInt("sceneMap", 0);
     sceneMap.bind(0);
@@ -428,7 +522,8 @@ void PostProcessing::blurBrightColor() {
 
     for (int pass = 0; pass < 20; ++pass) {
         _blurShader->setUniformBool("horizontal", horizontal);
-        _blurFBO->attachTexture(*_brightColorMap[_currentWriteBuffer], GL_COLOR_ATTACHMENT0);
+        _blurFBO->attachTexture2D(
+            *_brightColorMap[_currentWriteBuffer], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
         _brightColorMap[_currentReadBuffer]->bind(0);
         _screenQuad->draw();
         horizontal = !horizontal;

@@ -10,21 +10,21 @@
 
 class SceneRoaming : public Application {
 public:
-	SceneRoaming(const Options& options);
-	
-	~SceneRoaming() = default;
+    SceneRoaming(const Options& options);
+    
+    ~SceneRoaming() = default;
 
-	void handleInput() override;
+    void handleInput() override;
 
-	void renderFrame() override;
+    void renderFrame() override;
 
 private:
-	std::vector<std::unique_ptr<Camera>> _cameras;
-	int activeCameraIndex = 0;
+    std::vector<std::unique_ptr<Camera>> _cameras;
+    int activeCameraIndex = 0;
 
-	std::unique_ptr<Model> _bunny;
+    std::unique_ptr<Model> _bunny;
 
-	std::unique_ptr<GLSLProgram> _shader;
+    std::unique_ptr<GLSLProgram> _shader;
 
-	void initShader();
+    void initShader();
 };

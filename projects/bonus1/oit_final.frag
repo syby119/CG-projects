@@ -11,8 +11,8 @@ uniform sampler2D blendTexture;
 uniform vec4 backgroundColor;
 
 void main() {
-    float u = gl_FragCoord.x / windowExtent.width;
-    float v = gl_FragCoord.y / windowExtent.height;
+    float u = gl_FragCoord.x / float(windowExtent.width);
+    float v = gl_FragCoord.y / float(windowExtent.height);
     vec4 frontColor = texture(blendTexture, vec2(u, v));
-    color = frontColor + backgroundColor * frontColor.a;
+    color = vec4((frontColor + backgroundColor * frontColor.a).rgb, 1.0f);
 }

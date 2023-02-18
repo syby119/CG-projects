@@ -1,63 +1,45 @@
 #pragma once
 
+#include <string>
 #include <vector>
-#include <glad/glad.h>
 
+#include "gl_utility.h"
 #include "texture.h"
 
 class Framebuffer {
 public:
-	Framebuffer() {
-		glGenFramebuffers(1, &_handle);
-	}
+    Framebuffer();
 
-	Framebuffer(const Framebuffer&) = delete;
+    Framebuffer(const Framebuffer&) = delete;
 
-	Framebuffer(Framebuffer&& rhs) noexcept {
-		_handle = rhs._handle;
-		rhs._handle = 0;
-	}
+    Framebuffer(Framebuffer&& rhs) noexcept;
 
-	~Framebuffer() {
-		if (_handle != 0) {
-			glDeleteFramebuffers(1, &_handle);
-			_handle = 0;
-		}
-	}
+    ~Framebuffer();
 
-	void bind() {
-		glBindFramebuffer(GL_FRAMEBUFFER, _handle);
-	}
+    void bind();
 
-	void unbind() {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
+    void unbind();
 
-	void attachTexture(const Texture& texture, GLenum attachment, int level = 0) {
-		glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture.getHandle(), level);
-	}
+    void attachTexture(const Texture& texture, GLenum attachment, int level = 0);
 
-	void attachTexture2D(const Texture& texture, GLenum attachment, GLenum textarget, int level = 0) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER,
-			attachment, textarget, texture.getHandle(), level);
-	}
+    void attachTexture2D(
+        const Texture& texture, GLenum attachment, GLenum textarget, int level = 0);
 
-	GLenum checkStatus(GLenum target) const {
-		return glCheckFramebufferStatus(target);
-	}
+    void attachTextureLayer(
+        const Texture& texture, GLenum attachment, int layer, int level = 0);
 
-	void drawBuffer(GLenum buffer) const {
-		glDrawBuffer(buffer);
-	}
+    GLenum checkStatus(GLenum target = GL_FRAMEBUFFER) const;
 
-	void drawBuffers(const std::vector<GLenum>& buffers) const {
-		glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
-	}
+    std::string getDiagnostic(GLenum status) const;
 
-	void readBuffer(GLenum buffer) const {
-		glReadBuffer(buffer);
-	}
+    void drawBuffer(GLenum buffer) const;
+
+    void drawBuffers(const std::vector<GLenum>& buffers) const;
+
+    void readBuffer(GLenum buffer) const;
+
+    GLuint getHandle() const;
 
 private:
-	GLuint _handle;
+    GLuint _handle;
 };

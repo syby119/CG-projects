@@ -32,11 +32,11 @@ BVHBuildNode* BVH::recursiveBuild(
             orderedPrimitives.push_back(primitives[primInfo[i].pid]);
         }
         node->initLeafNode(box, startId, nPrimitives);
-        return node;
     } else {
         // TODO: recursive build BVH 
-        return node;
     }
+
+    return node;
 }
 
 int BVH::toLinearTree(BVHBuildNode* root, int* offset) {

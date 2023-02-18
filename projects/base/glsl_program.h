@@ -3,8 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
+
+#include "gl_utility.h"
 
 class GLSLProgram {
 public:
@@ -16,22 +17,35 @@ public:
 
     void attachVertexShader(const std::string& code);
 
+    void attachVertexShader(const std::string& code, const std::string& version);
+
     void attachGeometryShader(const std::string& filePath);
+
+    void attachGeometryShader(const std::string& filePath, const std::string& version);
 
     void attachFragmentShader(const std::string& code);
 
+    void attachFragmentShader(const std::string& code, const std::string& version);
+
     void attachVertexShaderFromFile(const std::string& filePath);
+
+    void attachVertexShaderFromFile(const std::string& filePath, const std::string& version);
 
     void attachGeometryShaderFromFile(const std::string& filePath);
 
-    void attachFragmentShaderFromFile(const std::string& filePath);
+    void attachGeometryShaderFromFile(const std::string& filePath, const std::string& version);
 
-    void setTransformFeedbackVaryings(
-        const std::vector<const char*>& varyings, GLenum bufferMode);
+    void attachFragmentShaderFromFile(const std::string& filePath);
+    
+    void attachFragmentShaderFromFile(const std::string& filePath, const std::string& version);
+
+    void setTransformFeedbackVaryings(const std::vector<const char*>& varyings, GLenum bufferMode);
 
     void link();
 
     void use();
+
+    void unuse();
 
     int getUniformBlockSize(const std::string& name) const;
 
@@ -61,7 +75,7 @@ public:
 
     void setUniformBlockBinding(const std::string& name, uint32_t binding) const;
 
-public:
+private:
     GLuint _handle = 0;
 
     std::vector<GLuint> _vertexShaders;
@@ -70,7 +84,15 @@ public:
 
     std::vector<GLuint> _fragmentShaders;
 
-    std::string readFile(const std::string& filePath);
+    static std::string readFile(const std::string& filePath);
 
-    GLuint createShader(const std::string& code, GLenum shaderType);
+    static GLuint createShader(const std::string& code, GLenum shaderType);
+
+    static std::string generateVertexShaderHeader(const std::string& version);
+
+    static std::string generateGeometryShaderHeader(const std::string& version);
+    
+    static std::string generateFragmentShaderHeader(const std::string& version);
+
+    static std::string replaceShaderHeader(const std::string& code, const std::string& header);
 };

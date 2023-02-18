@@ -18,7 +18,7 @@ Model::Model(const std::string& filepath) {
     std::string mtlBaseDir = filepath.substr(0, index + 1);
 
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials,
-        &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
+            &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
         throw std::runtime_error("load " + filepath + " failure: " + err);
     }
 
@@ -125,11 +125,9 @@ void Model::draw() const {
 }
 
 void Model::drawBoundingBox() const {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBindVertexArray(_boxVao);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 GLuint Model::getVao() const {

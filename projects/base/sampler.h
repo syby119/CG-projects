@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "gl_utility.h"
 
 class Sampler {
 public:

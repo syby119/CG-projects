@@ -9,16 +9,16 @@
 
 class RenderFlag : public Application {
 public:
-	RenderFlag(const Options& options);
+    RenderFlag(const Options& options);
 
-	~RenderFlag() = default;
+    ~RenderFlag() = default;
 
 private:
-	std::unique_ptr<Star> _stars[5];
+    std::unique_ptr<Star> _stars[5];
 
-	std::unique_ptr<GLSLProgram> _starShader;
-	
-	void handleInput() override;
+    std::unique_ptr<GLSLProgram> _starShader;
+    
+    void handleInput() override;
 
-	void renderFrame() override;
+    void renderFrame() override;
 };

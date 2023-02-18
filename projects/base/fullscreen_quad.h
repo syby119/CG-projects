@@ -1,22 +1,22 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 
-#include "../base/texture.h"
+#include "gl_utility.h"
+#include "texture.h"
 
 class FullscreenQuad {
 public:
-	FullscreenQuad();
+    FullscreenQuad();
 
-	FullscreenQuad(const FullscreenQuad&) = delete;
+    FullscreenQuad(const FullscreenQuad&) = delete;
 
-	FullscreenQuad(FullscreenQuad&& rhs) noexcept;
+    FullscreenQuad(FullscreenQuad&& rhs) noexcept;
 
-	~FullscreenQuad();
+    ~FullscreenQuad();
 
-	void draw() const;
+    void draw() const;
 private:
-	GLuint _vao;
-	GLuint _vbo;
+    GLuint _vao;
+    GLuint _vbo;
 };

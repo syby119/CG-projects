@@ -3,9 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <glad/glad.h>
-
 #include "bounding_box.h"
+#include "gl_utility.h"
 #include "transform.h"
 #include "vertex.h"
 

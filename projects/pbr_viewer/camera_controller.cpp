@@ -43,22 +43,26 @@ void CameraController::update(const Input& input, float deltaTime) {
                     _panStart = getMouseOnScreen(pageX, pageY);
                     _panEnd = _panStart;
                     break;
+                default:
+                    break;
             }
         }
     }
 
     if (mouseMove) {
         switch (_state) {
-        case CameraController::STATE::ROTATE:
-            _movePrev = _moveCurr;
-            _moveCurr = getMouseOnCircle(pageX, pageY);
-            break;
-        case CameraController::STATE::ZOOM:
-            _zoomEnd = getMouseOnScreen(pageX, pageY);
-            break;
-        case CameraController::STATE::PAN:
-            _panEnd = getMouseOnScreen(pageX, pageY);
-            break;
+            case CameraController::STATE::ROTATE:
+                _movePrev = _moveCurr;
+                _moveCurr = getMouseOnCircle(pageX, pageY);
+                break;
+            case CameraController::STATE::ZOOM:
+                _zoomEnd = getMouseOnScreen(pageX, pageY);
+                break;
+            case CameraController::STATE::PAN:
+                _panEnd = getMouseOnScreen(pageX, pageY);
+                break;
+            default:
+                break;
         }
     }
 

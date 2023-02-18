@@ -48,13 +48,13 @@ struct SpotLight {
     float angle;
 };
 
-layout(shared) uniform uboCamera {
+layout(std140) uniform uboCamera {
     mat4 projection;
     mat4 view;
     vec3 viewPosition;
 };
 
-layout(shared) uniform uboLights {
+layout(std140) uniform uboLights {
     DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
     PointLight pointLights[MAX_POINT_LIGHTS];
     SpotLight spotLights[MAX_SPOT_LIGHTS];
@@ -63,7 +63,7 @@ layout(shared) uniform uboLights {
     int spotLightCount;
 };
 
-layout(shared) uniform uboEnvironment {
+layout(std140) uniform uboEnvironment {
     float exposure;
     float gamma;
     uint maxPrefilterMipLevel;
@@ -202,14 +202,14 @@ vec3 getBRDF(PBRInfo info) {
 
 // From http://filmicworlds.com/blog/filmic-tonemapping-operators/
 vec3 uncharted2Tonemap(vec3 color) {
-	float A = 0.15f;
-	float B = 0.50f;
-	float C = 0.10f;
-	float D = 0.20f;
-	float E = 0.02f;
-	float F = 0.30f;
-	float W = 11.2f;
-	return ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
+    float A = 0.15f;
+    float B = 0.50f;
+    float C = 0.10f;
+    float D = 0.20f;
+    float E = 0.02f;
+    float F = 0.30f;
+    float W = 11.2f;
+    return ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 }
 
 vec4 tonemap(vec4 color) {
@@ -221,7 +221,7 @@ vec4 tonemap(vec4 color) {
 vec3 getIBLTerm(PBRInfo info, vec3 N, vec3 R) {
     vec3 diffuse = info.kd * texture(irradianceMap, N).rgb;
 
-    float lod = info.perceptualRoughness * maxPrefilterMipLevel;
+    float lod = info.perceptualRoughness * float(maxPrefilterMipLevel);
     vec2 brdf = texture(brdfLutMap, vec2(info.NdotV, info.perceptualRoughness)).rg;
     vec3 specular = textureLod(prefilterMap, R, lod).rgb * (info.ks * brdf.x + brdf.y);
 

@@ -4,6 +4,6 @@
 #include "primitive.h"
 
 struct RenderObject {
-	glm::mat4 globalMatrix;
-	const Primitive* primitive;
+    glm::mat4 globalMatrix;
+    const Primitive* primitive;
 };

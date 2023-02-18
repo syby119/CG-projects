@@ -1,7 +1,3 @@
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include "application.h"
 
 Application::Application(const Options& options)
@@ -19,18 +15,9 @@ Application::Application(const Options& options)
     }
 
     // create glfw window
-#if defined(__EMSCRIPTEN__)
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#elif defined(USE_GLES)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#else
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, options.glVersion.first);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, options.glVersion.second);
-#endif
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, options.windowResizable);
@@ -54,26 +41,16 @@ Application::Application(const Options& options)
     glfwMakeContextCurrent(_window);
     glfwSetWindowUserPointer(_window, this);
 
-#ifndef __EMSCRIPTEN__
     if (options.vSync) {
         glfwSwapInterval(1);
     } else {
         glfwSwapInterval(0);
     }
-#endif
 
     // load OpenGL library functions
-#ifdef __EMSCRIPTEN__
-    // Emscripten link OpenGL ES library statically
-#elif USE_GLES
-    if (!gladLoadGLES2(glfwGetProcAddress)) {
-        throw std::runtime_error("glad initialization OpenGL/ES2 failure");
-    }
-#else
     if (!gladLoadGL(glfwGetProcAddress)) {
         throw std::runtime_error("glad initialization OpenGL failure");
     }
-#endif
 
     std::cout << "OpenGL\n";
     std::cout << "+ version:    " << glGetString(GL_VERSION) << '\n';
@@ -85,11 +62,9 @@ Application::Application(const Options& options)
     glfwGetFramebufferSize(_window, &_windowWidth, &_windowHeight);
     glViewport(0, 0, _windowWidth, _windowHeight);
 
-#ifndef USE_GLES
     if (options.msaa) {
         glEnable(GL_MULTISAMPLE);
     }
-#endif
 
     // callback functions
     glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
@@ -97,15 +72,6 @@ Application::Application(const Options& options)
     glfwSetMouseButtonCallback(_window, mouseButtonCallback);
     glfwSetCursorPosCallback(_window, cursorPosCallback);
     glfwSetScrollCallback(_window, scrollCallback);
-
-    // register mainloop for WebGL
-#ifdef __EMSCRIPTEN__
-    if (mainloopRegisterFunc) {
-        throw std::logic_error("Application is designed to be singleton, though not implemented as is");
-    }
-
-    mainloopRegisterFunc = std::bind(&Application::mainloop, this);
-#endif
 
     // record time
     _lastTimeStamp = std::chrono::high_resolution_clock::now();
@@ -121,34 +87,19 @@ Application::~Application() {
 }
 
 void Application::run() {
-#if __EMSCRIPTEN__
-    emscripten_set_main_loop(mainloopWrapper, 0, 1);
-#else
     while (!glfwWindowShouldClose(_window)) {
-        mainloop();
+        updateTime();
+        handleInput();
+        renderFrame();
+
+        glfwSwapBuffers(_window);
+        glfwPollEvents();
     }
-#endif
 }
 
 std::string Application::getAssetFullPath(const std::string& resourceRelPath) const {
     return _assetRootDir + resourceRelPath;
 }
-
-void Application::mainloop() {
-    updateTime();
-    handleInput();
-    renderFrame();
-
-    glfwSwapBuffers(_window);
-    glfwPollEvents();
-}
-
-#ifdef __EMSCRIPTEN__
-std::function<void()> Application::mainloopRegisterFunc;
-void Application::mainloopWrapper() {
-    mainloopRegisterFunc();
-}
-#endif
 
 void Application::updateTime() {
     auto now = std::chrono::high_resolution_clock::now();

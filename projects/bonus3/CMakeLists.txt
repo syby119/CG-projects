@@ -42,41 +42,9 @@ hardlink_shaders(${PROJECT_NAME} ${SHADER_TARGET_PATH} PROJECT_SHADERS)
 
 configure_project(${PROJECT_NAME})
 
-if (EMSCRIPTEN)
-    target_compile_options(${PROJECT_NAME} PRIVATE "-fexceptions")
-endif()
-
-if (USE_GLES)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GLES)
-endif()
-
-if (EMSCRIPTEN)
-    set(asset_paths
-        "obj/bunny.obj"
-        "obj/sphere.obj"
-        "obj/cube.obj")
-    foreach(shader ${PROJECT_SHADERS})
-        get_filename_component(shader_name ${shader} NAME)
-        list(APPEND asset_paths "shader/${PROJECT_NAME}/${shader_name}")
-    endforeach()
-
-    preload_files(${PROJECT_NAME} asset_paths)
-endif()
-
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad)
 target_link_libraries(${PROJECT_NAME} PRIVATE glm)
 target_link_libraries(${PROJECT_NAME} PRIVATE tinyobjloader)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
 target_link_libraries(${PROJECT_NAME} PRIVATE stb)
-
-if (EMSCRIPTEN)
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s USE_GLFW=3")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s MIN_WEBGL_VERSION=2")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s MAX_WEBGL_VERSION=2")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s WASM=1")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s NO_DISABLE_EXCEPTION_CATCHING=1")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s ALLOW_MEMORY_GROWTH=1")
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-s GL_SUPPORT_AUTOMATIC_ENABLE_EXTENSIONS=1")
-else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-    target_link_libraries(${PROJECT_NAME} PRIVATE glad)
-endif()

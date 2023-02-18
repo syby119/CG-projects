@@ -52,13 +52,7 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 ShadingTutorial::~ShadingTutorial() {
@@ -68,15 +62,8 @@ ShadingTutorial::~ShadingTutorial() {
 }
 
 void ShadingTutorial::initAmbientShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -88,6 +75,7 @@ void ShadingTutorial::initAmbientShader() {
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "out vec4 color;\n"
 
         "// material data structure declaration\n"
@@ -111,21 +99,14 @@ void ShadingTutorial::initAmbientShader() {
         "}\n";
 
     _ambientShader.reset(new GLSLProgram);
-    _ambientShader->attachVertexShader(vsCode, version);
-    _ambientShader->attachFragmentShader(fsCode, version);
+    _ambientShader->attachVertexShader(vsCode);
+    _ambientShader->attachFragmentShader(fsCode);
     _ambientShader->link();
 }
 
 void ShadingTutorial::initLambertShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -144,6 +125,7 @@ void ShadingTutorial::initLambertShader() {
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "in vec3 fPosition;\n"
         "in vec3 fNormal;\n"
         "out vec4 color;\n"
@@ -202,21 +184,14 @@ void ShadingTutorial::initLambertShader() {
         "}\n";
 
     _lambertShader.reset(new GLSLProgram);
-    _lambertShader->attachVertexShader(vsCode, version);
-    _lambertShader->attachFragmentShader(fsCode, version);
+    _lambertShader->attachVertexShader(vsCode);
+    _lambertShader->attachFragmentShader(fsCode);
     _lambertShader->link();
 }
 
 void ShadingTutorial::initPhongShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -241,6 +216,7 @@ void ShadingTutorial::initPhongShader() {
     // hint4: add up the ambient term, diffuse term and specular term, you can get the answer
     // ------------------------------------------------------------
     const char* fsCode =
+        "#version 330 core\n"
         "out vec4 color;\n"
         "void main() {\n"
         "    color = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
@@ -248,8 +224,8 @@ void ShadingTutorial::initPhongShader() {
     // ------------------------------------------------------------
 
     _phongShader.reset(new GLSLProgram);
-    _phongShader->attachVertexShader(vsCode, version);
-    _phongShader->attachFragmentShader(fsCode, version);
+    _phongShader->attachVertexShader(vsCode);
+    _phongShader->attachFragmentShader(fsCode);
     _phongShader->link();
 }
 

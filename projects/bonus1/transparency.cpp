@@ -68,13 +68,7 @@ Transparency::Transparency(const Options& options): Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 Transparency::~Transparency() {
@@ -89,58 +83,38 @@ Transparency::~Transparency() {
 }
 
 void Transparency::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     // alpha testing shader
     // TODO: modify the alpha_testing.frag code to achieve the alpha testing algorithm
     _alphaTestingShader.reset(new GLSLProgram);
-    _alphaTestingShader->attachVertexShaderFromFile(
-        getAssetFullPath(alphaTestingVsRelPath), version);
-    _alphaTestingShader->attachFragmentShaderFromFile(
-        getAssetFullPath(alphaTestingFsRelPath), version);
+    _alphaTestingShader->attachVertexShaderFromFile(getAssetFullPath(alphaTestingVsRelPath));
+    _alphaTestingShader->attachFragmentShaderFromFile(getAssetFullPath(alphaTestingFsRelPath));
     _alphaTestingShader->link();
 
     // alpha blending shader
     _alphaBlendingShader.reset(new GLSLProgram);
-    _alphaBlendingShader->attachVertexShaderFromFile(
-        getAssetFullPath(alphaBlendingVsRelPath), version);
-    _alphaBlendingShader->attachFragmentShaderFromFile(
-        getAssetFullPath(alphaBlendingFsRelPath), version);
+    _alphaBlendingShader->attachVertexShaderFromFile(getAssetFullPath(alphaBlendingVsRelPath));
+    _alphaBlendingShader->attachFragmentShaderFromFile(getAssetFullPath(alphaBlendingFsRelPath));
     _alphaBlendingShader->link();
 
     // depth peeling shaders
     _depthPeelingInitShader.reset(new GLSLProgram);
-    _depthPeelingInitShader->attachVertexShaderFromFile(
-        getAssetFullPath(oitInitVsRelPath), version);
-    _depthPeelingInitShader->attachFragmentShaderFromFile(
-        getAssetFullPath(oitInitFsRelPath), version);
+    _depthPeelingInitShader->attachVertexShaderFromFile(getAssetFullPath(oitInitVsRelPath));
+    _depthPeelingInitShader->attachFragmentShaderFromFile(getAssetFullPath(oitInitFsRelPath));
     _depthPeelingInitShader->link();
 
     _depthPeelingShader.reset(new GLSLProgram);
-    _depthPeelingShader->attachVertexShaderFromFile(
-        getAssetFullPath(oitPeelVsRelPath), version);
-    _depthPeelingShader->attachFragmentShaderFromFile(
-        getAssetFullPath(oitPeelFsRelPath), version);
+    _depthPeelingShader->attachVertexShaderFromFile(getAssetFullPath(oitPeelVsRelPath));
+    _depthPeelingShader->attachFragmentShaderFromFile(getAssetFullPath(oitPeelFsRelPath));
     _depthPeelingShader->link();
 
     _depthPeelingBlendShader.reset(new GLSLProgram);
-    _depthPeelingBlendShader->attachVertexShaderFromFile(
-        getAssetFullPath(oitBlendVsRelPath), version);
-    _depthPeelingBlendShader->attachFragmentShaderFromFile(
-        getAssetFullPath(oitBlendFsRelPath), version);
+    _depthPeelingBlendShader->attachVertexShaderFromFile(getAssetFullPath(oitBlendVsRelPath));
+    _depthPeelingBlendShader->attachFragmentShaderFromFile(getAssetFullPath(oitBlendFsRelPath));
     _depthPeelingBlendShader->link();
 
     _depthPeelingFinalShader.reset(new GLSLProgram);
-    _depthPeelingFinalShader->attachVertexShaderFromFile(
-        getAssetFullPath(oitFinalVsRelPath), version);
-    _depthPeelingFinalShader->attachFragmentShaderFromFile(
-        getAssetFullPath(oitFinalFsRelPath), version);
+    _depthPeelingFinalShader->attachVertexShaderFromFile(getAssetFullPath(oitFinalVsRelPath));
+    _depthPeelingFinalShader->attachFragmentShaderFromFile(getAssetFullPath(oitFinalFsRelPath));
     _depthPeelingFinalShader->link();
 }
 
@@ -152,13 +126,8 @@ void Transparency::initDepthPeelingResources() {
         _colorTextures[i].reset(new Texture2D(
             GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 
-#ifdef USE_GLES
-        _depthTextures[i].reset(new Texture2D(
-            GL_DEPTH_COMPONENT32F, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
-#else
         _depthTextures[i].reset(new Texture2D(
             GL_DEPTH_COMPONENT, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
-#endif
 
         _fbos[i]->bind();
         _fbos[i]->attachTexture2D(*_colorTextures[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);

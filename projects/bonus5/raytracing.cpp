@@ -96,13 +96,7 @@ RayTracing::RayTracing(const Options& options): Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 RayTracing::~RayTracing() {
@@ -222,23 +216,15 @@ void RayTracing::renderFrame() {
 }
 
 void RayTracing::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     // TODO: modify raytracing.frag code to achieve raytracing
     _raytracingShader.reset(new GLSLProgram);
-    _raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath), version);
-    _raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath), version);
+    _raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath));
+    _raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath));
     _raytracingShader->link();
 
     _drawScreenShader.reset(new GLSLProgram);
-    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
+    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
     _drawScreenShader->link();
 }
 

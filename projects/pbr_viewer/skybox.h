@@ -80,7 +80,5 @@ private:
 
     static std::array<glm::mat4, 6> getViews();
 
-    static std::string getVersion();
-
     static uint32_t nextPow2(uint32_t n);
 };

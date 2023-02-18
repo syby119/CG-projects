@@ -68,13 +68,7 @@ PostProcessing::PostProcessing(const Options& options) : Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 PostProcessing::~PostProcessing() {
@@ -96,26 +90,8 @@ void PostProcessing::renderFrame() {
 }
 
 void  PostProcessing::initGeometryPassResources() {
-    // texture2d of (GL_RGB32F, GL_RGB, GL_FLOAT) is not renderable in WebGL2.0.
-    // So we need to change the it to (GL_RGBA32F, GL_RGBA, GL_FLOAT) instead.
-    constexpr GLint colorIFormat = 
-#ifdef USE_GLES
-        GL_RGBA32F
-#else
-        GL_RGB32F
-#endif
-        ;
-
-    constexpr GLenum colorFormat = 
-#ifdef USE_GLES
-        GL_RGBA
-#else
-        GL_RGB
-#endif
-        ;
-        
     _gPosition.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+        GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
     _gPosition->bind();
     _gPosition->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gPosition->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -124,7 +100,7 @@ void  PostProcessing::initGeometryPassResources() {
     _gPosition->unbind();
 
     _gNormal.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+        GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
     _gNormal->bind();
     _gNormal->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gNormal->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -133,7 +109,7 @@ void  PostProcessing::initGeometryPassResources() {
     _gNormal->unbind();
 
     _gAlbedo.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+        GL_RGB32F, _windowWidth, _windowHeight, GL_RGB, GL_FLOAT));
     _gAlbedo->bind();
     _gAlbedo->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gAlbedo->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -141,17 +117,8 @@ void  PostProcessing::initGeometryPassResources() {
     _gAlbedo->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     _gNormal->unbind();
 
-    constexpr GLint depthIFormat = 
-#ifdef USE_GLES
-        GL_DEPTH_COMPONENT32F
-#else
-        GL_DEPTH_COMPONENT
-#endif
-        ;
-
     _gDepth.reset(new Texture2D(
-        depthIFormat, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
-
+        GL_DEPTH_COMPONENT, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
     _gDepth->bind();
     _gDepth->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gDepth->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -175,17 +142,9 @@ void  PostProcessing::initGeometryPassResources() {
 
     _gBufferFBO->unbind();
 
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     _gBufferShader.reset(new GLSLProgram);
-    _gBufferShader->attachVertexShaderFromFile(getAssetFullPath(geometryVsRelPath), version);
-    _gBufferShader->attachFragmentShaderFromFile(getAssetFullPath(geometryFsRelPath), version);
+    _gBufferShader->attachVertexShaderFromFile(getAssetFullPath(geometryVsRelPath));
+    _gBufferShader->attachFragmentShaderFromFile(getAssetFullPath(geometryFsRelPath));
     _gBufferShader->link();
 }
 
@@ -244,29 +203,21 @@ void PostProcessing::initSSAOPassResources() {
     _ssaoNoise->setParamterInt(GL_TEXTURE_WRAP_T, GL_REPEAT);
     _ssaoNoise->unbind();
 
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     // TODO: modify ssao.frag
     _ssaoShader.reset(new GLSLProgram);
-    _ssaoShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _ssaoShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoFsRelPath), version);
+    _ssaoShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _ssaoShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoFsRelPath));
     _ssaoShader->link();
 
     _ssaoBlurShader.reset(new GLSLProgram);
-    _ssaoBlurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _ssaoBlurShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoBlurFsRelPath), version);
+    _ssaoBlurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _ssaoBlurShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoBlurFsRelPath));
     _ssaoBlurShader->link();
 
     // TODO: modify ssao_lighting.frag
     _ssaoLightingShader.reset(new GLSLProgram);
-    _ssaoLightingShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _ssaoLightingShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoLightingFsRelPath), version);
+    _ssaoLightingShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _ssaoLightingShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoLightingFsRelPath));
     _ssaoLightingShader->link();
 }
 
@@ -310,49 +261,33 @@ void PostProcessing::initBloomPassResources() {
     _blurFBO->drawBuffer(GL_COLOR_ATTACHMENT0);
     _blurFBO->unbind();
     
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     _lightShader.reset(new GLSLProgram);
-    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath), version);
-    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath), version);
+    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath));
+    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath));
     _lightShader->link();
 
     // TODO: modify extract_bright_color.frag
     _brightColorShader.reset(new GLSLProgram);
-    _brightColorShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _brightColorShader->attachFragmentShaderFromFile(getAssetFullPath(brightColorFsRelPath), version);
+    _brightColorShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _brightColorShader->attachFragmentShaderFromFile(getAssetFullPath(brightColorFsRelPath));
     _brightColorShader->link();
 
     // TODO: modify gaussian_blur.frag
     _blurShader.reset(new GLSLProgram);
-    _blurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _blurShader->attachFragmentShaderFromFile(getAssetFullPath(gaussianBlurFsRelPath), version);
+    _blurShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _blurShader->attachFragmentShaderFromFile(getAssetFullPath(gaussianBlurFsRelPath));
     _blurShader->link();
 
     _blendShader.reset(new GLSLProgram);
-    _blendShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _blendShader->attachFragmentShaderFromFile(getAssetFullPath(blendBloomMapFsRelPath), version);
+    _blendShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _blendShader->attachFragmentShaderFromFile(getAssetFullPath(blendBloomMapFsRelPath));
     _blendShader->link();
 }
 
 void PostProcessing::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-    
     _drawScreenShader.reset(new GLSLProgram);
-    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
+    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
     _drawScreenShader->link();
 }
 

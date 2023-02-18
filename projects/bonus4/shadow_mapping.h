@@ -60,10 +60,6 @@ private:
 
     std::unique_ptr<GLSLProgram> _directionalDepthShader;
 
-#ifdef USE_GLES
-    std::unique_ptr<Texture2D> _defaultColorTexture;
-#endif
-
     std::unique_ptr<Framebuffer> _depthFbo;
     std::unique_ptr<Texture2D> _depthTexture;
     glm::mat4 _directionalLightSpaceMatrix;

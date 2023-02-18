@@ -2,29 +2,23 @@
 
 RenderFlag::RenderFlag(const Options& options): Application(options) {
     // create star shader
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec2 aPosition;\n"
         "void main() {\n"
         "    gl_Position = vec4(aPosition, 0.0f, 1.0f);\n"
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
         "    fragColor = vec4(1.0f, 0.870f, 0.0f, 1.0f);\n"
         "}\n";
 
     _starShader.reset(new GLSLProgram);
-    _starShader->attachVertexShader(vsCode, version);
-    _starShader->attachFragmentShader(fsCode, version);
+    _starShader->attachVertexShader(vsCode);
+    _starShader->attachFragmentShader(fsCode);
     _starShader->link();
 
     // TODO: create 5 stars

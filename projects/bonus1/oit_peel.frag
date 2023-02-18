@@ -29,11 +29,7 @@ uniform WindowExtent windowExtent;
 float getPeelingDepth() {
     float u = gl_FragCoord.x / float(windowExtent.width);
     float v = gl_FragCoord.y / float(windowExtent.height);
-    return texture(depthTexture, vec2(u, v)).r
-#ifdef GL_ES
-        + 0.00001
-#endif
-        ;
+    return texture(depthTexture, vec2(u, v)).r;
 }
 
 vec3 lambertShading() {

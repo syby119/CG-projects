@@ -54,9 +54,7 @@ PbrViewer::PbrViewer(const Options& options): Application(options) {
     _directionalLight->intensity = 10.0f;
 
     // skybox
-#ifndef USE_GLES
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-#endif
 
     _skybox.reset(new Skybox(
         getAssetFullPath(skyboxTextureRelPaths), 
@@ -99,13 +97,7 @@ PbrViewer::PbrViewer(const Options& options): Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 PbrViewer::~PbrViewer() {
@@ -371,27 +363,19 @@ void PbrViewer::renderUI() const {
 }
 
 void PbrViewer::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     _pbrShader.reset(new GLSLProgram);
-    _pbrShader->attachVertexShaderFromFile(getAssetFullPath(pbrVertShaderRelPath), version);
-    _pbrShader->attachFragmentShaderFromFile(getAssetFullPath(pbrFragShaderRelPath), version);
+    _pbrShader->attachVertexShaderFromFile(getAssetFullPath(pbrVertShaderRelPath));
+    _pbrShader->attachFragmentShaderFromFile(getAssetFullPath(pbrFragShaderRelPath));
     _pbrShader->link();
 
     _skyboxShader.reset(new GLSLProgram);
-    _skyboxShader->attachVertexShaderFromFile(getAssetFullPath(skyboxVertShaderRelPath), version);
-    _skyboxShader->attachFragmentShaderFromFile(getAssetFullPath(skyboxFragShaderRelPath), version);
+    _skyboxShader->attachVertexShaderFromFile(getAssetFullPath(skyboxVertShaderRelPath));
+    _skyboxShader->attachFragmentShaderFromFile(getAssetFullPath(skyboxFragShaderRelPath));
     _skyboxShader->link();
 
     _quadShader.reset(new GLSLProgram);
-    _quadShader->attachVertexShaderFromFile(getAssetFullPath(quadVertShaderRelPath), version);
-    _quadShader->attachFragmentShaderFromFile(getAssetFullPath(quadFragShaderRelPath), version);
+    _quadShader->attachVertexShaderFromFile(getAssetFullPath(quadVertShaderRelPath));
+    _quadShader->attachFragmentShaderFromFile(getAssetFullPath(quadFragShaderRelPath));
     _quadShader->link();
 }
 

@@ -130,15 +130,9 @@ void Skybox::equirectangulerToCubemap(
     glGenTextures(1, &_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
     for (uint32_t i = 0; i < 6; ++i) {
-#ifdef __EMSCRIPTEN__
-        glTexImage2D(
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-            0, GL_RGBA16F, resolution, resolution, 0, GL_RGBA, GL_HALF_FLOAT, nullptr);
-#else
         glTexImage2D(
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
             0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
-#endif
     }
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -174,9 +168,8 @@ void Skybox::equirectangulerToCubemap(
 
     // create mapping shader
     GLSLProgram shader;
-    const std::string version = getVersion();
-    shader.attachVertexShaderFromFile(equirectToCubemapVsFilepath, version);
-    shader.attachFragmentShaderFromFile(equirectToCubemapFsFilepath, version);
+    shader.attachVertexShaderFromFile(equirectToCubemapVsFilepath);
+    shader.attachFragmentShaderFromFile(equirectToCubemapFsFilepath);
     shader.link();
 
     const glm::mat4 projection = getProjection();
@@ -260,13 +253,8 @@ void Skybox::generateIrradianceMap(
     resolution = nextPow2(resolution);
 
     // create irradianceMap texture
-#ifdef __EMSCRIPTEN__
-    irradianceMap.reset(new TextureCubemap(
-        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
-#else
     irradianceMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
-#endif
 
     irradianceMap->bind();
     irradianceMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -278,9 +266,8 @@ void Skybox::generateIrradianceMap(
 
     // create irradiance shader
     GLSLProgram shader;
-    const std::string version = getVersion();
-    shader.attachVertexShaderFromFile(irradianceConvolutionVsFilepath, version);
-    shader.attachFragmentShaderFromFile(irradianceConvolutionFsFilepath, version);
+    shader.attachVertexShaderFromFile(irradianceConvolutionVsFilepath);
+    shader.attachFragmentShaderFromFile(irradianceConvolutionFsFilepath);
     shader.link();
 
     const glm::mat4 projection = getProjection();
@@ -336,13 +323,8 @@ void Skybox::generatePrefilterMap(
     resolution = std::max(nextPow2(resolution), 1u << maxMipLevels);
 
     // create prefilterMap texture
-#ifdef __EMSCRIPTEN__
-    prefilterMap.reset(new TextureCubemap(
-        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
-#else
     prefilterMap.reset(new TextureCubemap(
         GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
-#endif
 
     prefilterMap->bind();
     prefilterMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -357,9 +339,8 @@ void Skybox::generatePrefilterMap(
 
     // create irradiance shader    
     GLSLProgram shader;
-    const std::string version = getVersion();
-    shader.attachVertexShaderFromFile(prefilterVsFilepath, version);
-    shader.attachFragmentShaderFromFile(prefilterFsFilepath, version);
+    shader.attachVertexShaderFromFile(prefilterVsFilepath);
+    shader.attachFragmentShaderFromFile(prefilterFsFilepath);
     shader.link();
 
     const glm::mat4 projection = getProjection();
@@ -440,9 +421,8 @@ void Skybox::generateBrdfLutMap(
 
     // create brdf look up table shader
     GLSLProgram shader;
-    const std::string version = getVersion();
-    shader.attachVertexShaderFromFile(brdfLutVsFilepath, version);
-    shader.attachFragmentShaderFromFile(brdfLutFsFilepath, version);
+    shader.attachVertexShaderFromFile(brdfLutVsFilepath);
+    shader.attachFragmentShaderFromFile(brdfLutFsFilepath);
     shader.link();
 
     // create a empty vao for rendering
@@ -494,16 +474,6 @@ std::array<glm::mat4, 6> Skybox::getViews() {
         glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
         glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
     };
-}
-
-std::string Skybox::getVersion() {
-    return
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
 }
 
 uint32_t Skybox::nextPow2(uint32_t n) {

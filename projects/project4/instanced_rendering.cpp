@@ -64,13 +64,7 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 InstancedRendering::~InstancedRendering() {
@@ -80,15 +74,8 @@ InstancedRendering::~InstancedRendering() {
 }
 
 void InstancedRendering::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     const char* planetVsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "uniform mat4 projection;\n"
         "uniform mat4 view;\n"
@@ -98,17 +85,19 @@ void InstancedRendering::initShaders() {
         "}\n";
 
     const char* planetFsCode =
+        "#version 330 core\n"
         "out vec4 FragColor;\n"
         "void main() {\n"
         "    FragColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);\n"
         "}\n";
 
     _planetShader.reset(new GLSLProgram);
-    _planetShader->attachVertexShader(planetVsCode, version);
-    _planetShader->attachFragmentShader(planetFsCode, version);
+    _planetShader->attachVertexShader(planetVsCode);
+    _planetShader->attachFragmentShader(planetFsCode);
     _planetShader->link();
 
     const char* asternoidVsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "uniform mat4 projection;\n"
         "uniform mat4 view;\n"
@@ -118,6 +107,7 @@ void InstancedRendering::initShaders() {
         "}\n";
 
     const char* asternoidInstancedVsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 3) in mat4 aInstanceMatrix;\n"
         "uniform mat4 projection;\n"
@@ -127,19 +117,20 @@ void InstancedRendering::initShaders() {
         "}\n";
 
     const char* asternoidFsCode =
+        "#version 330 core\n"
         "out vec4 FragColor;\n"
         "void main() {\n"
         "    FragColor = vec4(0.8f, 0.8f, 0.8f, 1.0f);\n"
         "}\n";
 
     _asternoidShader.reset(new GLSLProgram);
-    _asternoidShader->attachVertexShader(asternoidVsCode, version); 
-    _asternoidShader->attachFragmentShader(asternoidFsCode, version);
+    _asternoidShader->attachVertexShader(asternoidVsCode); 
+    _asternoidShader->attachFragmentShader(asternoidFsCode);
     _asternoidShader->link();
 
     _asternoidInstancedShader.reset(new GLSLProgram);
-    _asternoidInstancedShader->attachVertexShader(asternoidInstancedVsCode, version);
-    _asternoidInstancedShader->attachFragmentShader(asternoidFsCode, version);
+    _asternoidInstancedShader->attachVertexShader(asternoidInstancedVsCode);
+    _asternoidInstancedShader->attachFragmentShader(asternoidFsCode);
     _asternoidInstancedShader->link();
 }
 
@@ -171,13 +162,11 @@ void InstancedRendering::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-#ifndef USE_GLES
     if (_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-#endif
 
     // get camera properties
     glm::mat4 projection = _camera->getProjectionMatrix();
@@ -232,9 +221,7 @@ void InstancedRendering::renderFrame() {
         ImGui::Separator();
         ImGui::RadioButton("ordinary rendering", (int*)&_renderMode, (int)(RenderMode::Ordinary));
         ImGui::RadioButton("instanced rendering", (int*)&_renderMode, (int)(RenderMode::Instanced));
-#ifndef __EMSCRIPTEN__
         ImGui::Checkbox("wireframe", &_wireframe);
-#endif
         ImGui::NewLine();
 
         std::string fpsInfo = "avg fps: " + std::to_string(_fpsIndicator.getAverageFrameRate());

@@ -61,13 +61,6 @@ protected:
 
     std::string getAssetFullPath(const std::string& resourceRelPath) const;
 
-    void mainloop();
-
-#ifdef __EMSCRIPTEN__
-    static std::function<void()> mainloopRegisterFunc;
-    static void mainloopWrapper();
-#endif
-
     void updateTime();
 
     /* derived class can override this function to handle input */

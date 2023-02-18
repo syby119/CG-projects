@@ -20,15 +20,8 @@ HelloTriangle::HelloTriangle(const Options& options): Application(options) {
     glBindVertexArray(0);
 
     // create shader
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPos;\n"
         "layout(location = 1) in vec3 aColor;\n"
         "out vec3 color;\n"
@@ -38,6 +31,7 @@ HelloTriangle::HelloTriangle(const Options& options): Application(options) {
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "in vec3 color;\n"
         "out vec4 outColor;\n"
         "void main() {\n"
@@ -45,8 +39,8 @@ HelloTriangle::HelloTriangle(const Options& options): Application(options) {
         "}\n";
 
     _shader.reset(new GLSLProgram());
-    _shader->attachVertexShader(vsCode, version);
-    _shader->attachFragmentShader(fsCode, version);
+    _shader->attachVertexShader(vsCode);
+    _shader->attachFragmentShader(fsCode);
 
     _shader->link();
 }

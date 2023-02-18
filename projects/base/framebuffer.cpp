@@ -28,14 +28,8 @@ void Framebuffer::unbind() {
 void Framebuffer::attachTexture(
     const Texture& texture, GLenum attachment, int level
 ) {
-#ifdef __EMSCRIPTEN__
-    std::cerr << "glframebufferTexture2D is not available on WebGL2.0, "
-        "use Framebuffer::attachTexture2D instead" << std::endl;
-    throw std::logic_error("Not implemented");
-#else
     glFramebufferTexture(GL_FRAMEBUFFER, 
         attachment, texture.getHandle(), level);
-#endif
 }
 
 void Framebuffer::attachTexture2D(
@@ -64,10 +58,6 @@ std::string Framebuffer::getDiagnostic(GLenum status) const {
             return "framebuffer: incomplete attachment";
         case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: 
             return "framebuffer: missing attachment";
-#ifdef USE_GLES
-        case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS: 
-            return "framebuffer: incomplete dimensions";
-#else
         case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: 
             return "framebuffer: incomplete draw buffer";
         case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: 
@@ -76,7 +66,6 @@ std::string Framebuffer::getDiagnostic(GLenum status) const {
             return "framebuffer: incomplete multisample";
         case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: 
             return "framebuffer: incomplete read buffer";
-#endif
         case GL_FRAMEBUFFER_UNSUPPORTED: 
             return "framebuffer: unsupported";
         case GL_FRAMEBUFFER_UNDEFINED:
@@ -87,11 +76,7 @@ std::string Framebuffer::getDiagnostic(GLenum status) const {
 }
 
 void Framebuffer::drawBuffer(GLenum buffer) const {
-#ifndef USE_GLES
     glDrawBuffer(buffer);
-#else 
-    glDrawBuffers(static_cast<GLsizei>(1), &buffer);
-#endif
 }
 
 void Framebuffer::drawBuffers(const std::vector<GLenum>& buffers) const {

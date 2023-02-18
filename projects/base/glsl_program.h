@@ -17,28 +17,16 @@ public:
 
     void attachVertexShader(const std::string& code);
 
-    void attachVertexShader(const std::string& code, const std::string& version);
-
     void attachGeometryShader(const std::string& filePath);
-
-    void attachGeometryShader(const std::string& filePath, const std::string& version);
 
     void attachFragmentShader(const std::string& code);
 
-    void attachFragmentShader(const std::string& code, const std::string& version);
-
     void attachVertexShaderFromFile(const std::string& filePath);
-
-    void attachVertexShaderFromFile(const std::string& filePath, const std::string& version);
 
     void attachGeometryShaderFromFile(const std::string& filePath);
 
-    void attachGeometryShaderFromFile(const std::string& filePath, const std::string& version);
-
     void attachFragmentShaderFromFile(const std::string& filePath);
     
-    void attachFragmentShaderFromFile(const std::string& filePath, const std::string& version);
-
     void setTransformFeedbackVaryings(const std::vector<const char*>& varyings, GLenum bufferMode);
 
     void link();
@@ -87,12 +75,4 @@ private:
     static std::string readFile(const std::string& filePath);
 
     static GLuint createShader(const std::string& code, GLenum shaderType);
-
-    static std::string generateVertexShaderHeader(const std::string& version);
-
-    static std::string generateGeometryShaderHeader(const std::string& version);
-    
-    static std::string generateFragmentShaderHeader(const std::string& version);
-
-    static std::string replaceShaderHeader(const std::string& code, const std::string& header);
 };

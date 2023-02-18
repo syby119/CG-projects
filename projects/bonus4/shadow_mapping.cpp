@@ -105,13 +105,7 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 
     // render a frame ahead of time to fix the bug in Ubuntu
     _enableCascadeShadowMapping = true;
@@ -225,28 +219,20 @@ void ShadowMapping::initGround() {
 }
 
 void ShadowMapping::initShaders() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     // depth shader for directional light 
     _directionalDepthShader.reset(new GLSLProgram);
     _directionalDepthShader->attachVertexShaderFromFile(
-        getAssetFullPath(directionalDepthVsRelPath), version);
+        getAssetFullPath(directionalDepthVsRelPath));
     _directionalDepthShader->attachFragmentShaderFromFile(
-        getAssetFullPath(directionalDepthFsRelPath), version);
+        getAssetFullPath(directionalDepthFsRelPath));
     _directionalDepthShader->link();
 
     // depth shader for point light
     _omnidirectionalDepthShader.reset(new GLSLProgram);
     _omnidirectionalDepthShader->attachVertexShaderFromFile(
-        getAssetFullPath(omnidirectionalDepthVsRelPath), version);
+        getAssetFullPath(omnidirectionalDepthVsRelPath));
     _omnidirectionalDepthShader->attachFragmentShaderFromFile(
-        getAssetFullPath(omnidirectionalDepthFsRelPath), version);
+        getAssetFullPath(omnidirectionalDepthFsRelPath));
     _omnidirectionalDepthShader->link();
 
     // lambert shader
@@ -255,78 +241,49 @@ void ShadowMapping::initShaders() {
     // + omnidirectional shadow mapping for the point light
     // + cascade shadow mapping for the directional light
     _lambertShader.reset(new GLSLProgram);
-    _lambertShader->attachVertexShaderFromFile(
-        getAssetFullPath(lambertVsRelPath), version);
-    _lambertShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lambertFsRelPath), version);
+    _lambertShader->attachVertexShaderFromFile(getAssetFullPath(lambertVsRelPath));
+    _lambertShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
     _lambertShader->link();
 
     // light shader
     _lightShader.reset(new GLSLProgram);
-    _lightShader->attachVertexShaderFromFile(
-        getAssetFullPath(lightVsRelPath), version);
-    _lightShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lightFsRelPath), version);
+    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath));
+    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath));
     _lightShader->link();
 
     // debugging shaders
     // 1. quad shader for directional light depth visualization
     _quadShader.reset(new GLSLProgram);
-    _quadShader->attachVertexShaderFromFile(
-        getAssetFullPath(quadVsRelPath), version);
-    _quadShader->attachFragmentShaderFromFile(
-        getAssetFullPath(quadFsRelPath), version);
+    _quadShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath));
+    _quadShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath));
     _quadShader->link();
 
     // 2. cube shader for point light depth visualization
     _cubeShader.reset(new GLSLProgram);
-    _cubeShader->attachVertexShaderFromFile(
-        getAssetFullPath(cubeVsRelPath), version);
-    _cubeShader->attachFragmentShaderFromFile(
-        getAssetFullPath(cubeFsRelPath), version);
+    _cubeShader->attachVertexShaderFromFile(getAssetFullPath(cubeVsRelPath));
+    _cubeShader->attachFragmentShaderFromFile(getAssetFullPath(cubeFsRelPath));
     _cubeShader->link();
 
     // 3. quad cascade shader for directional light cascade depth visualization
     _quadCascadeShader.reset(new GLSLProgram);
-    _quadCascadeShader->attachVertexShaderFromFile(
-        getAssetFullPath(quadCsmVsRelPath), version);
-    _quadCascadeShader->attachFragmentShaderFromFile(
-        getAssetFullPath(quadCsmFsRelPath), version);
+    _quadCascadeShader->attachVertexShaderFromFile(getAssetFullPath(quadCsmVsRelPath));
+    _quadCascadeShader->attachFragmentShaderFromFile(getAssetFullPath(quadCsmFsRelPath));
     _quadCascadeShader->link();
 }
 
 void ShadowMapping::initDepthResources() {
-    // Create depth textures and its corresponding framebuffer.
-    // Although one can use one framebuffer to handle everything,
-    // I choose to use different framebuffers to avoid switching binding textures,
-    // as framebuffer texture binding in WebGL is very verbose without glFramebufferTexture
-    GLint internalFormat = 
-#ifdef USE_GLES
-        GL_DEPTH_COMPONENT32F
-#else
-        GL_DEPTH_COMPONENT
-#endif
-        ;
-
-#ifdef USE_GLES
-    _defaultColorTexture.reset(new Texture2D(
-        GL_RGB, shadowMapResolution, shadowMapResolution, GL_RGB, GL_UNSIGNED_BYTE));
-#endif
-
     std::vector<float> borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-    
+
     // directional light shadow map
     // init depth texture and its corresponding framebuffer
     _depthTexture.reset(new Texture2D(
-        internalFormat, shadowMapResolution, shadowMapResolution, GL_DEPTH_COMPONENT, GL_FLOAT));
+        GL_DEPTH_COMPONENT, shadowMapResolution, shadowMapResolution, GL_DEPTH_COMPONENT, GL_FLOAT));
     _depthTexture->bind();
     _depthTexture->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _depthTexture->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#ifndef __EMSCRIPTEN__
     _depthTexture->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     _depthTexture->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     _depthTexture->setParamterFloatVector(GL_TEXTURE_BORDER_COLOR, borderColor);
-#endif
     _depthTexture->unbind();
 
     _depthFbo.reset(new Framebuffer);
@@ -334,9 +291,6 @@ void ShadowMapping::initDepthResources() {
     _depthFbo->drawBuffer(GL_NONE);
     _depthFbo->readBuffer(GL_NONE);
 
-#ifdef USE_GLES
-    _depthFbo->attachTexture2D(*_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-#endif
     _depthFbo->attachTexture2D(*_depthTexture, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
 
     GLenum status = _depthFbo->checkStatus();
@@ -349,7 +303,7 @@ void ShadowMapping::initDepthResources() {
     // point light shadow map
     // init depth cube texture and its corresponding framebuffers
     _depthCubeTexture.reset(new TextureCubemap(
-        internalFormat, shadowMapResolution, shadowMapResolution, GL_DEPTH_COMPONENT, GL_FLOAT));
+        GL_DEPTH_COMPONENT, shadowMapResolution, shadowMapResolution, GL_DEPTH_COMPONENT, GL_FLOAT));
     _depthCubeTexture->bind();
     _depthCubeTexture->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _depthCubeTexture->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -363,10 +317,6 @@ void ShadowMapping::initDepthResources() {
         _depthCubeFbos[i]->bind();
         _depthCubeFbos[i]->drawBuffer(GL_NONE);
         _depthCubeFbos[i]->readBuffer(GL_NONE);
-
-#ifdef USE_GLES
-        _depthCubeFbos[i]->attachTexture2D(*_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-#endif
         _depthCubeFbos[i]->attachTexture2D(*_depthCubeTexture,
             GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(i));
 
@@ -382,16 +332,14 @@ void ShadowMapping::initDepthResources() {
     // directional light cascade shadow map
     // init depth texture array and its corresponding frramebuffers
     _depthTextureArray.reset(new Texture2DArray(
-        internalFormat, shadowMapResolution, shadowMapResolution,
+        GL_DEPTH_COMPONENT, shadowMapResolution, shadowMapResolution,
         static_cast<int>(_directionalLightSpaceMatrices.size()), GL_DEPTH_COMPONENT, GL_FLOAT));
     _depthTextureArray->bind();
     _depthTextureArray->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _depthTextureArray->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#ifndef __EMSCRIPTEN__
     _depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     _depthTextureArray->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     _depthTextureArray->setParamterFloatVector(GL_TEXTURE_BORDER_COLOR, borderColor);
-#endif
     _depthTextureArray->unbind();
 
     for (size_t i = 0; i < _depthCascadeFbos.size(); ++i) {
@@ -400,9 +348,6 @@ void ShadowMapping::initDepthResources() {
         _depthCascadeFbos[i]->drawBuffer(GL_NONE);
         _depthCascadeFbos[i]->readBuffer(GL_NONE);
 
-#ifdef USE_GLES
-        _depthCascadeFbos[i]->attachTexture2D(*_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-#endif
         _depthCascadeFbos[i]->attachTextureLayer(
             *_depthTextureArray, GL_DEPTH_ATTACHMENT, static_cast<int>(i));
 

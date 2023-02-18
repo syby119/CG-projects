@@ -74,13 +74,7 @@ TextureMapping::TextureMapping(const Options& options): Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 TextureMapping::~TextureMapping() {
@@ -90,15 +84,8 @@ TextureMapping::~TextureMapping() {
 }
 
 void TextureMapping::initSimpleShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -113,6 +100,7 @@ void TextureMapping::initSimpleShader() {
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "in vec2 fTexCoord;\n"
         "out vec4 color;\n"
         "uniform sampler2D mapKd;\n"
@@ -121,21 +109,14 @@ void TextureMapping::initSimpleShader() {
         "}\n";
 
     _simpleShader.reset(new GLSLProgram); 
-    _simpleShader->attachVertexShader(vsCode, version);
-    _simpleShader->attachFragmentShader(fsCode, version);
+    _simpleShader->attachVertexShader(vsCode);
+    _simpleShader->attachFragmentShader(fsCode);
     _simpleShader->link();
 }
 
 void TextureMapping::initBlendShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -161,6 +142,7 @@ void TextureMapping::initBlendShader() {
     // write your code here
     // -----------------------------------------------------------------
     const char* fsCode =
+        "#version 330 core\n"
         "in vec3 fPosition;\n"
         "in vec3 fNormal;\n"
         "in vec2 fTexCoord;\n"
@@ -187,21 +169,14 @@ void TextureMapping::initBlendShader() {
     //----------------------------------------------------------------
 
     _blendShader.reset(new GLSLProgram);
-    _blendShader->attachVertexShader(vsCode, version);
-    _blendShader->attachFragmentShader(fsCode, version);
+    _blendShader->attachVertexShader(vsCode);
+    _blendShader->attachFragmentShader(fsCode);
     _blendShader->link();
 }
 
 void TextureMapping::initCheckerShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-        ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
         "layout(location = 2) in vec2 aTexCoord;\n"
@@ -219,6 +194,7 @@ void TextureMapping::initCheckerShader() {
     // modify your code here
     // --------------------------------------------------------------
     const char* fsCode =
+        "#version 330 core\n"
         "in vec2 fTexCoord;\n"
         "out vec4 color;\n"
 
@@ -235,8 +211,8 @@ void TextureMapping::initCheckerShader() {
     //----------------------------------------------------------------
 
     _checkerShader.reset(new GLSLProgram);
-    _checkerShader->attachVertexShader(vsCode, version);
-    _checkerShader->attachFragmentShader(fsCode, version);
+    _checkerShader->attachVertexShader(vsCode);
+    _checkerShader->attachFragmentShader(fsCode);
     _checkerShader->link();
 }
 
@@ -263,13 +239,11 @@ void TextureMapping::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-#ifndef USE_GLES
     if (wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-#endif
 
     const glm::mat4 projection = _camera->getProjectionMatrix();
     const glm::mat4 view = _camera->getViewMatrix();
@@ -356,9 +330,7 @@ void TextureMapping::renderFrame() {
         ImGui::SliderInt("repeat", &_checkerMaterial->repeat, 2, 20);
         ImGui::ColorEdit3("color1", (float*)&_checkerMaterial->colors[0]);
         ImGui::ColorEdit3("color2", (float*)&_checkerMaterial->colors[1]);
-#ifndef __EMSCRIPTEN__
         ImGui::Checkbox("wireframe", &wireframe);
-#endif
         ImGui::NewLine();
 
         ImGui::Text("Directional light");

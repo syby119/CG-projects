@@ -92,19 +92,19 @@ struct BVHNode {
 };
 
 uniform sampler2D RTResult;
-uniform highp usampler2D oldRngState;
+uniform usampler2D oldRngState;
 
-uniform highp uint totalSamples;
-uniform highp int nPrimitives;
+uniform uint totalSamples;
+uniform int nPrimitives;
 
 // Scene Config 
 uniform samplerCube sky;
 uniform sampler2D sphereBuffer;
 uniform sampler2D vertexBuffer;
-uniform highp isampler2D triangleIndexBuffer;
+uniform isampler2D triangleIndexBuffer;
 uniform sampler2D materialBuffer;
-uniform highp isampler2D primitiveBuffer;
-uniform highp sampler2D bvh;
+uniform isampler2D primitiveBuffer;
+uniform sampler2D bvh;
 
 uniform Camera camera;
 
@@ -312,7 +312,7 @@ void getSphereData(sampler2D data, int idx, out Sphere sphere);
  * Return: the vertex index data of triangle
  * Usage: getTriangleIndexData(triangleIndexBuffer, primitive.shapeIdx, idx)
  */
-void getTriangleIndexData(highp isampler2D data, int idx, out TriangleIndex triIdx);
+void getTriangleIndexData(isampler2D data, int idx, out TriangleIndex triIdx);
 
 /**
  * Summary: get the vertex data of triangle
@@ -334,7 +334,7 @@ void getTriangleData(sampler2D data, inout TriangleIndex idx, out Triangle trian
  * Return: the get primitive data
  * Usage: getPrimitiveData(primitiveBuffer, BVHNode.firstVal, primitive);
  */
-void getPrimitiveData(highp isampler2D data, int idx, out Primitive primitive);
+void getPrimitiveData(isampler2D data, int idx, out Primitive primitive);
 
 /**
  * Summary: get BVHNode data
@@ -345,7 +345,7 @@ void getPrimitiveData(highp isampler2D data, int idx, out Primitive primitive);
  * Return: the get BVHNode data
  * Usage: getBVHNodeData(bvh, BVHNode.firstVal or BVHNode.secondVal , node)
  */
-void getBVHNodeData(highp sampler2D data, int idx, out BVHNode node);
+void getBVHNodeData(sampler2D data, int idx, out BVHNode node);
 
 void main() {
     rngInit();
@@ -532,7 +532,7 @@ void swap(inout float a, inout float b) {
     b = tmp;
 }
 
-vec2 getISampleIdx(highp isampler2D data, int idx) {
+vec2 getISampleIdx(isampler2D data, int idx) {
     ivec2 texSize = textureSize(data, 0);
     int x = idx % texSize.x;
     int y = idx / texSize.x;
@@ -571,7 +571,7 @@ void getSphereData(sampler2D data, int idx, out Sphere sphere) {
     sphere.radius = v.w;
 }
 
-void getTriangleIndexData(highp isampler2D data, int idx, out TriangleIndex triIdx) {
+void getTriangleIndexData(isampler2D data, int idx, out TriangleIndex triIdx) {
     ivec3 v = texture(data, getISampleIdx(data, idx)).xyz;
     triIdx.v[0] = v.x;
     triIdx.v[1] = v.y;
@@ -590,20 +590,20 @@ void getTriangleData(sampler2D data, inout TriangleIndex idx, out Triangle trian
     }
 }
 
-void getPrimitiveData(highp isampler2D data, int idx, out Primitive primitive) {
+void getPrimitiveData(isampler2D data, int idx, out Primitive primitive) {
     ivec3 v = texture(data, getISampleIdx(data, idx)).xyz;
     primitive.shapeType = v.x;
     primitive.shapeIdx = v.y;
     primitive.materialIdx = v.z;
 }
 
-void getBVHNodeData(highp sampler2D data, int idx, out BVHNode node) {
+void getBVHNodeData(sampler2D data, int idx, out BVHNode node) {
     vec3 v[3];
     int vid = idx * 3;
     for (int i = 0; i < 3; ++i) {
-        // warning: will this function work properly with highp sampler2D -> sampler2D ? 
         getVec3FromTexture(data, getSampleIdx(data, vid + i), v[i]);
     }
+
     node.box.pMin = v[0];
     node.box.pMax = v[1];
     node.nodeType = int(v[2].x);

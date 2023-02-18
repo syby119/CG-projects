@@ -21,9 +21,6 @@ const std::string lambertInstancedVsRelPath = "shader/bonus2/lambert_instanced.v
 const std::string lambertFsRelPath = "shader/bonus2/lambert.frag";
 
 const std::string frustumCullingVsRelPath = "shader/bonus2/frustum_culling.vert";
-#ifdef USE_GLES
-    const std::string frustumCullingFsRelPath = "shader/bonus2/frustum_culling.frag";
-#endif
 
 FrustumCulling::FrustumCulling(const Options& options): Application(options) {
     // init model matrices
@@ -87,13 +84,7 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
-#if defined(__EMSCRIPTEN__)
-    ImGui_ImplOpenGL3_Init("#version 100");
-#elif defined(USE_GLES)
-    ImGui_ImplOpenGL3_Init("#version 150");
-#else
     ImGui_ImplOpenGL3_Init();
-#endif
 }
 
 FrustumCulling::~FrustumCulling() {
@@ -147,54 +138,32 @@ void FrustumCulling::initModelMatrices() {
 }
 
 void FrustumCulling::initShaders() {
-        const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     _lineShader.reset(new GLSLProgram);
-    _lineShader->attachVertexShaderFromFile(
-        getAssetFullPath(aabbVsRelPath), version);
-    _lineShader->attachFragmentShaderFromFile(
-        getAssetFullPath(aabbFsRelPath), version);
+    _lineShader->attachVertexShaderFromFile(getAssetFullPath(aabbVsRelPath));
+    _lineShader->attachFragmentShaderFromFile(getAssetFullPath(aabbFsRelPath));
     _lineShader->link();
 
     _lineInstancedShader.reset(new GLSLProgram);
-    _lineInstancedShader->attachVertexShaderFromFile(
-        getAssetFullPath(aabbInstancedVsRelPath), version);
-    _lineInstancedShader->attachFragmentShaderFromFile(
-        getAssetFullPath(aabbFsRelPath), version);
+    _lineInstancedShader->attachVertexShaderFromFile(getAssetFullPath(aabbInstancedVsRelPath));
+    _lineInstancedShader->attachFragmentShaderFromFile(getAssetFullPath(aabbFsRelPath));
     _lineInstancedShader->link();
 
     _lambertShader.reset(new GLSLProgram);
-    _lambertShader->attachVertexShaderFromFile(
-        getAssetFullPath(lambertVsRelPath), version);
-    _lambertShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lambertFsRelPath), version);
+    _lambertShader->attachVertexShaderFromFile(getAssetFullPath(lambertVsRelPath));
+    _lambertShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
     _lambertShader->link();
 
     _lambertInstancedShader.reset(new GLSLProgram);
-    _lambertInstancedShader->attachVertexShaderFromFile(
-        getAssetFullPath(lambertInstancedVsRelPath), version);
-    _lambertInstancedShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lambertFsRelPath), version);
+    _lambertInstancedShader->attachVertexShaderFromFile(getAssetFullPath(lambertInstancedVsRelPath));
+    _lambertInstancedShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
     _lambertInstancedShader->link();
 
     // create frustum culling shader
     // TODO: Modify the frustum_culling.vert code to achieve GPU frustum culling
     _frustumCullingShader.reset(new GLSLProgram);
-    _frustumCullingShader->attachVertexShaderFromFile(
-        getAssetFullPath(frustumCullingVsRelPath), version);
+    _frustumCullingShader->attachVertexShaderFromFile(getAssetFullPath(frustumCullingVsRelPath));
     _frustumCullingShader->setTransformFeedbackVaryings(
         { "visible" }, GL_INTERLEAVED_ATTRIBS);
-#ifdef USE_GLES
-    // GLSL/ES program must link to a fragment shader, while OpenGL need not.
-    _frustumCullingShader->attachFragmentShaderFromFile(
-        getAssetFullPath(frustumCullingFsRelPath), version);
-#endif
     _frustumCullingShader->link();
 }
 
@@ -219,26 +188,24 @@ void FrustumCulling::handleInput() {
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * (float)_deltaTime;
+        _camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * (float)_deltaTime;
+        _camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * (float)_deltaTime;
+        _camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * (float)_deltaTime;
+        _camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 
-#ifndef USE_GLES
     if (glMultiDrawElementsIndirect == nullptr) {
         _indirectDrawEnabled = false;
     }
-#endif
 }
 
 void FrustumCulling::renderFrame() {
@@ -381,10 +348,6 @@ void FrustumCulling::renderAsternoids() {
 }
 
 void FrustumCulling::renderAsternoidsIndirect() {
-#ifdef USE_GLES
-    _indirectDrawEnabled = false;
-    std::cerr << "indirect draw is not supported with OpenGL/ES" << std::endl;
-#else
     _drawAsternoidCount = 0;
 
     _indirectDrawCmds.clear();
@@ -456,5 +419,4 @@ void FrustumCulling::renderAsternoidsIndirect() {
 
         glBindVertexArray(0);
     }
-#endif
 }

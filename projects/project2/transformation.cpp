@@ -154,15 +154,8 @@ void Transformation::renderFrame() {
 }
 
 void Transformation::initShader() {
-    const char* version =
-#ifdef USE_GLES
-        "300 es"
-#else
-        "330 core"
-#endif
-    ;
-
     const char* vsCode =
+        "#version 330 core\n"
         "layout(location = 0) in vec3 aPosition;\n"
         "layout(location = 1) in vec3 aNormal;\n"
 
@@ -180,6 +173,7 @@ void Transformation::initShader() {
         "}\n";
 
     const char* fsCode =
+        "#version 330 core\n"
         "in vec3 worldPosition;\n"
         "in vec3 normal;\n"
         "out vec4 fragColor;\n"
@@ -199,7 +193,7 @@ void Transformation::initShader() {
         "}\n";
 
     _shader.reset(new GLSLProgram);
-    _shader->attachVertexShader(vsCode, version);
-    _shader->attachFragmentShader(fsCode, version);
+    _shader->attachVertexShader(vsCode);
+    _shader->attachFragmentShader(fsCode);
     _shader->link();
 }

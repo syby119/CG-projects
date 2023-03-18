@@ -1,1 +1,14 @@
-build/*
+# common build
+build
+
+# web build
+build_web
+
+# Visual Studio Code
+**/.vscode
+
+# Visual Studio CMake Integration
+.vs
+out
+CMakeSettings.json
+CMakeUserPresets.json

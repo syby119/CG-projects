@@ -26,6 +26,9 @@ set(BASE_SRC ../base/application.cpp
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 
+source_group("Header Files" FILES ${BASE_HDR} ${PROJECT_HDR})
+source_group("Source Files" FILES ${BASE_SRC} ${PROJECT_SRC})
+
 configure_project(${PROJECT_NAME})
 
 if (EMSCRIPTEN)

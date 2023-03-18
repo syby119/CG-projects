@@ -33,7 +33,7 @@ if (WIN32)
     add_definitions(-DNOMINMAX -D_USE_MATH_DEFINES)
 endif()
 
-# copy data to the
+# copy media data to the build directory
 file(COPY "media/" DESTINATION "media")
 
 # add libraries

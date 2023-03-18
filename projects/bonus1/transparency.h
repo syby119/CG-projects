@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../base/application.h"
-#include "../base/model.h"
-#include "../base/light.h"
-#include "../base/glsl_program.h"
-#include "../base/texture2d.h"
 #include "../base/camera.h"
-#include "../base/skybox.h"
 #include "../base/framebuffer.h"
 #include "../base/fullscreen_quad.h"
+#include "../base/glsl_program.h"
+#include "../base/light.h"
+#include "../base/model.h"
+#include "../base/skybox.h"
+#include "../base/texture2d.h"
 
 enum class RenderMode {
     AlphaTesting,
@@ -28,6 +28,7 @@ public:
     Transparency(const Options& options);
 
     ~Transparency();
+
 private:
     enum RenderMode _renderMode = RenderMode::AlphaTesting;
 

@@ -4,15 +4,17 @@
 #include <string>
 
 #include "../base/application.h"
-#include "../base/model.h"
-#include "../base/light.h"
-#include "../base/glsl_program.h"
-#include "../base/texture2d.h"
 #include "../base/camera.h"
+#include "../base/glsl_program.h"
+#include "../base/light.h"
+#include "../base/model.h"
 #include "../base/skybox.h"
+#include "../base/texture2d.h"
 
 enum class RenderMode {
-    Simple, Blend, Checker
+    Simple,
+    Blend,
+    Checker
 };
 
 struct SimpleMaterial {
@@ -33,7 +35,7 @@ struct CheckerMaterial {
 class TextureMapping : public Application {
 public:
     TextureMapping(const Options& options);
-    
+
     ~TextureMapping();
 
 private:

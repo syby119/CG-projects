@@ -1,8 +1,8 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <array>
 #include <iostream>
-#include <GLFW/glfw3.h>
 
 struct Input {
     struct Mouse {
@@ -26,7 +26,7 @@ struct Input {
     } mouse;
 
     struct Keyboard {
-        std::array<int, GLFW_KEY_LAST + 1> keyStates = { GLFW_RELEASE };
+        std::array<int, GLFW_KEY_LAST + 1> keyStates = {GLFW_RELEASE};
     } keyboard;
 
     void forwardState() {

@@ -6,8 +6,8 @@
 #include "pbr_viewer.h"
 
 const std::string modelRelPath = "gltf/DamagedHelmet.gltf";
-//const std::string modelRelPath = "gltf/drone/scene.gltf";
-//const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
+// const std::string modelRelPath = "gltf/drone/scene.gltf";
+// const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
 
 const std::string pbrVertShaderRelPath = "shader/pbr_viewer/pbr.vert";
 const std::string pbrFragShaderRelPath = "shader/pbr_viewer/pbr.frag";
@@ -32,24 +32,22 @@ const std::string quadFragShaderRelPath = "shader/pbr_viewer/quad.frag";
 
 const std::string skyboxTextureRelPaths = "texture/hdr/newport_loft.hdr";
 
-PbrViewer::PbrViewer(const Options& options): Application(options) {
+PbrViewer::PbrViewer(const Options& options) : Application(options) {
     _model.reset(new Model(getAssetFullPath(modelRelPath)));
 
     // camera
     _camera.reset(new PerspectiveCamera(
-        glm::radians(45.0f),
-        1.0f * _windowWidth / _windowHeight,
-        0.1f, 10000.0f));
-    _camera->transform.position = { 0.0f, 0.0f, 5.0f };
+        glm::radians(45.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
+    _camera->transform.position = {0.0f, 0.0f, 5.0f};
     // camera controller
-    _cameraController.reset(new CameraController(*_camera, glm::vec3(0.0f), _windowWidth, _windowHeight));
+    _cameraController.reset(
+        new CameraController(*_camera, glm::vec3(0.0f), _windowWidth, _windowHeight));
 
     // lights
     _directionalLight.reset(new DirectionalLight());
-    _directionalLight->transform.rotation = glm::quatLookAt({
-        sin(glm::radians(75.0f))* cos(glm::radians(45.0f)),
-        sin(glm::radians(45.0f)),
-        cos(glm::radians(75.0f))* cos(glm::radians(45.0f))}, 
+    _directionalLight->transform.rotation = glm::quatLookAt(
+        {sin(glm::radians(75.0f)) * cos(glm::radians(45.0f)), sin(glm::radians(45.0f)),
+         cos(glm::radians(75.0f)) * cos(glm::radians(45.0f))},
         Transform::getDefaultUp());
     _directionalLight->intensity = 10.0f;
 
@@ -57,28 +55,19 @@ PbrViewer::PbrViewer(const Options& options): Application(options) {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     _skybox.reset(new Skybox(
-        getAssetFullPath(skyboxTextureRelPaths), 
-        getAssetFullPath(equirectVertShaderRelPath),
-        getAssetFullPath(equirectFragShaderRelPath), 
-        512));
-    
+        getAssetFullPath(skyboxTextureRelPaths), getAssetFullPath(equirectVertShaderRelPath),
+        getAssetFullPath(equirectFragShaderRelPath), 512));
+
     _skybox->generateIrradianceMap(
         getAssetFullPath(irradianceVertShaderRelPath),
-        getAssetFullPath(irradianceFragShaderRelPath), 
-        32, 
-        glm::radians(1.0f), 
-        glm::radians(1.0f));
+        getAssetFullPath(irradianceFragShaderRelPath), 32, glm::radians(1.0f), glm::radians(1.0f));
 
     _skybox->generatePrefilterMap(
-        getAssetFullPath(prefilterVertShaderRelPath),
-        getAssetFullPath(prefilterFragShaderRelPath),
-        128, 
-        4096);
+        getAssetFullPath(prefilterVertShaderRelPath), getAssetFullPath(prefilterFragShaderRelPath),
+        128, 4096);
 
     _skybox->generateBrdfLutMap(
-        getAssetFullPath(brdfLutVertShaderRelPath),
-        getAssetFullPath(brdfLutFragShaderRelPath),
-        512,
+        getAssetFullPath(brdfLutVertShaderRelPath), getAssetFullPath(brdfLutFragShaderRelPath), 512,
         4096);
 
     // fullscreen quad
@@ -87,13 +76,14 @@ PbrViewer::PbrViewer(const Options& options): Application(options) {
     initShaders();
 
     setupUniformBufferObjects();
-    
+
     confirmBindingPoints();
 
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -109,7 +99,7 @@ PbrViewer::~PbrViewer() {
 void PbrViewer::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
 
     if (!ImGui::GetIO().WantCaptureMouse) {
@@ -121,9 +111,9 @@ void PbrViewer::handleInput() {
     updateUniforms();
     enqueueRenderables();
 
-    //printRenderQueue("Opaque Queue", _opaqueQueue);
-    //printRenderQueue("Alpha Queue", _alphaQueue);
-    //printRenderQueue("Transparent Queue", _transparentQueue);
+    // printRenderQueue("Opaque Queue", _opaqueQueue);
+    // printRenderQueue("Alpha Queue", _alphaQueue);
+    // printRenderQueue("Transparent Queue", _transparentQueue);
 }
 
 void PbrViewer::enqueueRenderables() {
@@ -132,7 +122,7 @@ void PbrViewer::enqueueRenderables() {
     _transparentQueue.clear();
 
     static glm::mat4 globalMatrix = glm::mat4(1.0f);
-    //globalMatrix = glm::rotate(globalMatrix, _deltaTime * 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    // globalMatrix = glm::rotate(globalMatrix, _deltaTime * 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     for (const Node* node : _model->getRootNodes()) {
         enqueueRenderable(*node, globalMatrix);
     }
@@ -140,19 +130,13 @@ void PbrViewer::enqueueRenderables() {
 
 void PbrViewer::enqueueRenderable(const Node& node, glm::mat4 parentGlobalMatrix) {
     glm::mat4 nodeGlobalMatrix = parentGlobalMatrix * node.transform.getLocalMatrix();
-    
+
     for (const auto& primitive : node.primitives) {
-        RenderObject object = { nodeGlobalMatrix, &primitive };
+        RenderObject object = {nodeGlobalMatrix, &primitive};
         switch (primitive.material->alphaMode) {
-            case Material::AlphaMode::Opaque:
-                _opaqueQueue.emplace_back(object);
-                break;
-            case Material::AlphaMode::Mask:
-                _alphaQueue.emplace_back(object);
-                break;
-            case Material::AlphaMode::Blend:
-                _transparentQueue.emplace_back(object);
-                break;
+        case Material::AlphaMode::Opaque: _opaqueQueue.emplace_back(object); break;
+        case Material::AlphaMode::Mask: _alphaQueue.emplace_back(object); break;
+        case Material::AlphaMode::Blend: _transparentQueue.emplace_back(object); break;
         }
     }
 
@@ -173,15 +157,10 @@ void PbrViewer::drawPrimitive(const Primitive& primitive) const {
     glBindVertexArray(primitive.vertexArray);
     if (primitive.indexCount > 0) {
         glDrawElements(
-            GL_TRIANGLES,
-            primitive.indexCount,
-            GL_UNSIGNED_INT,
+            GL_TRIANGLES, primitive.indexCount, GL_UNSIGNED_INT,
             (GLvoid*)(sizeof(uint32_t) * primitive.firstIndex));
     } else {
-        glDrawArrays(
-            GL_TRIANGLES,
-            primitive.firstVertex,
-            primitive.vertexCount);
+        glDrawArrays(GL_TRIANGLES, primitive.firstVertex, primitive.vertexCount);
     }
     glBindVertexArray(0);
 
@@ -263,25 +242,19 @@ void PbrViewer::renderTransparentQueue() const {
 
 void PbrViewer::renderSkybox() const {
     switch (_skyboxRenderMode) {
-        case SkyboxRenderMode::Irradiance:
-            renderIrradianceMap();
-            break;
-        case SkyboxRenderMode::Prefilter:
-            renderPrefilterMap();
-            break;
-        case SkyboxRenderMode::BrdfLut:
-            renderBrdfLutMap();
-            break;
-        default:
-            glDepthFunc(GL_LEQUAL);
-            _skyboxShader->use();
-            _skyboxShader->setUniformInt("environmentMap", 0);
-            _skyboxShader->setUniformFloat("lod", _skybox->backgroundLod);
-            _skybox->bindEnvironmentMap(0);
-            glBindSampler(0, 0);
-            _skybox->draw();
-            glDepthFunc(GL_LESS);
-            break;
+    case SkyboxRenderMode::Irradiance: renderIrradianceMap(); break;
+    case SkyboxRenderMode::Prefilter: renderPrefilterMap(); break;
+    case SkyboxRenderMode::BrdfLut: renderBrdfLutMap(); break;
+    default:
+        glDepthFunc(GL_LEQUAL);
+        _skyboxShader->use();
+        _skyboxShader->setUniformInt("environmentMap", 0);
+        _skyboxShader->setUniformFloat("lod", _skybox->backgroundLod);
+        _skybox->bindEnvironmentMap(0);
+        glBindSampler(0, 0);
+        _skybox->draw();
+        glDepthFunc(GL_LESS);
+        break;
     }
 }
 
@@ -320,9 +293,7 @@ void PbrViewer::renderUI() const {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
@@ -335,26 +306,25 @@ void PbrViewer::renderUI() const {
             ImGui::Text("image based lighting");
             ImGui::Separator();
             ImGui::SliderFloat("blur", &_skybox->backgroundLod, 0.0f, 8.0f);
-            //ImGui::SliderFloat("exposure", &_skybox->exposure, 0.0f, 10.0f);
-            //ImGui::SliderFloat("gamma", &_skybox->gamma, 0.1f, 4.0f);
+            // ImGui::SliderFloat("exposure", &_skybox->exposure, 0.0f, 10.0f);
+            // ImGui::SliderFloat("gamma", &_skybox->gamma, 0.1f, 4.0f);
             ImGui::SliderFloat("scale", &_skybox->scaleIBLAmbient, 0.0f, 1.5f);
         }
 
         if (ImGui::CollapsingHeader("Debug View", ImGuiTreeNodeFlags_DefaultOpen)) {
-            static const char* pbrChannels[] = {
-                "All", "Albedo", "Roughness", "Metallic", "Normal", "Occlusion", "Emissive"
-            };
+            static const char* pbrChannels[] = {"All",    "Albedo",    "Roughness", "Metallic",
+                                                "Normal", "Occlusion", "Emissive"};
 
-            ImGui::Combo("pbr channel", (int*)(&_debugInput), pbrChannels, IM_ARRAYSIZE(pbrChannels));
+            ImGui::Combo(
+                "pbr channel", (int*)(&_debugInput), pbrChannels, IM_ARRAYSIZE(pbrChannels));
 
-            static const char* skyboxTextureItems[] = {
-                "Raw", "Irradiance", "Prefilter", "BrdfLut"
-            };
+            static const char* skyboxTextureItems[] = {"Raw", "Irradiance", "Prefilter", "BrdfLut"};
 
-            ImGui::Combo("skybox texture", (int*)(& _skyboxRenderMode), 
-                skyboxTextureItems, IM_ARRAYSIZE(skyboxTextureItems));
+            ImGui::Combo(
+                "skybox texture", (int*)(&_skyboxRenderMode), skyboxTextureItems,
+                IM_ARRAYSIZE(skyboxTextureItems));
         }
-        
+
         ImGui::End();
     }
 
@@ -398,15 +368,16 @@ void PbrViewer::setPbrShaderUniforms(const RenderObject& object) const {
 
     switch (material->alphaMode) {
     case Material::AlphaMode::Opaque:
-        _pbrShader->setUniformBool("material.alphaMask", false); break;
-    case Material::AlphaMode::Mask:
-        _pbrShader->setUniformBool("material.alphaMask", true); break;
+        _pbrShader->setUniformBool("material.alphaMask", false);
+        break;
+    case Material::AlphaMode::Mask: _pbrShader->setUniformBool("material.alphaMask", true); break;
     case Material::AlphaMode::Blend:
-        // try to discard to opacity that is near zero: 
+        // try to discard to opacity that is near zero:
         // when occur the blend matrial, the data parser has set alphaMask false,
         // but the alphaCutoff 0.05, which should have been ignored when alpha mode is blend
         // we can use the thick to discard the unwanted opacity texture
-        _pbrShader->setUniformBool("material.alphaMask", true); break;
+        _pbrShader->setUniformBool("material.alphaMask", true);
+        break;
     }
     _pbrShader->setUniformFloat("material.alphaMaskCutoff", material->alphaCutoff);
 
@@ -506,10 +477,7 @@ void PbrViewer::setupUniformBufferObjects() {
     _uboLights.reset(new UniformBuffer(uboLightsSize, GL_DYNAMIC_DRAW));
 
     std::vector<std::string> uboLightsVariableNames = {
-        "directionalLightCount",
-        "pointLightCount",
-        "spotLightCount"
-    };
+        "directionalLightCount", "pointLightCount", "spotLightCount"};
 
     constexpr int maxDirectionalLights = 4;
     for (int i = 0; i < maxDirectionalLights; ++i) {
@@ -561,11 +529,7 @@ void PbrViewer::setupUniformBufferObjects() {
     _uboEnvironment.reset(new UniformBuffer(uboEnvironmentSize, GL_DYNAMIC_DRAW));
 
     std::string uboEnvironmentNames[] = {
-        "exposure",
-        "gamma",
-        "maxPrefilterMipLevel",
-        "scaleIBLAmbient"
-    };
+        "exposure", "gamma", "maxPrefilterMipLevel", "scaleIBLAmbient"};
 
     for (const auto& name : uboEnvironmentNames) {
         int offset = _pbrShader->getUniformBlockVariableOffset(name);
@@ -593,24 +557,25 @@ void PbrViewer::confirmBindingPoints() {
 }
 
 void PbrViewer::printRenderQueue(
-    const std::string& name, 
-    const std::vector<RenderObject>& renderQueue) const {
+    const std::string& name, const std::vector<RenderObject>& renderQueue) const {
 
-    std::cout     << "+ " << name << "\n";
+    std::cout << "+ " << name << "\n";
     for (size_t i = 0; i < renderQueue.size(); ++i) {
         const glm::mat4 globalMatrix = glm::transpose(renderQueue[i].globalMatrix);
         const Primitive* primitive = renderQueue[i].primitive;
-        std::cout << "  + object[" << i << "]:" << "\n";
-        std::cout << "    + globalMatrix(row): "                        << "\n";
+        std::cout << "  + object[" << i << "]:"
+                  << "\n";
+        std::cout << "    + globalMatrix(row): "
+                  << "\n";
         std::cout << "        " << globalMatrix[0] << "\n";
         std::cout << "        " << globalMatrix[1] << "\n";
         std::cout << "        " << globalMatrix[2] << "\n";
         std::cout << "        " << globalMatrix[3] << "\n";
-        std::cout << "    + vertexArray: " << primitive->vertexArray    << "\n";
-        std::cout << "    + firstVertex: " << primitive->firstVertex    << "\n";
-        std::cout << "    + VertexCount: " << primitive->vertexCount    << "\n";
-        std::cout << "    + firstIndex:  " << primitive->firstIndex     << "\n";
-        std::cout << "    + indexCount:  " << primitive->indexCount     << "\n";
+        std::cout << "    + vertexArray: " << primitive->vertexArray << "\n";
+        std::cout << "    + firstVertex: " << primitive->firstVertex << "\n";
+        std::cout << "    + VertexCount: " << primitive->vertexCount << "\n";
+        std::cout << "    + firstIndex:  " << primitive->firstIndex << "\n";
+        std::cout << "    + indexCount:  " << primitive->indexCount << "\n";
         std::cout << "    + material:    " << primitive->material->name << "\n";
     }
 }

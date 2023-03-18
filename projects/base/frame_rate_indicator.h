@@ -4,7 +4,7 @@
 
 class FrameRateIndicator {
 public:
-    FrameRateIndicator(int capacity): _capacity(capacity) {
+    FrameRateIndicator(int capacity) : _capacity(capacity) {
         _frameRates.reserve(capacity);
     }
 
@@ -38,6 +38,7 @@ public:
     int getSize() const {
         return static_cast<int>(_frameRates.size());
     }
+
 private:
     std::vector<float> _frameRates;
     const int _capacity;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <limits>
 #include <glm/glm.hpp>
+#include <limits>
 
 #include "ray.h"
 
@@ -12,12 +12,12 @@ public:
     glm::vec3 pMax;
 
 public:
-    AABB() : pMin(glm::vec3(std::numeric_limits<float>::max())),
-             pMax(-glm::vec3(std::numeric_limits<float>::max())) { }
+    AABB()
+        : pMin(glm::vec3(std::numeric_limits<float>::max())),
+          pMax(-glm::vec3(std::numeric_limits<float>::max())) {}
 
-    AABB(const glm::vec3& p1, const glm::vec3& p2) : 
-        pMin(glm::min(p1, p2)),
-        pMax(glm::max(p1, p2)) { }
+    AABB(const glm::vec3& p1, const glm::vec3& p2)
+        : pMin(glm::min(p1, p2)), pMax(glm::max(p1, p2)) {}
 
     glm::vec3& operator[](int i) {
         return i == 0 ? pMin : pMax;
@@ -29,10 +29,7 @@ public:
 
     glm::vec3 corner(int i) const {
         return glm::vec3(
-            (i & 1) ? pMin.x : pMax.x,
-            (i & 2) ? pMin.y : pMax.y,
-            (i & 4) ? pMin.z : pMax.z
-        );
+            (i & 1) ? pMin.x : pMax.x, (i & 2) ? pMin.y : pMax.y, (i & 4) ? pMin.z : pMax.z);
     }
 
     bool intersect(const Ray& ray, const glm::vec3& invDir, const int negDir[3]) const {
@@ -46,7 +43,7 @@ public:
         float tMaxY = (box[1 - negDir[1]].y - o.y) * invDir.y;
         float tMinZ = (box[negDir[2]].z - o.z) * invDir.z;
         float tMaxZ = (box[1 - negDir[2]].z - o.z) * invDir.z;
-        
+
         float tMin = std::max(tMinX, std::max(tMinY, tMinZ));
         float tMax = std::min(tMaxX, std::min(tMaxY, tMaxZ));
 

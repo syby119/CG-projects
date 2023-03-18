@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -16,8 +16,7 @@ GLSLProgram::GLSLProgram() {
 }
 
 GLSLProgram::GLSLProgram(GLSLProgram&& rhs) noexcept
-    : _handle(rhs._handle),
-      _vertexShaders(std::move(rhs._vertexShaders)),
+    : _handle(rhs._handle), _vertexShaders(std::move(rhs._vertexShaders)),
       _geometryShaders(std::move(rhs._geometryShaders)),
       _fragmentShaders(std::move(rhs._fragmentShaders)) {
     rhs._handle = 0;
@@ -67,7 +66,7 @@ void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachVertexShader(code);
-    } catch(const std::runtime_error&) {
+    } catch (const std::runtime_error&) {
         std::cerr << "Compile " << filePath << " error" << std::endl;
         throw;
     }
@@ -77,7 +76,7 @@ void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachGeometryShader(code);
-    } catch(const std::runtime_error&) {
+    } catch (const std::runtime_error&) {
         std::cerr << "Compile " << filePath << " error" << std::endl;
         throw;
     }
@@ -87,7 +86,7 @@ void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachFragmentShader(code);
-    } catch(const std::runtime_error&) {
+    } catch (const std::runtime_error&) {
         std::cerr << "Compile " << filePath << " error" << std::endl;
         throw;
     }
@@ -95,8 +94,8 @@ void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {
 
 void GLSLProgram::setTransformFeedbackVaryings(
     const std::vector<const char*>& varyings, GLenum bufferMode) {
-    glTransformFeedbackVaryings(_handle, static_cast<GLsizei>(varyings.size()), 
-                                varyings.data(), bufferMode);
+    glTransformFeedbackVaryings(
+        _handle, static_cast<GLsizei>(varyings.size()), varyings.data(), bufferMode);
 }
 
 void GLSLProgram::link() {
@@ -142,7 +141,7 @@ int GLSLProgram::getUniformBlockIndex(const std::string& name) const {
 
 int GLSLProgram::getUniformBlockVariableOffset(const std::string& name) const {
     GLuint index;
-    const char* queryNames[] = { name.c_str()};
+    const char* queryNames[] = {name.c_str()};
     glGetUniformIndices(_handle, 1, queryNames, &index);
     if (index == GL_INVALID_INDEX) {
         return -1;
@@ -263,8 +262,7 @@ std::string GLSLProgram::readFile(const std::string& filePath) {
         ss << is.rdbuf();
 
         return ss.str();
-    }
-    catch (std::ifstream::failure& e) {
+    } catch (std::ifstream::failure& e) {
         throw std::runtime_error(std::string("read ") + filePath + " error: " + e.what());
     }
 }

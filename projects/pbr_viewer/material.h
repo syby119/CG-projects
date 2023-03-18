@@ -1,28 +1,32 @@
 #pragma once
 
-#include <memory>
 #include <glm/glm.hpp>
+#include <memory>
 
-#include "../base/texture.h"
 #include "../base/sampler.h"
+#include "../base/texture.h"
 
 struct Material {
-    enum class AlphaMode { Blend, Opaque, Mask };
-    
+    enum class AlphaMode {
+        Blend,
+        Opaque,
+        Mask
+    };
+
     enum AlphaMode alphaMode = AlphaMode::Opaque;
     float alphaCutoff = 1.0f;
-    
+
     bool doubleSided = false;
 };
 
-struct PbrMaterial: public Material {
+struct PbrMaterial : public Material {
     std::string name;
 
     float roughnessFactor = 1.0f;
-    float metallicFactor  = 1.0f;
+    float metallicFactor = 1.0f;
     float occlusionStrength = 1.0f;
-    glm::vec4 albedoFactor = glm::vec4{ 1.0f };
-    glm::vec4 emissiveFactor = glm::vec4{ 1.0f };
+    glm::vec4 albedoFactor = glm::vec4{1.0f};
+    glm::vec4 emissiveFactor = glm::vec4{1.0f};
 
     Texture* albedoMap = nullptr;
     Texture* normalMap = nullptr;

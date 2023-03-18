@@ -22,7 +22,7 @@ const std::string lambertFsRelPath = "shader/bonus2/lambert.frag";
 
 const std::string frustumCullingVsRelPath = "shader/bonus2/frustum_culling.vert";
 
-FrustumCulling::FrustumCulling(const Options& options): Application(options) {
+FrustumCulling::FrustumCulling(const Options& options) : Application(options) {
     // init model matrices
     initModelMatrices();
 
@@ -31,11 +31,13 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
     _planet->transform.scale = glm::vec3(10.0f, 10.0f, 10.0f);
 
     _asternoid.reset(new Model(getAssetFullPath(asternoldRelPath)));
-    _instancedAsternoids.reset(new InstancedModel(getAssetFullPath(asternoldRelPath), _modelMatrices));
+    _instancedAsternoids.reset(
+        new InstancedModel(getAssetFullPath(asternoldRelPath), _modelMatrices));
 
     // init textures
     auto planetTexture = std::make_shared<ImageTexture2D>(getAssetFullPath(planetTextureRelPath));
-    auto asternoidTexture = std::make_shared<ImageTexture2D>(getAssetFullPath(asternoldTextureRelPath));
+    auto asternoidTexture =
+        std::make_shared<ImageTexture2D>(getAssetFullPath(asternoldTextureRelPath));
 
     // init materials
     _lineMaterial.reset(new LineMaterial);
@@ -55,16 +57,15 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
 
     // init camera
     _camera.reset(new PerspectiveCamera(
-        glm::radians(45.0f),
-        1.0f * _windowWidth / _windowHeight,
-        0.1f, 1000.0f));
+        glm::radians(45.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
 
     _camera->transform.position = glm::vec3(0.0f, 25.0f, 100.0f);
-    _camera->transform.rotation = glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
+    _camera->transform.rotation =
+        glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
 
     // init light
     _light.reset(new DirectionalLight());
-    _light->transform.rotation = 
+    _light->transform.rotation =
         glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f)));
 
     // init visible array
@@ -80,7 +81,8 @@ FrustumCulling::FrustumCulling(const Options& options): Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -154,7 +156,8 @@ void FrustumCulling::initShaders() {
     _lambertShader->link();
 
     _lambertInstancedShader.reset(new GLSLProgram);
-    _lambertInstancedShader->attachVertexShaderFromFile(getAssetFullPath(lambertInstancedVsRelPath));
+    _lambertInstancedShader->attachVertexShaderFromFile(
+        getAssetFullPath(lambertInstancedVsRelPath));
     _lambertInstancedShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath));
     _lambertInstancedShader->link();
 
@@ -162,8 +165,7 @@ void FrustumCulling::initShaders() {
     // TODO: Modify the frustum_culling.vert code to achieve GPU frustum culling
     _frustumCullingShader.reset(new GLSLProgram);
     _frustumCullingShader->attachVertexShaderFromFile(getAssetFullPath(frustumCullingVsRelPath));
-    _frustumCullingShader->setTransformFeedbackVaryings(
-        { "visible" }, GL_INTERLEAVED_ATTRIBS);
+    _frustumCullingShader->setTransformFeedbackVaryings({"visible"}, GL_INTERLEAVED_ATTRIBS);
     _frustumCullingShader->link();
 }
 
@@ -188,19 +190,23 @@ void FrustumCulling::handleInput() {
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position +=
+            _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position -=
+            _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position -=
+            _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position +=
+            _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (glMultiDrawElementsIndirect == nullptr) {
@@ -275,9 +281,7 @@ void FrustumCulling::renderFrame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
@@ -299,8 +303,9 @@ void FrustumCulling::renderFrame() {
 
         std::string fpsInfo = "avg fps: " + std::to_string(_fpsIndicator.getAverageFrameRate());
         ImGui::Text("%s", fpsInfo.c_str());
-        ImGui::PlotLines("", _fpsIndicator.getDataPtr(), _fpsIndicator.getSize(), 0,
-            nullptr, 0.0f, std::numeric_limits<float>::max(), ImVec2(240.0f, 50.0f));
+        ImGui::PlotLines(
+            "", _fpsIndicator.getDataPtr(), _fpsIndicator.getSize(), 0, nullptr, 0.0f,
+            std::numeric_limits<float>::max(), ImVec2(240.0f, 50.0f));
 
         ImGui::End();
     }
@@ -362,13 +367,13 @@ void FrustumCulling::renderAsternoidsIndirect() {
             ++instanceCount;
             ++_drawAsternoidCount;
         } else {
-            _indirectDrawCmds.push_back({ count, instanceCount, 0, 0, i - instanceCount });
+            _indirectDrawCmds.push_back({count, instanceCount, 0, 0, i - instanceCount});
             instanceCount = 0;
         }
     }
 
     if (instanceCount > 0) {
-        _indirectDrawCmds.push_back({ count, instanceCount, 0, 0, _amount - instanceCount });
+        _indirectDrawCmds.push_back({count, instanceCount, 0, 0, _amount - instanceCount});
     }
 
     _lambertInstancedShader->use();
@@ -382,14 +387,14 @@ void FrustumCulling::renderAsternoidsIndirect() {
     _asternoidMaterial->mapKd->bind();
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _indirectBuffer);
-    glBufferData(GL_DRAW_INDIRECT_BUFFER, 
-        _indirectDrawCmds.size() * sizeof(DrawElementsIndirectCommand),
+    glBufferData(
+        GL_DRAW_INDIRECT_BUFFER, _indirectDrawCmds.size() * sizeof(DrawElementsIndirectCommand),
         _indirectDrawCmds.data(), GL_STREAM_DRAW);
 
     glBindVertexArray(_instancedAsternoids->getVao());
 
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 
-                                static_cast<GLsizei>(_indirectDrawCmds.size()), 0);
+    glMultiDrawElementsIndirect(
+        GL_TRIANGLES, GL_UNSIGNED_INT, 0, static_cast<GLsizei>(_indirectDrawCmds.size()), 0);
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
     glBindVertexArray(0);
@@ -406,14 +411,15 @@ void FrustumCulling::renderAsternoidsIndirect() {
         _lineInstancedShader->setUniformVec3("material.color", _lineMaterial->color);
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _indirectBuffer);
-        glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, 
-            _indirectDrawCmds.size() * sizeof(DrawElementsIndirectCommand), 
+        glBufferSubData(
+            GL_DRAW_INDIRECT_BUFFER, 0,
+            _indirectDrawCmds.size() * sizeof(DrawElementsIndirectCommand),
             _indirectDrawCmds.data());
 
         glBindVertexArray(_instancedAsternoids->getBoundingBoxVao());
 
-        glMultiDrawElementsIndirect(GL_LINES, GL_UNSIGNED_INT, 0, 
-                                    static_cast<GLsizei>(_indirectDrawCmds.size()), 0);
+        glMultiDrawElementsIndirect(
+            GL_LINES, GL_UNSIGNED_INT, 0, static_cast<GLsizei>(_indirectDrawCmds.size()), 0);
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 

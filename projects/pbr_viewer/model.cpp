@@ -1,13 +1,13 @@
+#include <algorithm>
 #include <iostream>
 #include <limits>
-#include <unordered_map>
-#include <algorithm>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <tiny_gltf.h>
 
-#include "model.h"
 #include "debug_print.h"
+#include "model.h"
 
 Model::Model(const std::string& filepath) {
     load(filepath);
@@ -111,7 +111,7 @@ void Model::load(const std::string& filepath) {
 
 void Model::loadSamplers(const tinygltf::Model& gltfModel) {
     // always set _samplers[0] as a default sampler
-    std::unique_ptr<Sampler> defaultSampler { new Sampler };
+    std::unique_ptr<Sampler> defaultSampler{new Sampler};
     defaultSampler->setInt(GL_TEXTURE_MIN_FILTER, getFilterMode(-1));
     defaultSampler->setInt(GL_TEXTURE_MAG_FILTER, getFilterMode(-1));
     defaultSampler->setInt(GL_TEXTURE_WRAP_S, getWrapMode(-1));
@@ -120,7 +120,7 @@ void Model::loadSamplers(const tinygltf::Model& gltfModel) {
 
     // get samplers from the gltfModel specification
     for (const auto& gltfSampler : gltfModel.samplers) {
-        std::unique_ptr<Sampler> sampler { new Sampler };
+        std::unique_ptr<Sampler> sampler{new Sampler};
 
         // filter mode
         sampler->setInt(GL_TEXTURE_MIN_FILTER, getFilterMode(gltfSampler.minFilter));
@@ -143,36 +143,29 @@ void Model::loadTextures(const tinygltf::Model& gltfModel) {
 
         GLint format = GL_RGBA;
         switch (gltfImage.component) {
-            case 1: format = GL_RED; break;
-            case 2: format = GL_RG; break;
-            case 3: format = GL_RGB; break;
-            case 4: format = GL_RGBA; break;
-            default: throw std::runtime_error("unsupported image format");
+        case 1: format = GL_RED; break;
+        case 2: format = GL_RG; break;
+        case 3: format = GL_RGB; break;
+        case 4: format = GL_RGBA; break;
+        default: throw std::runtime_error("unsupported image format");
         }
 
         GLenum type = GL_UNSIGNED_BYTE;
         switch (gltfImage.bits) {
-            case 8: type = GL_UNSIGNED_BYTE; break;
-            case 16: type = GL_UNSIGNED_SHORT; break;
-            default: throw std::runtime_error("unsupported image data type");
+        case 8: type = GL_UNSIGNED_BYTE; break;
+        case 16: type = GL_UNSIGNED_SHORT; break;
+        default: throw std::runtime_error("unsupported image data type");
         }
 
-        std::unique_ptr<Texture2D> texture { new ImageTexture2D(
-                gltfImage.image.data(),
-                gltfImage.width,
-                gltfImage.height,
-                gltfImage.component,
-                internalformat,
-                format,
-                type,
-                gltfImage.uri) };
+        std::unique_ptr<Texture2D> texture{new ImageTexture2D(
+            gltfImage.image.data(), gltfImage.width, gltfImage.height, gltfImage.component,
+            internalformat, format, type, gltfImage.uri)};
 
         if (gltfTexture.sampler != -1) {
             GLenum filterMode = getFilterMode(gltfModel.samplers[gltfTexture.sampler].minFilter);
-            if (filterMode == GL_NEAREST_MIPMAP_NEAREST ||
-                filterMode == GL_LINEAR_MIPMAP_NEAREST ||
-                filterMode == GL_NEAREST_MIPMAP_LINEAR ||
-                filterMode == GL_LINEAR_MIPMAP_LINEAR) {
+            if (filterMode == GL_NEAREST_MIPMAP_NEAREST || filterMode == GL_LINEAR_MIPMAP_NEAREST
+                || filterMode == GL_NEAREST_MIPMAP_LINEAR
+                || filterMode == GL_LINEAR_MIPMAP_LINEAR) {
                 texture->bind();
                 texture->generateMipmap();
                 texture->unbind();
@@ -189,7 +182,7 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
     _materials[0]->name = "defaultMaterial";
 
     for (const tinygltf::Material& gltfMaterial : gltfModel.materials) {
-        std::unique_ptr<PbrMaterial> material { new PbrMaterial };
+        std::unique_ptr<PbrMaterial> material{new PbrMaterial};
         material->name = gltfMaterial.name;
 
         // double sided
@@ -215,12 +208,14 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
         int samplerIndex = -1;
 
         // albedo
-        material->albedoFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
+        material->albedoFactor =
+            glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
 
         textureIndex = gltfMaterial.pbrMetallicRoughness.baseColorTexture.index;
         if (textureIndex >= 0) {
             material->albedoMap = _textures[textureIndex].get();
-            material->texCoordSets.albedo = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
+            material->texCoordSets.albedo =
+                gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -231,12 +226,14 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
         }
 
         // metallic
-        material->metallicFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
-        
+        material->metallicFactor =
+            static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
+
         textureIndex = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
         if (textureIndex >= 0) {
             material->metallicMap = _textures[textureIndex].get();
-            material->texCoordSets.metallic = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+            material->texCoordSets.metallic =
+                gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -247,12 +244,14 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
         }
 
         // roughness
-        material->roughnessFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
+        material->roughnessFactor =
+            static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
 
         textureIndex = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
         if (textureIndex >= 0) {
             material->roughnessMap = _textures[textureIndex].get();
-            material->texCoordSets.roughness = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+            material->texCoordSets.roughness =
+                gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -261,7 +260,7 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
                 material->roughnessSampler = _samplers[0].get();
             }
         }
-        
+
         // normal
         textureIndex = gltfMaterial.normalTexture.index;
         if (textureIndex >= 0) {
@@ -294,7 +293,7 @@ void Model::loadMaterials(const tinygltf::Model& gltfModel) {
 
         // emissive
         material->emissiveFactor = glm::make_vec4(gltfMaterial.emissiveFactor.data());
-        
+
         textureIndex = gltfMaterial.emissiveTexture.index;
         if (textureIndex >= 0) {
             material->emissiveMap = _textures[textureIndex].get();
@@ -321,11 +320,9 @@ void Model::loadSkins(const tinygltf::Model& gltfModel) {
 }
 
 void Model::loadNode(
-    Node* parent,
-    const tinygltf::Node& gltfNode,
-    uint32_t nodeIndex,
+    Node* parent, const tinygltf::Node& gltfNode, uint32_t nodeIndex,
     const tinygltf::Model& gltfModel) {
-    std::unique_ptr<Node> node{ new Node };
+    std::unique_ptr<Node> node{new Node};
 
     // set meta info
     node->name = gltfNode.name;
@@ -359,12 +356,13 @@ void Model::loadNode(
             const uint32_t vertexStart = static_cast<uint32_t>(_vertices.size());
             const uint32_t indexStart = static_cast<uint32_t>(_indices.size());
 
-            // parse vertices position 
+            // parse vertices position
             size_t vertexCount = 0;
             const float* positionBuffer = nullptr;
             int positionByteStride = 0;
             if (getAttributeBufferInfo<float>(
-                gltfModel, gltfPrimitive, "POSITION", positionBuffer, positionByteStride, vertexCount)) {
+                    gltfModel, gltfPrimitive, "POSITION", positionBuffer, positionByteStride,
+                    vertexCount)) {
                 if (positionByteStride == -1) {
                     throw std::runtime_error("illegal position byte stride");
                 }
@@ -376,7 +374,7 @@ void Model::loadNode(
             const float* normalBuffer = nullptr;
             int normalByteStride = 0;
             if (getAttributeBufferInfo<float>(
-                gltfModel, gltfPrimitive, "NORMAL", normalBuffer, normalByteStride, count)) {
+                    gltfModel, gltfPrimitive, "NORMAL", normalBuffer, normalByteStride, count)) {
                 if (normalByteStride == -1) {
                     throw std::runtime_error("illegal normal byte stride");
                 }
@@ -386,7 +384,8 @@ void Model::loadNode(
             const float* texCoord0Buffer = nullptr;
             int texCoord0ByteStride = 0;
             if (getAttributeBufferInfo<float>(
-                gltfModel, gltfPrimitive, "TEXCOORD_0", texCoord0Buffer, texCoord0ByteStride, count)) {
+                    gltfModel, gltfPrimitive, "TEXCOORD_0", texCoord0Buffer, texCoord0ByteStride,
+                    count)) {
                 if (texCoord0ByteStride == -1) {
                     throw std::runtime_error("illegal texCoord0 byte stride");
                 }
@@ -396,30 +395,36 @@ void Model::loadNode(
             const float* texCoord1Buffer = nullptr;
             int texCoord1ByteStride = 0;
             if (getAttributeBufferInfo<float>(
-                gltfModel, gltfPrimitive, "TEXCOORD_1", texCoord1Buffer, texCoord1ByteStride, count)) {
+                    gltfModel, gltfPrimitive, "TEXCOORD_1", texCoord1Buffer, texCoord1ByteStride,
+                    count)) {
                 if (texCoord1ByteStride == -1) {
                     throw std::runtime_error("illegal texCoord1 byte stride");
                 } else if (texCoord1ByteStride == 0) {
-                    texCoord1ByteStride = tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2) * sizeof(float);
+                    texCoord1ByteStride =
+                        tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2) * sizeof(float);
                 }
             }
 
             // assemble vertices data
             for (size_t i = 0; i < vertexCount; ++i) {
                 Vertex v;
-                v.position = glm::make_vec3(positionBuffer + i * positionByteStride / sizeof(float));
+                v.position =
+                    glm::make_vec3(positionBuffer + i * positionByteStride / sizeof(float));
 
-                v.normal = glm::normalize(normalBuffer ?
-                    glm::make_vec3(normalBuffer + i * normalByteStride / sizeof(float)) :
-                    glm::vec3(1.0f, 1.0f, 1.0f));
+                v.normal = glm::normalize(
+                    normalBuffer
+                        ? glm::make_vec3(normalBuffer + i * normalByteStride / sizeof(float))
+                        : glm::vec3(1.0f, 1.0f, 1.0f));
 
-                v.texCoord0 = texCoord0Buffer ?
-                    glm::make_vec2(texCoord0Buffer + i * texCoord0ByteStride / sizeof(float)) : 
-                    glm::vec2(0.0f, 0.0f);
+                v.texCoord0 =
+                    texCoord0Buffer
+                        ? glm::make_vec2(texCoord0Buffer + i * texCoord0ByteStride / sizeof(float))
+                        : glm::vec2(0.0f, 0.0f);
 
-                v.texCoord1 = texCoord1Buffer ?
-                    glm::make_vec2(texCoord1Buffer + i * texCoord1ByteStride / sizeof(float)) :
-                    glm::vec2(0.0f, 0.0f);
+                v.texCoord1 =
+                    texCoord1Buffer
+                        ? glm::make_vec2(texCoord1Buffer + i * texCoord1ByteStride / sizeof(float))
+                        : glm::vec2(0.0f, 0.0f);
 
                 _vertices.emplace_back(v);
             }
@@ -435,29 +440,28 @@ void Model::loadNode(
                 const void* data = &(buffer.data[accessor.byteOffset + bufferView.byteOffset]);
 
                 switch (accessor.componentType) {
-                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-                        const uint32_t* buf = static_cast<const uint32_t*>(data);
-                        for (size_t i = 0; i < indexCount; ++i) {
-                            _indices.push_back(buf[i] + vertexStart);
-                        }
-                        break;
+                case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+                    const uint32_t* buf = static_cast<const uint32_t*>(data);
+                    for (size_t i = 0; i < indexCount; ++i) {
+                        _indices.push_back(buf[i] + vertexStart);
                     }
-                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-                        const uint16_t* buf = static_cast<const uint16_t*>(data);
-                        for (size_t i = 0; i < indexCount; ++i) {
-                            _indices.push_back(buf[i] + vertexStart);
-                        }
-                        break;
+                    break;
+                }
+                case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+                    const uint16_t* buf = static_cast<const uint16_t*>(data);
+                    for (size_t i = 0; i < indexCount; ++i) {
+                        _indices.push_back(buf[i] + vertexStart);
                     }
-                    case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-                        const uint8_t* buf = static_cast<const uint8_t*>(data);
-                        for (size_t i = 0; i < indexCount; ++i) {
-                            _indices.push_back(buf[i] + vertexStart);
-                        }
-                        break;
+                    break;
+                }
+                case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+                    const uint8_t* buf = static_cast<const uint8_t*>(data);
+                    for (size_t i = 0; i < indexCount; ++i) {
+                        _indices.push_back(buf[i] + vertexStart);
                     }
-                    default:
-                        throw std::runtime_error("unsupported index data type");
+                    break;
+                }
+                default: throw std::runtime_error("unsupported index data type");
                 }
             }
 
@@ -465,10 +469,10 @@ void Model::loadNode(
                 _vao,
                 vertexStart,
                 static_cast<uint32_t>(vertexCount),
-                indexStart, 
-                static_cast<uint32_t>(indexCount), 
-                gltfPrimitive.material >= 0 ? _materials[gltfPrimitive.material + 1].get() : _materials[0].get()
-            };
+                indexStart,
+                static_cast<uint32_t>(indexCount),
+                gltfPrimitive.material >= 0 ? _materials[gltfPrimitive.material + 1].get()
+                                            : _materials[0].get()};
             node->primitives.push_back(primitive);
         }
     }
@@ -504,14 +508,19 @@ void Model::createGraphicResources(size_t vertexCount, size_t indexCount) {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint32_t), NULL, GL_STATIC_DRAW);
     }
 
-    // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the
+    // attribute
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(
+        1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord0));
+    glVertexAttribPointer(
+        2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord0));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord1));
+    glVertexAttribPointer(
+        3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord1));
     glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
@@ -523,7 +532,8 @@ void Model::updateGraphicResources() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * _indices.size(), _indices.data());
+    glBufferSubData(
+        GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * _indices.size(), _indices.data());
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
@@ -555,8 +565,7 @@ void Model::cleanup() {
 }
 
 std::pair<size_t, size_t> Model::getNodeProps(
-    const tinygltf::Node& node,
-    const tinygltf::Model& model) {
+    const tinygltf::Node& node, const tinygltf::Model& model) {
 
     size_t vertexCount = 0;
     size_t indexCount = 0;
@@ -578,17 +587,13 @@ std::pair<size_t, size_t> Model::getNodeProps(
         indexCount += result.second;
     }
 
-    return { vertexCount, indexCount };
+    return {vertexCount, indexCount};
 }
 
 template <typename T>
 bool Model::getAttributeBufferInfo(
-    const tinygltf::Model& gltfModel,
-    const tinygltf::Primitive& gltfPrimitive,
-    const std::string& name,
-    const T*& data,
-    int& byteStride,
-    size_t& count) {
+    const tinygltf::Model& gltfModel, const tinygltf::Primitive& gltfPrimitive,
+    const std::string& name, const T*& data, int& byteStride, size_t& count) {
     const auto iter = gltfPrimitive.attributes.find(name);
     if (iter == gltfPrimitive.attributes.end()) {
         return false;
@@ -597,8 +602,8 @@ bool Model::getAttributeBufferInfo(
     const tinygltf::Accessor& accessor = gltfModel.accessors[iter->second];
     const tinygltf::BufferView& bufferView = gltfModel.bufferViews[accessor.bufferView];
 
-    data = reinterpret_cast<const T*>(&(
-        gltfModel.buffers[bufferView.buffer].data[accessor.byteOffset + bufferView.byteOffset]));
+    data = reinterpret_cast<const T*>(
+        &(gltfModel.buffers[bufferView.buffer].data[accessor.byteOffset + bufferView.byteOffset]));
 
     count = accessor.count;
 
@@ -639,22 +644,22 @@ int Model::getTextureIndex(const Texture* texture) const {
 
 GLenum Model::getFilterMode(int gltfFilterMode) {
     switch (gltfFilterMode) {
-        case 9728: return GL_NEAREST;
-        case 9729: return GL_LINEAR;
-        case 9984: return GL_NEAREST_MIPMAP_NEAREST;
-        case 9985: return GL_LINEAR_MIPMAP_NEAREST;
-        case 9986: return GL_NEAREST_MIPMAP_LINEAR;
-        case 9987: return GL_LINEAR_MIPMAP_LINEAR;
-        default: return GL_LINEAR;
+    case 9728: return GL_NEAREST;
+    case 9729: return GL_LINEAR;
+    case 9984: return GL_NEAREST_MIPMAP_NEAREST;
+    case 9985: return GL_LINEAR_MIPMAP_NEAREST;
+    case 9986: return GL_NEAREST_MIPMAP_LINEAR;
+    case 9987: return GL_LINEAR_MIPMAP_LINEAR;
+    default: return GL_LINEAR;
     }
 }
 
 GLenum Model::getWrapMode(int gltfWrapMode) {
     switch (gltfWrapMode) {
-        case 10497: return GL_REPEAT;
-        case 33071: return GL_CLAMP_TO_EDGE;
-        case 33648: return GL_MIRRORED_REPEAT;
-        default: return GL_REPEAT;
+    case 10497: return GL_REPEAT;
+    case 33071: return GL_CLAMP_TO_EDGE;
+    case 33648: return GL_MIRRORED_REPEAT;
+    default: return GL_REPEAT;
     }
 }
 
@@ -676,45 +681,54 @@ void Model::printMaterials() const {
     for (size_t i = 0; i < _materials.size(); ++i) {
         std::string alphaMode;
         switch (_materials[i]->alphaMode) {
-            case PbrMaterial::AlphaMode::Mask: alphaMode = "Mask"; break;
-            case PbrMaterial::AlphaMode::Blend: alphaMode = "Blend"; break;
-            case PbrMaterial::AlphaMode::Opaque: alphaMode = "Opaque"; break;
+        case PbrMaterial::AlphaMode::Mask: alphaMode = "Mask"; break;
+        case PbrMaterial::AlphaMode::Blend: alphaMode = "Blend"; break;
+        case PbrMaterial::AlphaMode::Opaque: alphaMode = "Opaque"; break;
         }
 
-        std::cout << "  + material[" << i << "]" << "\n";
-        std::cout << "    + name:        "   << _materials[i]->name        << "\n";
-        std::cout << "    + doubleSided: "   << _materials[i]->doubleSided << "\n";
-        std::cout << "    + alphaMode:   "   << alphaMode                  << "\n";
-        std::cout << "    + alphaCutoff: "   << _materials[i]->alphaCutoff << "\n";
-        std::cout << "    + albedo: "                                      << "\n";
-        std::cout << "      + factor: "      << _materials[i]->albedoFactor                      << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->albedoMap)        << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->albeodoSampler)   << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.albedo               << "\n";
-        std::cout << "    + metallic: "                                    << "\n";
-        std::cout << "      + factor: "      << _materials[i]->metallicFactor                    << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->metallicMap)      << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->metallicSampler)  << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic             << "\n";
-        std::cout << "    + roughness: "                                   << "\n";
-        std::cout << "      + factor: "      << _materials[i]->metallicFactor                    << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->roughnessMap)     << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->roughnessSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.roughness            << "\n";
-        std::cout << "    + normal: "                                      << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->normalMap)        << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->normalSampler)    << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.normal               << "\n";
-        std::cout << "    + occlusion: "                                   << "\n";
-        std::cout << "      + strength:"     << _materials[i]->occlusionStrength                 << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->occlusionMap)     << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->occlusionSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic             << "\n";
-        std::cout << "    + emissive: "                                    << "\n";
-        std::cout << "      + factor: "      << _materials[i]->emissiveFactor                    << "\n";
-        std::cout << "      + texture: "     << getTextureIndex(_materials[i]->emissiveMap)      << "\n";
-        std::cout << "      + sampler: "     << getSamplerIndex(_materials[i]->emissiveSampler)  << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.emissive             << "\n";
+        std::cout << "  + material[" << i << "]"
+                  << "\n";
+        std::cout << "    + name:        " << _materials[i]->name << "\n";
+        std::cout << "    + doubleSided: " << _materials[i]->doubleSided << "\n";
+        std::cout << "    + alphaMode:   " << alphaMode << "\n";
+        std::cout << "    + alphaCutoff: " << _materials[i]->alphaCutoff << "\n";
+        std::cout << "    + albedo: "
+                  << "\n";
+        std::cout << "      + factor: " << _materials[i]->albedoFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->albedoMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->albeodoSampler) << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.albedo << "\n";
+        std::cout << "    + metallic: "
+                  << "\n";
+        std::cout << "      + factor: " << _materials[i]->metallicFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->metallicMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->metallicSampler) << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic << "\n";
+        std::cout << "    + roughness: "
+                  << "\n";
+        std::cout << "      + factor: " << _materials[i]->metallicFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->roughnessMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->roughnessSampler)
+                  << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.roughness << "\n";
+        std::cout << "    + normal: "
+                  << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->normalMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->normalSampler) << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.normal << "\n";
+        std::cout << "    + occlusion: "
+                  << "\n";
+        std::cout << "      + strength:" << _materials[i]->occlusionStrength << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->occlusionMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->occlusionSampler)
+                  << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic << "\n";
+        std::cout << "    + emissive: "
+                  << "\n";
+        std::cout << "      + factor: " << _materials[i]->emissiveFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(_materials[i]->emissiveMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->emissiveSampler) << "\n";
+        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.emissive << "\n";
     }
 }
 

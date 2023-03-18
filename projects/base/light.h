@@ -5,16 +5,12 @@
 struct Light {
     Transform transform;
     float intensity = 1.0f;
-    glm::vec3 color = { 1.0f, 1.0f, 1.0f };
+    glm::vec3 color = {1.0f, 1.0f, 1.0f};
 };
 
-struct AmbientLight : public Light {
+struct AmbientLight : public Light {};
 
-};
-
-struct DirectionalLight : public Light{
-
-};
+struct DirectionalLight : public Light {};
 
 struct PointLight : public Light {
     float kc = 1.0f;

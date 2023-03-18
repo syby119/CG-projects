@@ -1,19 +1,19 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "../base/application.h"
+#include "../base/camera.h"
+#include "../base/framebuffer.h"
+#include "../base/fullscreen_quad.h"
 #include "../base/glsl_program.h"
 #include "../base/model.h"
-#include "../base/texture2d.h"
 #include "../base/skybox.h"
-#include "../base/fullscreen_quad.h"
-#include "../base/framebuffer.h"
-#include "../base/camera.h"
+#include "../base/texture2d.h"
 
-#include "primitive.h"
 #include "bvh.h"
+#include "primitive.h"
 
 class RayTracing : public Application {
 public:
@@ -23,7 +23,7 @@ public:
 
 private:
     std::unique_ptr<Model> _lucy;
-    
+
     std::vector<Sphere> _balls;
     std::vector<Material> _ballMaterials;
 
@@ -71,13 +71,12 @@ private:
     void createScene1();
 
     void createScene2();
-    
+
     void createScene3();
 
-    void createPrimitiveBuffer(const std::vector<Sphere>& spheres,
-        const std::vector<Model*> models,
-        const std::vector<glm::mat4>& transforms,
-        const std::vector<Material>& sphereMaterials,
+    void createPrimitiveBuffer(
+        const std::vector<Sphere>& spheres, const std::vector<Model*> models,
+        const std::vector<glm::mat4>& transforms, const std::vector<Material>& sphereMaterials,
         const std::vector<Material>& triangleMaterials);
 
     int getBufferHeight(size_t nObjects, size_t objectSize, size_t texComponent) const;

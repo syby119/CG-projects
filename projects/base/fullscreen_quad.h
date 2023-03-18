@@ -16,6 +16,7 @@ public:
     ~FullscreenQuad();
 
     void draw() const;
+
 private:
     GLuint _vao;
     GLuint _vbo;

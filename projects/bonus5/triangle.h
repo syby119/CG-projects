@@ -3,13 +3,14 @@
 #include <glm/glm.hpp>
 
 #include "../base/model.h"
-#include "ray.h"
 #include "aabb.h"
+#include "ray.h"
 
 struct Triangle {
 public:
     int v[3];
     Vertex* vertices;
+
 public:
     Triangle() : vertices(nullptr) {
         v[0] = v[1] = v[2] = 0;
@@ -41,10 +42,10 @@ public:
         if (std::abs(glm::dot(n, dir)) < 1e-4f) {
             return false;
         }
-        
+
         float d = glm::dot(n, p1);
         float tHit = (d - glm::dot(n, o)) / glm::dot(n, dir);
-        if (tHit < 0 || tHit >= ray.tMax) { 
+        if (tHit < 0 || tHit >= ray.tMax) {
             return false;
         }
 
@@ -53,7 +54,7 @@ public:
         float alpha = glm::dot(glm::cross(p3 - p2, q - p2), n) / area;
         float beta = glm::dot(glm::cross(q - p1, p3 - p1), n) / area;
         float gamma = glm::dot(glm::cross(p2 - p1, q - p1), n) / area;
-        
+
         if (alpha >= 0 && beta >= 0 && gamma >= 0) {
             ray.tMax = tHit;
             return true;

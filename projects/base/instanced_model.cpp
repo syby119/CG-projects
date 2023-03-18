@@ -1,16 +1,16 @@
-#include <iostream>
 #include "instanced_model.h"
+#include <iostream>
 
 InstancedModel::InstancedModel(
-    const std::string& filepath, 
-    const std::vector<glm::mat4>& modelMatrices)
+    const std::string& filepath, const std::vector<glm::mat4>& modelMatrices)
     : Model(filepath), _modelMatrices(modelMatrices) {
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_instanceVbo);
     glBindBuffer(GL_ARRAY_BUFFER, _instanceVbo);
-    glBufferData(GL_ARRAY_BUFFER, _modelMatrices.size() * sizeof(glm::mat4), 
-        _modelMatrices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, _modelMatrices.size() * sizeof(glm::mat4), _modelMatrices.data(),
+        GL_STATIC_DRAW);
 
     constexpr GLsizei stride = sizeof(glm::mat4);
     constexpr GLsizei unitSize = sizeof(glm::vec4);
@@ -76,22 +76,23 @@ const std::vector<glm::mat4>& InstancedModel::getModelMatrices() const {
 
 void InstancedModel::draw() const {
     glBindVertexArray(_vao);
-    glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), 
-                            GL_UNSIGNED_INT, 0, static_cast<GLsizei>(_modelMatrices.size()));
+    glDrawElementsInstanced(
+        GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), GL_UNSIGNED_INT, 0,
+        static_cast<GLsizei>(_modelMatrices.size()));
     glBindVertexArray(0);
 }
 
 void InstancedModel::draw(int amount) const {
     glBindVertexArray(_vao);
-    glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), 
-                            GL_UNSIGNED_INT, 0, amount);
+    glDrawElementsInstanced(
+        GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), GL_UNSIGNED_INT, 0, amount);
     glBindVertexArray(0);
 }
 
 void InstancedModel::drawBoundingBox() const {
     glBindVertexArray(_boxVao);
-    glDrawElementsInstanced(GL_LINES, 24, GL_UNSIGNED_INT, 
-                            0, static_cast<GLsizei>(_modelMatrices.size()));
+    glDrawElementsInstanced(
+        GL_LINES, 24, GL_UNSIGNED_INT, 0, static_cast<GLsizei>(_modelMatrices.size()));
     glBindVertexArray(0);
 }
 

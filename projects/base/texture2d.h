@@ -8,8 +8,9 @@ class Texture2D : public Texture {
 public:
     Texture2D() = default;
 
-    Texture2D(GLint internalFormat, 
-        int width, int height, GLenum format, GLenum dataType, void* data = nullptr);
+    Texture2D(
+        GLint internalFormat, int width, int height, GLenum format, GLenum dataType,
+        void* data = nullptr);
 
     Texture2D(Texture2D&& rhs) noexcept;
 
@@ -34,14 +35,8 @@ public:
     ImageTexture2D(const std::string& path);
 
     ImageTexture2D(
-        const void* data,
-        int width, 
-        int height, 
-        int channels,
-        GLint internalformat, 
-        GLenum format, 
-        GLenum type,
-        const std::string& uri);
+        const void* data, int width, int height, int channels, GLint internalformat, GLenum format,
+        GLenum type, const std::string& uri);
 
     ImageTexture2D(ImageTexture2D&& rhs) noexcept;
 
@@ -55,16 +50,11 @@ private:
     void setDefaultParameters();
 
     void upload(
-        const void* data,
-        int width,
-        int height,
-        int channels,
-        GLint internalformat,
-        GLenum format,
+        const void* data, int width, int height, int channels, GLint internalformat, GLenum format,
         GLenum type);
 };
 
-class Texture2DArray: public Texture {
+class Texture2DArray : public Texture {
 public:
     Texture2DArray(
         GLint internalFormat, int width, int height, int layers, GLenum format, GLenum dataType);

@@ -6,13 +6,15 @@
 #include <imgui.h>
 
 #include "../base/application.h"
-#include "../base/glsl_program.h"
-#include "../base/model.h"
-#include "../base/light.h"
 #include "../base/camera.h"
+#include "../base/glsl_program.h"
+#include "../base/light.h"
+#include "../base/model.h"
 
 enum class RenderMode {
-    Ambient, Lambert, Phong
+    Ambient,
+    Lambert,
+    Phong
 };
 
 // I = ka * Ia
@@ -38,6 +40,7 @@ public:
     ShadingTutorial(const Options& options);
 
     ~ShadingTutorial();
+
 private:
     // model
     std::unique_ptr<Model> _bunny;

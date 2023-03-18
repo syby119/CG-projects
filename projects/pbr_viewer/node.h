@@ -1,9 +1,9 @@
 #pragma once
 
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #include "../base/transform.h"
 #include "primitive.h"

@@ -1,5 +1,5 @@
-#include <cmath>
 #include "star.h"
+#include <cmath>
 
 Star::Star(const glm::vec2& position, float rotation, float radius, float aspect)
     : _position(position), _rotation(rotation), _radius(radius) {
@@ -16,7 +16,8 @@ Star::Star(const glm::vec2& position, float rotation, float radius, float aspect
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, sizeof(glm::vec2) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
     glEnableVertexAttribArray(0);
@@ -25,8 +26,8 @@ Star::Star(const glm::vec2& position, float rotation, float radius, float aspect
 }
 
 Star::Star(Star&& rhs) noexcept
-    : _position(rhs._position), _rotation(rhs._rotation), _radius(rhs._radius),
-    _vao(rhs._vao), _vbo(rhs._vbo) {
+    : _position(rhs._position), _rotation(rhs._rotation), _radius(rhs._radius), _vao(rhs._vao),
+      _vbo(rhs._vbo) {
     rhs._vao = 0;
     rhs._vbo = 0;
 }

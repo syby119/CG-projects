@@ -1,19 +1,19 @@
 #pragma once
 
 #include <array>
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-#include <glm/glm.hpp>
 
 #include "../base/application.h"
 #include "../base/camera.h"
+#include "../base/framebuffer.h"
+#include "../base/fullscreen_quad.h"
 #include "../base/glsl_program.h"
 #include "../base/light.h"
 #include "../base/model.h"
-#include "../base/framebuffer.h"
 #include "../base/texture2d.h"
 #include "../base/texture_cubemap.h"
-#include "../base/fullscreen_quad.h"
 
 struct LambertMaterial {
     glm::vec3 ka = glm::vec3(0.05f);
@@ -33,7 +33,7 @@ enum class DebugView {
 
 constexpr int cascadeLevels = 5;
 
-class ShadowMapping: public Application {
+class ShadowMapping : public Application {
 public:
     ShadowMapping(const Options& options);
 
@@ -89,9 +89,7 @@ private:
     std::unique_ptr<GLSLProgram> _cubeShader;
 
     // TODO: Change the value here
-    std::array<float, cascadeLevels> _cascadeBiasModifiers = {
-        1.0f, 1.0f, 1.0f, 1.0f, 1.0f
-    };
+    std::array<float, cascadeLevels> _cascadeBiasModifiers = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
     void handleInput() override;
 

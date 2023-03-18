@@ -1,5 +1,5 @@
-#include <stdexcept>
 #include "framebuffer.h"
+#include <stdexcept>
 
 Framebuffer::Framebuffer() {
     glGenFramebuffers(1, &_handle);
@@ -25,25 +25,18 @@ void Framebuffer::unbind() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::attachTexture(
-    const Texture& texture, GLenum attachment, int level
-) {
-    glFramebufferTexture(GL_FRAMEBUFFER, 
-        attachment, texture.getHandle(), level);
+void Framebuffer::attachTexture(const Texture& texture, GLenum attachment, int level) {
+    glFramebufferTexture(GL_FRAMEBUFFER, attachment, texture.getHandle(), level);
 }
 
 void Framebuffer::attachTexture2D(
-    const Texture& texture, GLenum attachment, GLenum textarget, int level
-) {
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-        attachment, textarget, texture.getHandle(), level);
+    const Texture& texture, GLenum attachment, GLenum textarget, int level) {
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, textarget, texture.getHandle(), level);
 }
 
 void Framebuffer::attachTextureLayer(
-    const Texture& texture, GLenum attachment, int layer, int level
-) {
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, 
-        attachment, texture.getHandle(), level, layer);
+    const Texture& texture, GLenum attachment, int layer, int level) {
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture.getHandle(), level, layer);
 }
 
 GLenum Framebuffer::checkStatus(GLenum target) const {
@@ -52,24 +45,15 @@ GLenum Framebuffer::checkStatus(GLenum target) const {
 
 std::string Framebuffer::getDiagnostic(GLenum status) const {
     switch (status) {
-        case GL_FRAMEBUFFER_COMPLETE: 
-            return "framebuffer: complete";
-        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 
-            return "framebuffer: incomplete attachment";
-        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: 
-            return "framebuffer: missing attachment";
-        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: 
-            return "framebuffer: incomplete draw buffer";
-        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: 
-            return "framebuffer: incomplete layer targets";
-        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: 
-            return "framebuffer: incomplete multisample";
-        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: 
-            return "framebuffer: incomplete read buffer";
-        case GL_FRAMEBUFFER_UNSUPPORTED: 
-            return "framebuffer: unsupported";
-        case GL_FRAMEBUFFER_UNDEFINED:
-            return "framebuffer: undefined";
+    case GL_FRAMEBUFFER_COMPLETE: return "framebuffer: complete";
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: return "framebuffer: incomplete attachment";
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: return "framebuffer: missing attachment";
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: return "framebuffer: incomplete draw buffer";
+    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: return "framebuffer: incomplete layer targets";
+    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: return "framebuffer: incomplete multisample";
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: return "framebuffer: incomplete read buffer";
+    case GL_FRAMEBUFFER_UNSUPPORTED: return "framebuffer: unsupported";
+    case GL_FRAMEBUFFER_UNDEFINED: return "framebuffer: undefined";
     }
 
     return "framebuffer: unknown";

@@ -1,5 +1,5 @@
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 #include "instanced_rendering.h"
 
@@ -11,7 +11,7 @@ Options getOptions(int argc, char* argv[]) {
     options.windowResizable = false;
     options.vSync = true;
     options.msaa = true;
-    options.glVersion = { 3, 3 };
+    options.glVersion = {3, 3};
     options.backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     options.assetRootDir = "../../media/";
 

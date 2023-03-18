@@ -26,7 +26,7 @@ public:
     void attachGeometryShaderFromFile(const std::string& filePath);
 
     void attachFragmentShaderFromFile(const std::string& filePath);
-    
+
     void setTransformFeedbackVaryings(const std::vector<const char*>& varyings, GLenum bufferMode);
 
     void link();

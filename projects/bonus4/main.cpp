@@ -1,6 +1,6 @@
-#include <iostream>
-#include <cstdlib>
 #include "shadow_mapping.h"
+#include <cstdlib>
+#include <iostream>
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -10,7 +10,7 @@ Options getOptions(int argc, char* argv[]) {
     options.windowResizable = false;
     options.vSync = true;
     options.msaa = true;
-    options.glVersion = { 3, 3 };
+    options.glVersion = {3, 3};
     options.backgroundColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
     options.assetRootDir = "../../media/";
 

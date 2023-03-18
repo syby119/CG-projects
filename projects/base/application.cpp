@@ -1,10 +1,8 @@
 #include "application.h"
 
 Application::Application(const Options& options)
-    : _assetRootDir(options.assetRootDir),
-      _windowTitle(options.windowTitle),
-      _windowWidth(options.windowWidth),
-      _windowHeight(options.windowHeight),
+    : _assetRootDir(options.assetRootDir), _windowTitle(options.windowTitle),
+      _windowWidth(options.windowWidth), _windowHeight(options.windowHeight),
       _clearColor(options.backgroundColor) {
     // set error callback
     glfwSetErrorCallback(errorCallback);
@@ -30,8 +28,7 @@ Application::Application(const Options& options)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    _window = glfwCreateWindow(
-        _windowWidth, _windowHeight, _windowTitle.c_str(), nullptr, nullptr);
+    _window = glfwCreateWindow(_windowWidth, _windowHeight, _windowTitle.c_str(), nullptr, nullptr);
 
     if (_window == nullptr) {
         glfwTerminate();
@@ -138,27 +135,15 @@ void Application::mouseButtonCallback(GLFWwindow* window, int button, int action
     Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     if (action == GLFW_PRESS) {
         switch (button) {
-            case GLFW_MOUSE_BUTTON_LEFT:
-                app->_input.mouse.press.left = true;
-                break;
-            case GLFW_MOUSE_BUTTON_MIDDLE:
-                app->_input.mouse.press.middle = true;
-                break;
-            case GLFW_MOUSE_BUTTON_RIGHT:
-                app->_input.mouse.press.right = true;
-                break;
+        case GLFW_MOUSE_BUTTON_LEFT: app->_input.mouse.press.left = true; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: app->_input.mouse.press.middle = true; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: app->_input.mouse.press.right = true; break;
         }
     } else if (action == GLFW_RELEASE) {
         switch (button) {
-            case GLFW_MOUSE_BUTTON_LEFT:
-                app->_input.mouse.press.left = false;
-                break;
-            case GLFW_MOUSE_BUTTON_MIDDLE:
-                app->_input.mouse.press.middle = false;
-                break;
-            case GLFW_MOUSE_BUTTON_RIGHT:
-                app->_input.mouse.press.right = false;
-                break;
+        case GLFW_MOUSE_BUTTON_LEFT: app->_input.mouse.press.left = false; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: app->_input.mouse.press.middle = false; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: app->_input.mouse.press.right = false; break;
         }
     }
 }

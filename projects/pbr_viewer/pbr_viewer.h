@@ -1,27 +1,26 @@
-#pragma once 
+#pragma once
 
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
 
 #include "../base/application.h"
 #include "../base/camera.h"
-#include "../base/light.h"
-#include "../base/glsl_program.h"
-#include "../base/texture.h"
-#include "../base/glsl_program.h"
-#include "../base/uniform_buffer.h"
 #include "../base/fullscreen_quad.h"
+#include "../base/glsl_program.h"
+#include "../base/light.h"
+#include "../base/texture.h"
+#include "../base/uniform_buffer.h"
 
-#include "./model.h"
-#include "./skybox.h"
-#include "./render_object.h"
 #include "./camera_controller.h"
+#include "./model.h"
+#include "./render_object.h"
+#include "./skybox.h"
 
-class PbrViewer: public Application {
+class PbrViewer : public Application {
 public:
     PbrViewer(const Options& options);
-    
+
     ~PbrViewer();
 
 private:
@@ -30,9 +29,9 @@ private:
 
     std::unique_ptr<PerspectiveCamera> _camera;
     std::unique_ptr<CameraController> _cameraController;
-    
+
     std::unique_ptr<DirectionalLight> _directionalLight;
-    
+
     std::unique_ptr<Skybox> _skybox;
     std::unique_ptr<GLSLProgram> _skyboxShader;
 
@@ -47,7 +46,7 @@ private:
     std::vector<RenderObject> _alphaQueue;
     std::vector<RenderObject> _transparentQueue;
 
-    enum class DebugInput : int{
+    enum class DebugInput : int {
         All = 0,
         Albedo,
         Roughness,
@@ -56,7 +55,7 @@ private:
         Occlusion,
         Emissive,
     };
-    enum DebugInput _debugInput = { DebugInput::All };
+    enum DebugInput _debugInput = {DebugInput::All};
 
     enum class SkyboxRenderMode : int {
         Raw = 0,
@@ -64,7 +63,7 @@ private:
         Prefilter,
         BrdfLut
     };
-    enum SkyboxRenderMode _skyboxRenderMode = { SkyboxRenderMode::Raw };
+    enum SkyboxRenderMode _skyboxRenderMode = {SkyboxRenderMode::Raw};
 
 private:
     void handleInput() override;
@@ -92,7 +91,7 @@ private:
     void renderIrradianceMap() const;
 
     void renderPrefilterMap() const;
-    
+
     void renderBrdfLutMap() const;
 
     void renderUI() const;
@@ -106,6 +105,5 @@ private:
     void confirmBindingPoints();
 
     void printRenderQueue(
-        const std::string& name,
-        const std::vector<RenderObject>& renderQueue) const;
+        const std::string& name, const std::vector<RenderObject>& renderQueue) const;
 };

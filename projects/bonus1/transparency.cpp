@@ -25,14 +25,15 @@ const std::string oitBlendFsRelPath = "shader/bonus1/oit_blend.frag";
 const std::string oitFinalVsRelPath = "shader/bonus1/quad.vert";
 const std::string oitFinalFsRelPath = "shader/bonus1/oit_final.frag";
 
-Transparency::Transparency(const Options& options): Application(options) {
+Transparency::Transparency(const Options& options) : Application(options) {
     // init models
     _knot.reset(new Model(getAssetFullPath(knotRelPath)));
     _knot->transform.scale = glm::vec3(0.8f, 0.8f, 0.8f);
 
     // init light
     _light.reset(new DirectionalLight());
-    _light->transform.rotation = glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
+    _light->transform.rotation =
+        glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
     // init camera
     _camera.reset(new PerspectiveCamera(
@@ -64,7 +65,8 @@ Transparency::Transparency(const Options& options): Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -123,8 +125,8 @@ void Transparency::initDepthPeelingResources() {
     for (int i = 0; i < 2; ++i) {
         _fbos[i].reset(new Framebuffer);
 
-        _colorTextures[i].reset(new Texture2D(
-            GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+        _colorTextures[i].reset(
+            new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 
         _depthTextures[i].reset(new Texture2D(
             GL_DEPTH_COMPONENT, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
@@ -132,7 +134,7 @@ void Transparency::initDepthPeelingResources() {
         _fbos[i]->bind();
         _fbos[i]->attachTexture2D(*_colorTextures[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
         _fbos[i]->attachTexture2D(*_depthTextures[i], GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
-        
+
         GLenum status = _fbos[i]->checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
             throw std::runtime_error(_fbos[i]->getDiagnostic(status));
@@ -144,8 +146,8 @@ void Transparency::initDepthPeelingResources() {
     // blend framebuffer
     _colorBlendFbo.reset(new Framebuffer);
 
-    _colorBlendTexture.reset(new Texture2D(
-        GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+    _colorBlendTexture.reset(
+        new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
 
     _colorBlendFbo->bind();
     _colorBlendFbo->attachTexture2D(*_colorBlendTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
@@ -155,7 +157,7 @@ void Transparency::initDepthPeelingResources() {
     if (status != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error(_colorBlendFbo->getDiagnostic(status));
     }
-    
+
     _colorBlendFbo->unbind();
 
     checkGLErrors();
@@ -164,9 +166,9 @@ void Transparency::initDepthPeelingResources() {
 void Transparency::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
-    
+
     const float angluarVelocity = 0.1f;
     const float angle = angluarVelocity * static_cast<float>(_deltaTime);
     const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -182,15 +184,9 @@ void Transparency::renderFrame() {
     glEnable(GL_DEPTH_TEST);
 
     switch (_renderMode) {
-    case RenderMode::AlphaTesting:
-        renderWithAlphaTesting();
-        break;
-    case RenderMode::AlphaBlending:
-        renderWithAlphaBlending();
-        break;
-    case RenderMode::DepthPeeling:
-        renderWithDepthPeeling();
-        break;
+    case RenderMode::AlphaTesting: renderWithAlphaTesting(); break;
+    case RenderMode::AlphaBlending: renderWithAlphaBlending(); break;
+    case RenderMode::DepthPeeling: renderWithDepthPeeling(); break;
     }
 
     // draw ui elements
@@ -226,7 +222,8 @@ void Transparency::renderWithAlphaBlending() {
     _alphaBlendingShader->setUniformMat4("view", _camera->getViewMatrix());
     _alphaBlendingShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
     // 2 set light
-    _alphaBlendingShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+    _alphaBlendingShader->setUniformVec3(
+        "directionalLight.direction", _light->transform.getFront());
     _alphaBlendingShader->setUniformFloat("directionalLight.intensity", _light->intensity);
     _alphaBlendingShader->setUniformVec3("directionalLight.color", _light->color);
     // 3 set material
@@ -245,8 +242,8 @@ void Transparency::renderWithAlphaBlending() {
     // ------------------------------------------------------------------------
 
     _knot->draw();
-    
-    // pass 2: Write the color buffer using the zbuffer info from pass 1 with blending, 
+
+    // pass 2: Write the color buffer using the zbuffer info from pass 1 with blending,
     //           while leaving the depth buffer unmodified.
     // write your code here
     // ------------------------------------------------------------------------
@@ -254,7 +251,8 @@ void Transparency::renderWithAlphaBlending() {
     // ------------------------------------------------------------------------
 
     _knot->draw();
-    // restore: don't forget to restore the OpenGL state before pass 1, which will avoid side effects
+    // restore: don't forget to restore the OpenGL state before pass 1, which will avoid side
+    // effects
     //          to the object rendering afterwards.
     // write your code here
     // ------------------------------------------------------------------------
@@ -279,7 +277,8 @@ void Transparency::renderWithDepthPeeling() {
     _depthPeelingInitShader->setUniformMat4("view", view);
     _depthPeelingInitShader->setUniformMat4("model", _knot->transform.getLocalMatrix());
     // 1.2 set light
-    _depthPeelingInitShader->setUniformVec3("directionalLight.direction", _light->transform.getFront());
+    _depthPeelingInitShader->setUniformVec3(
+        "directionalLight.direction", _light->transform.getFront());
     _depthPeelingInitShader->setUniformFloat("directionalLight.intensity", _light->intensity);
     _depthPeelingInitShader->setUniformVec3("directionalLight.color", _light->color);
     // 1.3 set material
@@ -326,9 +325,7 @@ void Transparency::renderUI() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();

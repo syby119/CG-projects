@@ -1,11 +1,11 @@
-#pragma once 
+#pragma once
 
-#include <vector>
 #include "aabb.h"
-#include "ray.h"
-#include "triangle.h"
-#include "sphere.h"
 #include "primitive.h"
+#include "ray.h"
+#include "sphere.h"
+#include "triangle.h"
+#include <vector>
 
 struct Interaction {
     Primitive primitive;
@@ -22,10 +22,8 @@ public:
 public:
     PrimitiveInfo() = default;
 
-    PrimitiveInfo(int idx, const AABB& bound) :
-        box(bound), 
-        centroid(0.5f * (bound.pMax + bound.pMin)),
-        pid(idx) {}
+    PrimitiveInfo(int idx, const AABB& bound)
+        : box(bound), centroid(0.5f * (bound.pMax + bound.pMin)), pid(idx) {}
 };
 
 struct BVHBuildNode {
@@ -36,8 +34,8 @@ public:
     int splitAxis, startIdx, nPrimitives;
 
 public:
-    BVHBuildNode() : 
-        leftChild(nullptr), rightChild(nullptr), splitAxis(0), startIdx(0), nPrimitives(0) { }
+    BVHBuildNode()
+        : leftChild(nullptr), rightChild(nullptr), splitAxis(0), startIdx(0), nPrimitives(0) {}
 
     void initLeafNode(const AABB& box, int sid, int n) {
         bound = box;
@@ -57,7 +55,11 @@ public:
 
 struct BVHNode {
 public:
-    enum class Type { NonLeaf, Leaf };
+    enum class Type {
+        NonLeaf,
+        Leaf
+    };
+
 public:
     AABB box;
     Type type;
@@ -73,7 +75,7 @@ public:
     };
 
 public:
-    BVHNode() : type(Type::Leaf), leftChild(-1), rightChild(-1) { }
+    BVHNode() : type(Type::Leaf), leftChild(-1), rightChild(-1) {}
 
     static constexpr int getTexDataComponent() noexcept {
         return 3;
@@ -98,26 +100,25 @@ private:
     void constructBVH(std::vector<Primitive>& primitives);
 
     /*
-    *Summary: build bvh and store primitives in orderedPrimitives
-    *Parameters:
-    *     primitives: the primitives in scene
-    *     primInfo  : PrimitiveInfo of primitives
-    *     start     : start index of primitives
-    *     end       : end index of primitives
-    *     totalNodes: the number of nodes was crated
-    *Return: the root of BVH
-    */
+     *Summary: build bvh and store primitives in orderedPrimitives
+     *Parameters:
+     *     primitives: the primitives in scene
+     *     primInfo  : PrimitiveInfo of primitives
+     *     start     : start index of primitives
+     *     end       : end index of primitives
+     *     totalNodes: the number of nodes was crated
+     *Return: the root of BVH
+     */
     BVHBuildNode* recursiveBuild(
-        const std::vector<Primitive>& primitives,
-        std::vector<PrimitiveInfo>& primInfo, 
-        int start, int end, int* totalNodes);
+        const std::vector<Primitive>& primitives, std::vector<PrimitiveInfo>& primInfo, int start,
+        int end, int* totalNodes);
     /*
-    *Summary: convert BVH to array form
-    *Parameters:
-    *     root: root of bvh
-    *     offset: offset of nodes array
-    *Return: node index in nodes array
-    */
+     *Summary: convert BVH to array form
+     *Parameters:
+     *     root: root of bvh
+     *     offset: offset of nodes array
+     *Return: node index in nodes array
+     */
     int toLinearTree(BVHBuildNode* root, int* offset);
 
     static AABB getAABB(const Primitive& prim);

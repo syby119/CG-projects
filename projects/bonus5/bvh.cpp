@@ -1,15 +1,15 @@
-#include <iostream>
 #include "bvh.h"
+#include <iostream>
 
 void BVH::constructBVH(std::vector<Primitive>& primitives) {
     std::vector<PrimitiveInfo> primInfo;
     for (int i = 0; i < primitives.size(); ++i) {
-        primInfo.push_back({ i, getAABB(primitives[i]) });
+        primInfo.push_back({i, getAABB(primitives[i])});
     }
 
     int totalNode = 0;
-    BVHBuildNode* root = recursiveBuild(
-        primitives, primInfo, 0, static_cast<int>(primInfo.size()), &totalNode);
+    BVHBuildNode* root =
+        recursiveBuild(primitives, primInfo, 0, static_cast<int>(primInfo.size()), &totalNode);
 
     nodes.resize(totalNode);
     int offset = 0;
@@ -17,10 +17,8 @@ void BVH::constructBVH(std::vector<Primitive>& primitives) {
 }
 
 BVHBuildNode* BVH::recursiveBuild(
-    const std::vector<Primitive>& primitives,
-    std::vector<PrimitiveInfo>& primInfo, 
-    int start, int end, int* totalNodes
-) {
+    const std::vector<Primitive>& primitives, std::vector<PrimitiveInfo>& primInfo, int start,
+    int end, int* totalNodes) {
     BVHBuildNode* node = new BVHBuildNode;
     *totalNodes += 1;
     int nPrimitives = end - start;
@@ -33,7 +31,7 @@ BVHBuildNode* BVH::recursiveBuild(
         }
         node->initLeafNode(box, startId, nPrimitives);
     } else {
-        // TODO: recursive build BVH 
+        // TODO: recursive build BVH
     }
 
     return node;
@@ -113,8 +111,7 @@ bool BVH::intersect(const Ray& ray, Interaction& isect) {
 AABB BVH::getAABB(const Primitive& prim) {
     if (prim.type == Primitive::Type::Sphere) {
         return getSphereAABB(*prim.sphere);
-    }
-    else {
+    } else {
         return getTriangleAABB(*prim.triangle);
     }
 }
@@ -136,14 +133,15 @@ AABB BVH::getTriangleAABB(const Triangle& triangle) {
 }
 
 AABB BVH::getSphereAABB(const Sphere& sphere) {
-    return AABB(sphere.position - glm::vec3(sphere.radius),
-        sphere.position + glm::vec3(sphere.radius));
+    return AABB(
+        sphere.position - glm::vec3(sphere.radius), sphere.position + glm::vec3(sphere.radius));
 }
 
 bool BVH::intersectSphere(const Ray& ray, const Sphere& sphere, Interaction& isect) {
     float a = glm::dot(ray.dir, ray.dir);
     float b = glm::dot(ray.dir, ray.o - sphere.position);
-    float c = glm::dot(ray.o - sphere.position, ray.o - sphere.position) - sphere.radius * sphere.radius;
+    float c =
+        glm::dot(ray.o - sphere.position, ray.o - sphere.position) - sphere.radius * sphere.radius;
     float discriminant = b * b - a * c;
 
     if (discriminant >= 0) {

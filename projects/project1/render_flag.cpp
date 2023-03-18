@@ -1,6 +1,6 @@
 #include "render_flag.h"
 
-RenderFlag::RenderFlag(const Options& options): Application(options) {
+RenderFlag::RenderFlag(const Options& options) : Application(options) {
     // create star shader
     const char* vsCode =
         "#version 330 core\n"
@@ -25,14 +25,15 @@ RenderFlag::RenderFlag(const Options& options): Application(options) {
     // hint: aspect_of_the_window = _windowWidth / _windowHeight
     // write your code here
     // ---------------------------------------------------------------
-    // _stars[i].reset(new Star(ndc_position, rotation_in_radians, size_of_star, aspect_of_the_window));
+    // _stars[i].reset(new Star(ndc_position, rotation_in_radians, size_of_star,
+    // aspect_of_the_window));
     // ---------------------------------------------------------------
 }
 
 void RenderFlag::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
 }
 

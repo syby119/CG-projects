@@ -18,6 +18,7 @@ public:
     Bunny(Bunny&& rhs) noexcept;
 
     void draw();
+
 private:
     // vertices of the table represented in model's own coordinate
     std::vector<Vertex> _vertices;

@@ -3,13 +3,13 @@
 #include <memory>
 
 #include "../base/application.h"
-#include "../base/glsl_program.h"
-#include "../base/model.h"
-#include "../base/texture2d.h"
 #include "../base/camera.h"
-#include "../base/light.h"
 #include "../base/framebuffer.h"
 #include "../base/fullscreen_quad.h"
+#include "../base/glsl_program.h"
+#include "../base/light.h"
+#include "../base/model.h"
+#include "../base/texture2d.h"
 
 class PostProcessing : public Application {
 public:
@@ -17,7 +17,7 @@ public:
 
     ~PostProcessing();
 
-private: 
+private:
     std::unique_ptr<Model> _bunny;
     std::unique_ptr<Model> _cube;
 
@@ -25,11 +25,11 @@ private:
     std::unique_ptr<FullscreenQuad> _screenQuad;
 
     std::unique_ptr<Camera> _camera;
-    
+
     std::unique_ptr<PointLight> _pointLight;
     std::unique_ptr<Model> _sphere;
-    
-    // deferred rendering: geometry pass resources 
+
+    // deferred rendering: geometry pass resources
     std::unique_ptr<Framebuffer> _gBufferFBO;
     std::unique_ptr<GLSLProgram> _gBufferShader;
     std::unique_ptr<Texture2D> _gPosition;
@@ -42,7 +42,7 @@ private:
     std::unique_ptr<Texture2D> _ssaoResult[2];
     std::unique_ptr<Framebuffer> _ssaoFBO;
     std::unique_ptr<Framebuffer> _ssaoBlurFBO;
-    
+
     std::vector<glm::vec3> _sampleVecs;
 
     std::unique_ptr<GLSLProgram> _ssaoShader;
@@ -56,7 +56,7 @@ private:
 
     std::unique_ptr<Texture2D> _bloomMap;
     std::unique_ptr<Texture2D> _brightColorMap[2];
-    
+
     std::unique_ptr<GLSLProgram> _lightShader;
     std::unique_ptr<GLSLProgram> _brightColorShader;
     std::unique_ptr<GLSLProgram> _blurShader;

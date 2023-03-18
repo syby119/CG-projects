@@ -33,7 +33,8 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
 
     _directionalLight.reset(new DirectionalLight);
     _directionalLight->intensity = 0.5f;
-    _directionalLight->transform.rotation = glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
+    _directionalLight->transform.rotation =
+        glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
     _spotLight.reset(new SpotLight);
     _spotLight->intensity = 0.5f;
@@ -42,13 +43,15 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
     _spotLight->transform.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
     // init camera
-    _camera.reset(new PerspectiveCamera(glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
+    _camera.reset(new PerspectiveCamera(
+        glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
     _camera->transform.position.z = 10.0f;
 
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -100,11 +103,11 @@ void ShadingTutorial::initAmbientShader() {
         "    vec3 color;\n"
         "    float intensity;\n"
         "};\n"
-        
+
         "// uniform variables\n"
         "uniform Material material;\n"
         "uniform AmbientLight ambientLight;\n"
-        
+
         "void main() {\n"
         "    vec3 ambient = material.ka * ambientLight.color * ambientLight.intensity;\n"
         "    color = vec4(ambient, 1.0f);\n"
@@ -132,7 +135,7 @@ void ShadingTutorial::initLambertShader() {
 
         "out vec3 fPosition;\n"
         "out vec3 fNormal;\n"
-        
+
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
@@ -152,14 +155,14 @@ void ShadingTutorial::initLambertShader() {
         "struct Material {\n"
         "    vec3 kd;\n"
         "};\n"
-        
+
         "// directional light data structure declaration\n"
         "struct DirectionalLight {\n"
         "    vec3 direction;\n"
         "    float intensity;\n"
         "    vec3 color;\n"
         "};\n"
-        
+
         "// spot light data structure declaration\n"
         "struct SpotLight {\n"
         "    vec3 position;\n"
@@ -171,7 +174,7 @@ void ShadingTutorial::initLambertShader() {
         "    float kl;\n"
         "    float kq;\n"
         "};\n"
-        
+
         "// uniform variables\n"
         "uniform Material material;\n"
         "uniform DirectionalLight directionalLight;\n"
@@ -179,7 +182,8 @@ void ShadingTutorial::initLambertShader() {
 
         "vec3 calcDirectionalLight(vec3 normal) {\n"
         "    vec3 lightDir = normalize(-directionalLight.direction);\n"
-        "    vec3 diffuse = directionalLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;\n"
+        "    vec3 diffuse = directionalLight.color * max(dot(lightDir, normal), 0.0f) * "
+        "material.kd;\n"
         "    return directionalLight.intensity * diffuse ;\n"
         "}\n"
 
@@ -191,10 +195,11 @@ void ShadingTutorial::initLambertShader() {
         "    }\n"
         "    vec3 diffuse = spotLight.color * max(dot(lightDir, normal), 0.0f) * material.kd;\n"
         "    float distance = length(spotLight.position - fPosition);\n"
-        "    float attenuation = 1.0f / (spotLight.kc + spotLight.kl * distance + spotLight.kq * distance * distance);\n"
+        "    float attenuation = 1.0f / (spotLight.kc + spotLight.kl * distance + spotLight.kq * "
+        "distance * distance);\n"
         "    return spotLight.intensity * attenuation * diffuse;\n"
         "}\n"
-        
+
         "void main() {\n"
         "    vec3 normal = normalize(fNormal);\n"
         "    vec3 diffuse = calcDirectionalLight(normal) + calcSpotLight(normal);\n"
@@ -256,7 +261,7 @@ void ShadingTutorial::initPhongShader() {
 void ShadingTutorial::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
 }
 
@@ -297,7 +302,8 @@ void ShadingTutorial::renderFrame() {
         _lambertShader->setUniformFloat("spotLight.kc", _spotLight->kc);
         _lambertShader->setUniformFloat("spotLight.kl", _spotLight->kl);
         _lambertShader->setUniformFloat("spotLight.kq", _spotLight->kq);
-        _lambertShader->setUniformVec3("directionalLight.direction", _directionalLight->transform.getFront());
+        _lambertShader->setUniformVec3(
+            "directionalLight.direction", _directionalLight->transform.getFront());
         _lambertShader->setUniformFloat("directionalLight.intensity", _directionalLight->intensity);
         _lambertShader->setUniformVec3("directionalLight.color", _directionalLight->color);
         break;
@@ -307,20 +313,18 @@ void ShadingTutorial::renderFrame() {
         _phongShader->setUniformMat4("projection", _camera->getProjectionMatrix());
         _phongShader->setUniformMat4("view", _camera->getViewMatrix());
         _phongShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
-        
+
         // 2. TODO: transfer the camera position to the shader
         // write your code here
         // ----------------------------------------------------------------
         // _phongShader->set...
         // ----------------------------------------------------------------
 
-
         // 3. TODO: transfer the material attributes to the shader
         // write your code here
         // -----------------------------------------------------------
         // _phongShader->set...
         // -----------------------------------------------------------
-
 
         // 4. TODO: transfer the light attributes to the shader
         // write your code here
@@ -339,16 +343,14 @@ void ShadingTutorial::renderFrame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
     } else {
         ImGui::Text("Render Mode");
         ImGui::Separator();
-        
+
         ImGui::RadioButton("ambient", (int*)&_renderMode, (int)(RenderMode::Ambient));
         ImGui::ColorEdit3("ka##1", (float*)&_ambientMaterial->ka);
         ImGui::NewLine();
@@ -380,7 +382,8 @@ void ShadingTutorial::renderFrame() {
         ImGui::Separator();
         ImGui::SliderFloat("intensity##3", &_spotLight->intensity, 0.0f, 1.0f);
         ImGui::ColorEdit3("color##3", (float*)&_spotLight->color);
-        ImGui::SliderFloat("angle##3", (float*)&_spotLight->angle, 0.0f, glm::radians(180.0f), "%f rad");
+        ImGui::SliderFloat(
+            "angle##3", (float*)&_spotLight->angle, 0.0f, glm::radians(180.0f), "%f rad");
         ImGui::NewLine();
 
         ImGui::End();

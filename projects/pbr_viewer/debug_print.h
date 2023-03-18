@@ -4,8 +4,8 @@
 #include <ostream>
 #include <string>
 
-#include "glm/glm.hpp"
 #include "glm/ext.hpp"
+#include "glm/glm.hpp"
 
 inline std::string indent(int whitespaceCount) {
     return std::string(whitespaceCount, ' ');

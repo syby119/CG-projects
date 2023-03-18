@@ -1,7 +1,7 @@
-#pragma once 
+#pragma once
 
-#include <random>
 #include <glm/glm.hpp>
+#include <random>
 
 inline float randomFloat() {
     // Returns a random real in [0, 1).
@@ -22,7 +22,5 @@ inline glm::vec3 randomVec3() {
 
 inline glm::vec3 randomVec3(float minVal, float maxVal) {
     return glm::vec3(
-        randomFloat(minVal, maxVal),
-        randomFloat(minVal, maxVal),
-        randomFloat(minVal, maxVal));
+        randomFloat(minVal, maxVal), randomFloat(minVal, maxVal), randomFloat(minVal, maxVal));
 }

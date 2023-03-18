@@ -1,7 +1,7 @@
 #pragma once
 
-#include <limits>
 #include <glm/glm.hpp>
+#include <limits>
 
 struct BoundingBox {
     glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());

@@ -36,7 +36,7 @@ public:
     void attachGeometryShaderFromFile(const std::string& filePath, const std::string& version);
 
     void attachFragmentShaderFromFile(const std::string& filePath);
-    
+
     void attachFragmentShaderFromFile(const std::string& filePath, const std::string& version);
 
     void setTransformFeedbackVaryings(const std::vector<const char*>& varyings, GLenum bufferMode);
@@ -91,7 +91,7 @@ private:
     static std::string generateVertexShaderHeader(const std::string& version);
 
     static std::string generateGeometryShaderHeader(const std::string& version);
-    
+
     static std::string generateFragmentShaderHeader(const std::string& version);
 
     static std::string replaceShaderHeader(const std::string& code, const std::string& header);

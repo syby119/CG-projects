@@ -10,23 +10,18 @@ const std::string earthTextureRelPath = "texture/miscellaneous/earthmap.jpg";
 const std::string planetTextureRelPath = "texture/miscellaneous/planet_Quom1200.png";
 
 const std::vector<std::string> skyboxTextureRelPaths = {
-    "texture/skybox/Right_Tex.jpg",
-    "texture/skybox/Left_Tex.jpg",
-    "texture/skybox/Up_Tex.jpg",
-    "texture/skybox/Down_Tex.jpg",
-    "texture/skybox/Front_Tex.jpg",
-    "texture/skybox/Back_Tex.jpg"
-};
+    "texture/skybox/Right_Tex.jpg", "texture/skybox/Left_Tex.jpg",  "texture/skybox/Up_Tex.jpg",
+    "texture/skybox/Down_Tex.jpg",  "texture/skybox/Front_Tex.jpg", "texture/skybox/Back_Tex.jpg"};
 
-TextureMapping::TextureMapping(const Options& options): Application(options) {
+TextureMapping::TextureMapping(const Options& options) : Application(options) {
     // init model
     _sphere.reset(new Model(getAssetFullPath(modelRelPath)));
     _sphere->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 
     // init textures
-    std::shared_ptr<Texture2D> earthTexture = 
+    std::shared_ptr<Texture2D> earthTexture =
         std::make_shared<ImageTexture2D>(getAssetFullPath(earthTextureRelPath));
-    std::shared_ptr<Texture2D> planetTexture = 
+    std::shared_ptr<Texture2D> planetTexture =
         std::make_shared<ImageTexture2D>(getAssetFullPath(planetTextureRelPath));
 
     // init materials
@@ -59,7 +54,7 @@ TextureMapping::TextureMapping(const Options& options): Application(options) {
 
     // init light
     _light.reset(new DirectionalLight());
-    _light->transform.rotation = 
+    _light->transform.rotation =
         glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f)));
 
     // init shaders
@@ -70,7 +65,8 @@ TextureMapping::TextureMapping(const Options& options): Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -120,7 +116,7 @@ void TextureMapping::initSimpleShader() {
         "    color = texture(mapKd, fTexCoord);\n"
         "}\n";
 
-    _simpleShader.reset(new GLSLProgram); 
+    _simpleShader.reset(new GLSLProgram);
     _simpleShader->attachVertexShader(vsCode, version);
     _simpleShader->attachFragmentShader(fsCode, version);
     _simpleShader->link();
@@ -143,7 +139,7 @@ void TextureMapping::initBlendShader() {
         "out vec3 fPosition;\n"
         "out vec3 fNormal;\n"
         "out vec2 fTexCoord;\n"
-        
+
         "uniform mat4 projection;\n"
         "uniform mat4 view;\n"
         "uniform mat4 model;\n"
@@ -243,9 +239,9 @@ void TextureMapping::initCheckerShader() {
 void TextureMapping::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
-    
+
     const float angluarVelocity = 0.1f;
     const float angle = angluarVelocity * static_cast<float>(_deltaTime);
     const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -255,7 +251,7 @@ void TextureMapping::handleInput() {
 void TextureMapping::renderFrame() {
     // some options related to imGUI
     static bool wireframe = false;
-    
+
     // trivial things
     showFpsInWindowTitle();
 
@@ -279,7 +275,7 @@ void TextureMapping::renderFrame() {
     case RenderMode::Simple:
         // 1. use the shader
         _simpleShader->use();
-        // 2. transfer mvp matrices to gpu 
+        // 2. transfer mvp matrices to gpu
         _simpleShader->setUniformMat4("projection", projection);
         _simpleShader->setUniformMat4("view", view);
         _simpleShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
@@ -289,7 +285,7 @@ void TextureMapping::renderFrame() {
     case RenderMode::Blend:
         // 1. use the shader
         _blendShader->use();
-        // 2. transfer mvp matrices to gpu 
+        // 2. transfer mvp matrices to gpu
         _blendShader->setUniformMat4("projection", projection);
         _blendShader->setUniformMat4("view", view);
         _blendShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
@@ -313,7 +309,7 @@ void TextureMapping::renderFrame() {
     case RenderMode::Checker:
         // 1. use the shader
         _checkerShader->use();
-        // 2. transfer mvp matrices to gpu 
+        // 2. transfer mvp matrices to gpu
         _checkerShader->setUniformMat4("projection", projection);
         _checkerShader->setUniformMat4("view", view);
         _checkerShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
@@ -334,9 +330,7 @@ void TextureMapping::renderFrame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();

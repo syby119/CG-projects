@@ -1,7 +1,7 @@
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <unordered_map>
-#include <algorithm>
 
 #include <tiny_obj_loader.h>
 
@@ -17,8 +17,8 @@ Model::Model(const std::string& filepath) {
     std::string::size_type index = filepath.find_last_of("/");
     std::string mtlBaseDir = filepath.substr(0, index + 1);
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials,
-            &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
+    if (!tinyobj::LoadObj(
+            &attrib, &shapes, &materials, &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
         throw std::runtime_error("load " + filepath + " failure: " + err);
     }
 
@@ -66,7 +66,7 @@ Model::Model(const std::string& filepath) {
 
     _vertices = vertices;
     _indices = indices;
-    
+
     computeBoundingBox();
 
     initGLResources();
@@ -97,10 +97,8 @@ Model::Model(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& i
 }
 
 Model::Model(Model&& rhs) noexcept
-    : _vertices(std::move(rhs._vertices)),
-      _indices(std::move(rhs._indices)),
-      _boundingBox(std::move(rhs._boundingBox)),
-      _vao(rhs._vao), _vbo(rhs._vbo), _ebo(rhs._ebo), 
+    : _vertices(std::move(rhs._vertices)), _indices(std::move(rhs._indices)),
+      _boundingBox(std::move(rhs._boundingBox)), _vao(rhs._vao), _vbo(rhs._vbo), _ebo(rhs._ebo),
       _boxVao(rhs._boxVao), _boxVbo(rhs._boxVbo), _boxEbo(rhs._boxEbo) {
     _vao = 0;
     _vbo = 0;
@@ -156,19 +154,24 @@ void Model::initGLResources() {
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, 
-        sizeof(Vertex) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, sizeof(Vertex) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
-        _indices.size() * sizeof(uint32_t), _indices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(uint32_t), _indices.data(),
+        GL_STATIC_DRAW);
 
-    // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the
+    // attribute
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(
+        1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+    glVertexAttribPointer(
+        2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
@@ -207,20 +210,8 @@ void Model::initBoxGLResources() {
         glm::vec3(_boundingBox.max.x, _boundingBox.max.y, _boundingBox.max.z),
     };
 
-    std::vector<uint32_t> boxIndices = {
-        0, 1,
-        0, 2,
-        0, 4,
-        3, 1,
-        3, 2,
-        3, 7,
-        5, 4,
-        5, 1,
-        5, 7,
-        6, 4,
-        6, 7,
-        6, 2
-    };
+    std::vector<uint32_t> boxIndices = {0, 1, 0, 2, 0, 4, 3, 1, 3, 2, 3, 7,
+                                        5, 4, 5, 1, 5, 7, 6, 4, 6, 7, 6, 2};
 
     glGenVertexArrays(1, &_boxVao);
     glGenBuffers(1, &_boxVbo);
@@ -228,10 +219,14 @@ void Model::initBoxGLResources() {
 
     glBindVertexArray(_boxVao);
     glBindBuffer(GL_ARRAY_BUFFER, _boxVbo);
-    glBufferData(GL_ARRAY_BUFFER, boxVertices.size() * sizeof(glm::vec3), boxVertices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER, boxVertices.size() * sizeof(glm::vec3), boxVertices.data(),
+        GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _boxEbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, boxIndices.size() * sizeof(uint32_t), boxIndices.data(), GL_STATIC_DRAW);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER, boxIndices.size() * sizeof(uint32_t), boxIndices.data(),
+        GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
     glEnableVertexAttribArray(0);

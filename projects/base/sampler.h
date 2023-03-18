@@ -7,7 +7,7 @@ public:
     Sampler() {
         glGenSamplers(1, &_handle);
     }
-    
+
     Sampler(Sampler&& rhs) noexcept {
         rhs._handle = _handle;
         _handle = 0;

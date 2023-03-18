@@ -25,8 +25,7 @@ public:
     void attachTexture2D(
         const Texture& texture, GLenum attachment, GLenum textarget, int level = 0);
 
-    void attachTextureLayer(
-        const Texture& texture, GLenum attachment, int layer, int level = 0);
+    void attachTextureLayer(const Texture& texture, GLenum attachment, int layer, int level = 0);
 
     GLenum checkStatus(GLenum target = GL_FRAMEBUFFER) const;
 

@@ -55,7 +55,7 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
     _arrow.reset(new Model(getAssetFullPath(arrowRelPath)));
     _sphere.reset(new Model(getAssetFullPath(sphereRelPath)));
 
-    //init ground
+    // init ground
     initGround();
 
     // init camera
@@ -101,7 +101,8 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -128,7 +129,7 @@ ShadowMapping::~ShadowMapping() {
 void ShadowMapping::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
 
     constexpr float cameraMoveSpeed = 50.0f;
@@ -204,7 +205,7 @@ void ShadowMapping::renderFrame() {
 
 void ShadowMapping::initGround() {
     constexpr float infinity = 100.0f;
-    std::vector<Vertex>    vertices(4);
+    std::vector<Vertex> vertices(4);
     for (size_t i = 0; i < vertices.size(); ++i) {
         vertices[i].position.x = (i % 2) ? infinity : -infinity;
         vertices[i].position.y = 0.0f;
@@ -214,9 +215,7 @@ void ShadowMapping::initGround() {
         vertices[i].texCoord.y = (i > 1) ? 1.0f : 0.0f;
     };
 
-    std::vector<uint32_t> indices = {
-        0, 1, 2, 1, 2, 3
-    };
+    std::vector<uint32_t> indices = {0, 1, 2, 1, 2, 3};
 
     _ground.reset(new Model(vertices, indices));
 
@@ -233,7 +232,7 @@ void ShadowMapping::initShaders() {
 #endif
         ;
 
-    // depth shader for directional light 
+    // depth shader for directional light
     _directionalDepthShader.reset(new GLSLProgram);
     _directionalDepthShader->attachVertexShaderFromFile(
         getAssetFullPath(directionalDepthVsRelPath), version);
@@ -255,43 +254,33 @@ void ShadowMapping::initShaders() {
     // + omnidirectional shadow mapping for the point light
     // + cascade shadow mapping for the directional light
     _lambertShader.reset(new GLSLProgram);
-    _lambertShader->attachVertexShaderFromFile(
-        getAssetFullPath(lambertVsRelPath), version);
-    _lambertShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lambertFsRelPath), version);
+    _lambertShader->attachVertexShaderFromFile(getAssetFullPath(lambertVsRelPath), version);
+    _lambertShader->attachFragmentShaderFromFile(getAssetFullPath(lambertFsRelPath), version);
     _lambertShader->link();
 
     // light shader
     _lightShader.reset(new GLSLProgram);
-    _lightShader->attachVertexShaderFromFile(
-        getAssetFullPath(lightVsRelPath), version);
-    _lightShader->attachFragmentShaderFromFile(
-        getAssetFullPath(lightFsRelPath), version);
+    _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath), version);
+    _lightShader->attachFragmentShaderFromFile(getAssetFullPath(lightFsRelPath), version);
     _lightShader->link();
 
     // debugging shaders
     // 1. quad shader for directional light depth visualization
     _quadShader.reset(new GLSLProgram);
-    _quadShader->attachVertexShaderFromFile(
-        getAssetFullPath(quadVsRelPath), version);
-    _quadShader->attachFragmentShaderFromFile(
-        getAssetFullPath(quadFsRelPath), version);
+    _quadShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    _quadShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
     _quadShader->link();
 
     // 2. cube shader for point light depth visualization
     _cubeShader.reset(new GLSLProgram);
-    _cubeShader->attachVertexShaderFromFile(
-        getAssetFullPath(cubeVsRelPath), version);
-    _cubeShader->attachFragmentShaderFromFile(
-        getAssetFullPath(cubeFsRelPath), version);
+    _cubeShader->attachVertexShaderFromFile(getAssetFullPath(cubeVsRelPath), version);
+    _cubeShader->attachFragmentShaderFromFile(getAssetFullPath(cubeFsRelPath), version);
     _cubeShader->link();
 
     // 3. quad cascade shader for directional light cascade depth visualization
     _quadCascadeShader.reset(new GLSLProgram);
-    _quadCascadeShader->attachVertexShaderFromFile(
-        getAssetFullPath(quadCsmVsRelPath), version);
-    _quadCascadeShader->attachFragmentShaderFromFile(
-        getAssetFullPath(quadCsmFsRelPath), version);
+    _quadCascadeShader->attachVertexShaderFromFile(getAssetFullPath(quadCsmVsRelPath), version);
+    _quadCascadeShader->attachFragmentShaderFromFile(getAssetFullPath(quadCsmFsRelPath), version);
     _quadCascadeShader->link();
 }
 
@@ -300,7 +289,7 @@ void ShadowMapping::initDepthResources() {
     // Although one can use one framebuffer to handle everything,
     // I choose to use different framebuffers to avoid switching binding textures,
     // as framebuffer texture binding in WebGL is very verbose without glFramebufferTexture
-    GLint internalFormat = 
+    GLint internalFormat =
 #ifdef USE_GLES
         GL_DEPTH_COMPONENT32F
 #else
@@ -309,12 +298,12 @@ void ShadowMapping::initDepthResources() {
         ;
 
 #ifdef USE_GLES
-    _defaultColorTexture.reset(new Texture2D(
-        GL_RGB, shadowMapResolution, shadowMapResolution, GL_RGB, GL_UNSIGNED_BYTE));
+    _defaultColorTexture.reset(
+        new Texture2D(GL_RGB, shadowMapResolution, shadowMapResolution, GL_RGB, GL_UNSIGNED_BYTE));
 #endif
 
-    std::vector<float> borderColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-    
+    std::vector<float> borderColor = {1.0f, 1.0f, 1.0f, 1.0f};
+
     // directional light shadow map
     // init depth texture and its corresponding framebuffer
     _depthTexture.reset(new Texture2D(
@@ -365,10 +354,12 @@ void ShadowMapping::initDepthResources() {
         _depthCubeFbos[i]->readBuffer(GL_NONE);
 
 #ifdef USE_GLES
-        _depthCubeFbos[i]->attachTexture2D(*_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+        _depthCubeFbos[i]->attachTexture2D(
+            *_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
 #endif
-        _depthCubeFbos[i]->attachTexture2D(*_depthCubeTexture,
-            GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(i));
+        _depthCubeFbos[i]->attachTexture2D(
+            *_depthCubeTexture, GL_DEPTH_ATTACHMENT,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(i));
 
         GLenum status = _depthCubeFbos[i]->checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -401,7 +392,8 @@ void ShadowMapping::initDepthResources() {
         _depthCascadeFbos[i]->readBuffer(GL_NONE);
 
 #ifdef USE_GLES
-        _depthCascadeFbos[i]->attachTexture2D(*_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+        _depthCascadeFbos[i]->attachTexture2D(
+            *_defaultColorTexture, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
 #endif
         _depthCascadeFbos[i]->attachTextureLayer(
             *_depthTextureArray, GL_DEPTH_ATTACHMENT, static_cast<int>(i));
@@ -430,8 +422,7 @@ void ShadowMapping::renderDirectionalLightShadowMap() {
     glViewport(0, 0, shadowMapResolution, shadowMapResolution);
 
     _directionalDepthShader->use();
-    _directionalDepthShader->setUniformMat4(
-        "lightSpaceMatrix", _directionalLightSpaceMatrix);
+    _directionalDepthShader->setUniformMat4("lightSpaceMatrix", _directionalLightSpaceMatrix);
 
     _depthFbo->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -454,11 +445,11 @@ void ShadowMapping::renderPointLightShadowMap() {
     for (size_t i = 0; i < _depthCubeFbos.size(); ++i) {
         _depthCubeFbos[i]->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
-        
+
         _omnidirectionalDepthShader->setUniformMat4(
             "lightSpaceMatrix", _pointLightSpaceMatrices[i]);
         renderSceneFromLight(*_omnidirectionalDepthShader);
-        
+
         _depthCubeFbos[i]->unbind();
     }
 
@@ -475,7 +466,7 @@ void ShadowMapping::renderDirectionalLightCascadeShadowMap() {
     for (size_t i = 0; i < _depthCascadeFbos.size(); ++i) {
         _depthCascadeFbos[i]->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
-        
+
         _directionalDepthShader->setUniformMat4(
             "lightSpaceMatrix", _directionalLightSpaceMatrices[i]);
         renderSceneFromLight(*_directionalDepthShader);
@@ -542,8 +533,8 @@ void ShadowMapping::renderScene() {
     } else {
         _lambertShader->setUniformInt("depthTextureArray", 2);
         _depthTextureArray->bind(2);
-        _lambertShader->setUniformInt("cascadeCount", 
-            static_cast<int>(_directionalLightSpaceMatrices.size()));
+        _lambertShader->setUniformInt(
+            "cascadeCount", static_cast<int>(_directionalLightSpaceMatrices.size()));
 
         std::vector<float> distances = getCascadeDistances();
         for (size_t i = 1; i < distances.size(); ++i) {
@@ -553,7 +544,7 @@ void ShadowMapping::renderScene() {
 
         for (size_t i = 0; i < _directionalLightSpaceMatrices.size(); ++i) {
             _lambertShader->setUniformMat4(
-                "directionalLightSpaceMatrices[" + std::to_string(i) + "]", 
+                "directionalLightSpaceMatrices[" + std::to_string(i) + "]",
                 _directionalLightSpaceMatrices[i]);
         }
 
@@ -595,41 +586,41 @@ void ShadowMapping::renderScene() {
 
 void ShadowMapping::renderDebugView() {
     switch (_debugView) {
-        case DebugView::DirectionalLightDepthTexture:
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            _quadShader->use();
-            _quadShader->setUniformInt("depthTexture", 0);
-            _depthTexture->bind(0);
+    case DebugView::DirectionalLightDepthTexture:
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _quadShader->use();
+        _quadShader->setUniformInt("depthTexture", 0);
+        _depthTexture->bind(0);
 
-            _quad->draw();
-            break;
-        case DebugView::PointLightDepthTexture:
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            _cubeShader->use();
-            _cubeShader->setUniformInt("depthCubeTexture", 0);
-            _cubeShader->setUniformMat4("projection", _camera->getProjectionMatrix());
-            _cubeShader->setUniformMat4("view", _camera->getViewMatrix());
-            _cubeShader->setUniformMat4("model", _cube->transform.getLocalMatrix());
-            _depthCubeTexture->bind(0);
+        _quad->draw();
+        break;
+    case DebugView::PointLightDepthTexture:
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _cubeShader->use();
+        _cubeShader->setUniformInt("depthCubeTexture", 0);
+        _cubeShader->setUniformMat4("projection", _camera->getProjectionMatrix());
+        _cubeShader->setUniformMat4("view", _camera->getViewMatrix());
+        _cubeShader->setUniformMat4("model", _cube->transform.getLocalMatrix());
+        _depthCubeTexture->bind(0);
 
-            _cube->draw();
-            break;
-        case DebugView::CascadeDepthTextureLevel0:
-        case DebugView::CascadeDepthTextureLevel1:
-        case DebugView::CascadeDepthTextureLevel2:
-        case DebugView::CascadeDepthTextureLevel3:
-        case DebugView::CascadeDepthTextureLevel4:
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            _quadCascadeShader->use();
-            _quadCascadeShader->setUniformInt("depthTextureArray", 0);
-            _depthTextureArray->bind(0);
-            _quadCascadeShader->setUniformInt("level", 
-                static_cast<int>(_debugView) - static_cast<int>(DebugView::CascadeDepthTextureLevel0));
+        _cube->draw();
+        break;
+    case DebugView::CascadeDepthTextureLevel0:
+    case DebugView::CascadeDepthTextureLevel1:
+    case DebugView::CascadeDepthTextureLevel2:
+    case DebugView::CascadeDepthTextureLevel3:
+    case DebugView::CascadeDepthTextureLevel4:
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _quadCascadeShader->use();
+        _quadCascadeShader->setUniformInt("depthTextureArray", 0);
+        _depthTextureArray->bind(0);
+        _quadCascadeShader->setUniformInt(
+            "level",
+            static_cast<int>(_debugView) - static_cast<int>(DebugView::CascadeDepthTextureLevel0));
 
-            _quad->draw();
-            break;
-        default:
-            break;
+        _quad->draw();
+        break;
+    default: break;
     }
 }
 
@@ -638,9 +629,7 @@ void ShadowMapping::renderUI() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
@@ -680,12 +669,11 @@ void ShadowMapping::renderUI() {
 }
 
 void ShadowMapping::updateDirectionalLightSpaceMatrix() {
-    _directionalLightSpaceMatrix =
-        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f) * // projection
-        glm::lookAt(                                             // view
-            _directionalLight->transform.position,
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            Transform::getDefaultUp());
+    _directionalLightSpaceMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f)
+                                   *            // projection
+                                   glm::lookAt( // view
+                                       _directionalLight->transform.position,
+                                       glm::vec3(0.0f, 0.0f, 0.0f), Transform::getDefaultUp());
 }
 
 void ShadowMapping::updateDirectionalLightSpaceMatrices() {
@@ -701,17 +689,16 @@ void ShadowMapping::updateDirectionalLightSpaceMatrices() {
 }
 
 void ShadowMapping::updatePointLightSpaceMatrices() {
-    const glm::mat4 projection = glm::perspective(
-        glm::radians(90.0f), 1.0f, 1.0f, _pointLightZfar);
+    const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, _pointLightZfar);
 
     const glm::vec3& eye = _pointLight->transform.position;
     const glm::mat4 views[6] = {
-        glm::lookAt(eye, eye + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(eye, eye + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(eye, eye + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(eye, eye + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(eye, eye + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(eye, eye + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(eye, eye + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(eye, eye + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(eye, eye + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        glm::lookAt(eye, eye + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+        glm::lookAt(eye, eye + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(eye, eye + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
     };
 
     for (size_t i = 0; i < _pointLightSpaceMatrices.size(); ++i) {
@@ -733,7 +720,7 @@ BoundingBox ShadowMapping::getSceneBoundingBox() const {
                 point.y = j ? box.max.y : box.min.y;
                 for (int k = 0; k < 2; ++k) {
                     point.z = k ? box.max.z : box.min.z;
-                    // change the point from model space to world space 
+                    // change the point from model space to world space
                     point = modelMatrix * point;
                     result.min = glm::min(point, result.min);
                     result.max = glm::max(point, result.max);
@@ -754,12 +741,6 @@ BoundingBox ShadowMapping::getSceneBoundingBox() const {
 }
 
 std::vector<float> ShadowMapping::getCascadeDistances() const {
-    return std::vector<float> {
-        _camera->znear,
-        _camera->zfar / 50.0f,
-        _camera->zfar / 25.0f,
-        _camera->zfar / 10.0f,
-        _camera->zfar / 2.0f,
-        _camera->zfar
-    };
+    return std::vector<float>{_camera->znear,        _camera->zfar / 50.0f, _camera->zfar / 25.0f,
+                              _camera->zfar / 10.0f, _camera->zfar / 2.0f,  _camera->zfar};
 }

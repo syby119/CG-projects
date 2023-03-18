@@ -64,7 +64,8 @@ PostProcessing::PostProcessing(const Options& options) : Application(options) {
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -95,10 +96,10 @@ void PostProcessing::renderFrame() {
     renderUI();
 }
 
-void  PostProcessing::initGeometryPassResources() {
+void PostProcessing::initGeometryPassResources() {
     // texture2d of (GL_RGB32F, GL_RGB, GL_FLOAT) is not renderable in WebGL2.0.
     // So we need to change the it to (GL_RGBA32F, GL_RGBA, GL_FLOAT) instead.
-    constexpr GLint colorIFormat = 
+    constexpr GLint colorIFormat =
 #ifdef USE_GLES
         GL_RGBA32F
 #else
@@ -106,16 +107,16 @@ void  PostProcessing::initGeometryPassResources() {
 #endif
         ;
 
-    constexpr GLenum colorFormat = 
+    constexpr GLenum colorFormat =
 #ifdef USE_GLES
         GL_RGBA
 #else
         GL_RGB
 #endif
         ;
-        
-    _gPosition.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+
+    _gPosition.reset(
+        new Texture2D(colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gPosition->bind();
     _gPosition->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gPosition->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -123,8 +124,7 @@ void  PostProcessing::initGeometryPassResources() {
     _gPosition->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     _gPosition->unbind();
 
-    _gNormal.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+    _gNormal.reset(new Texture2D(colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gNormal->bind();
     _gNormal->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gNormal->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -132,8 +132,7 @@ void  PostProcessing::initGeometryPassResources() {
     _gNormal->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     _gNormal->unbind();
 
-    _gAlbedo.reset(new Texture2D(
-        colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
+    _gAlbedo.reset(new Texture2D(colorIFormat, _windowWidth, _windowHeight, colorFormat, GL_FLOAT));
     _gAlbedo->bind();
     _gAlbedo->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     _gAlbedo->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -141,7 +140,7 @@ void  PostProcessing::initGeometryPassResources() {
     _gAlbedo->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     _gNormal->unbind();
 
-    constexpr GLint depthIFormat = 
+    constexpr GLint depthIFormat =
 #ifdef USE_GLES
         GL_DEPTH_COMPONENT32F
 #else
@@ -149,8 +148,8 @@ void  PostProcessing::initGeometryPassResources() {
 #endif
         ;
 
-    _gDepth.reset(new Texture2D(
-        depthIFormat, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
+    _gDepth.reset(
+        new Texture2D(depthIFormat, _windowWidth, _windowHeight, GL_DEPTH_COMPONENT, GL_FLOAT));
 
     _gDepth->bind();
     _gDepth->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -160,10 +159,7 @@ void  PostProcessing::initGeometryPassResources() {
 
     _gBufferFBO.reset(new Framebuffer);
     _gBufferFBO->bind();
-    _gBufferFBO->drawBuffers({
-        GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2 });
+    _gBufferFBO->drawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
     _gBufferFBO->attachTexture2D(*_gPosition, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     _gBufferFBO->attachTexture2D(*_gNormal, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);
     _gBufferFBO->attachTexture2D(*_gAlbedo, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D);
@@ -181,7 +177,7 @@ void  PostProcessing::initGeometryPassResources() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     _gBufferShader.reset(new GLSLProgram);
     _gBufferShader->attachVertexShaderFromFile(getAssetFullPath(geometryVsRelPath), version);
@@ -202,7 +198,7 @@ void PostProcessing::initSSAOPassResources() {
         _ssaoResult[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     _ssaoFBO->attachTexture2D(*_ssaoResult[0], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
-    
+
     if (_ssaoFBO->checkStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error("_ssaoFBO is imcomplete for rendering");
     }
@@ -250,7 +246,7 @@ void PostProcessing::initSSAOPassResources() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     // TODO: modify ssao.frag
     _ssaoShader.reset(new GLSLProgram);
@@ -266,7 +262,8 @@ void PostProcessing::initSSAOPassResources() {
     // TODO: modify ssao_lighting.frag
     _ssaoLightingShader.reset(new GLSLProgram);
     _ssaoLightingShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _ssaoLightingShader->attachFragmentShaderFromFile(getAssetFullPath(ssaoLightingFsRelPath), version);
+    _ssaoLightingShader->attachFragmentShaderFromFile(
+        getAssetFullPath(ssaoLightingFsRelPath), version);
     _ssaoLightingShader->link();
 }
 
@@ -283,8 +280,8 @@ void PostProcessing::initBloomPassResources() {
     _bloomMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     _bloomFBO->attachTexture2D(*_bloomMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     for (int i = 0; i < 2; ++i) {
-        _brightColorMap[i].reset(new Texture2D(
-            GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
+        _brightColorMap[i].reset(
+            new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
         _brightColorMap[i]->bind();
         _brightColorMap[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         _brightColorMap[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -293,7 +290,7 @@ void PostProcessing::initBloomPassResources() {
     }
 
     _bloomFBO->attachTexture2D(*_gDepth, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
-    
+
     if (_bloomFBO->checkStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error("_bloomFBO is imcomplete for rendering");
     }
@@ -309,14 +306,14 @@ void PostProcessing::initBloomPassResources() {
     _blurFBO->bind();
     _blurFBO->drawBuffer(GL_COLOR_ATTACHMENT0);
     _blurFBO->unbind();
-    
+
     const char* version =
 #ifdef USE_GLES
         "300 es"
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     _lightShader.reset(new GLSLProgram);
     _lightShader->attachVertexShaderFromFile(getAssetFullPath(lightVsRelPath), version);
@@ -326,7 +323,8 @@ void PostProcessing::initBloomPassResources() {
     // TODO: modify extract_bright_color.frag
     _brightColorShader.reset(new GLSLProgram);
     _brightColorShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _brightColorShader->attachFragmentShaderFromFile(getAssetFullPath(brightColorFsRelPath), version);
+    _brightColorShader->attachFragmentShaderFromFile(
+        getAssetFullPath(brightColorFsRelPath), version);
     _brightColorShader->link();
 
     // TODO: modify gaussian_blur.frag
@@ -348,8 +346,8 @@ void PostProcessing::initShaders() {
 #else
         "330 core"
 #endif
-    ;
-    
+        ;
+
     _drawScreenShader.reset(new GLSLProgram);
     _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
     _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
@@ -407,8 +405,8 @@ void PostProcessing::renderScene() {
         _currentWriteBuffer = 1;
         _ssaoBlurShader->use();
         for (int pass = 0; pass < 5; ++pass) {
-            _ssaoBlurFBO->attachTexture2D(*_ssaoResult[_currentWriteBuffer], 
-                GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+            _ssaoBlurFBO->attachTexture2D(
+                *_ssaoResult[_currentWriteBuffer], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
             _ssaoBlurShader->setUniformInt("ssaoResult", 0);
             _ssaoResult[_currentReadBuffer]->bind(0);
             _screenQuad->draw();
@@ -421,8 +419,9 @@ void PostProcessing::renderScene() {
         _currentReadBuffer = 0;
         static const std::vector<float> ones(_windowWidth * _windowHeight, 1.0f);
         _ssaoResult[0]->bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 
-            _windowWidth, _windowHeight, 0, GL_RED, GL_FLOAT, ones.data());
+        glTexImage2D(
+            GL_TEXTURE_2D, 0, GL_R32F, _windowWidth, _windowHeight, 0, GL_RED, GL_FLOAT,
+            ones.data());
         _ssaoResult[0]->unbind();
     }
 
@@ -439,7 +438,7 @@ void PostProcessing::renderScene() {
     _ssaoLightingShader->setUniformFloat("light.kc", _pointLight->kc);
     _ssaoLightingShader->setUniformFloat("light.kl", _pointLight->kl);
     _ssaoLightingShader->setUniformFloat("light.kq", _pointLight->kq);
-    
+
     _ssaoLightingShader->setUniformInt("gPosition", 0);
     _gPosition->bind(0);
     _ssaoLightingShader->setUniformInt("gNormal", 1);
@@ -459,7 +458,7 @@ void PostProcessing::renderScene() {
     _lightShader->setUniformMat4("model", _pointLight->transform.getLocalMatrix());
     _lightShader->setUniformVec3("lightColor", _pointLight->color);
     _lightShader->setUniformFloat("lightIntensity", _pointLight->intensity);
-    
+
     _sphere->draw();
 
     _bloomFBO->unbind();
@@ -482,9 +481,7 @@ void PostProcessing::renderUI() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
@@ -502,8 +499,7 @@ void PostProcessing::renderUI() {
 
 void PostProcessing::extractBrightColor(const Texture2D& sceneMap) {
     _brightColorFBO->bind();
-    _brightColorFBO->attachTexture2D(
-        *_brightColorMap[0], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    _brightColorFBO->attachTexture2D(*_brightColorMap[0], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     _brightColorShader->use();
     _brightColorShader->setUniformInt("sceneMap", 0);
     sceneMap.bind(0);

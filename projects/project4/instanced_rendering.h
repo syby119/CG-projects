@@ -3,12 +3,13 @@
 #include <memory>
 
 #include "../base/application.h"
-#include "../base/glsl_program.h"
 #include "../base/camera.h"
+#include "../base/glsl_program.h"
 #include "../base/model.h"
 
 enum class RenderMode {
-    Ordinary, Instanced
+    Ordinary,
+    Instanced
 };
 
 class InstancedRendering : public Application {
@@ -16,6 +17,7 @@ public:
     InstancedRendering(const Options& options);
 
     ~InstancedRendering();
+
 private:
     const float _cameraMoveSpeed = 10.0f;
     const float _cameraRotateSpeed = 0.05f;

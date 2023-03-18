@@ -3,8 +3,8 @@
 #include <iostream>
 #include <memory>
 
-#include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/glm.hpp>
 #include <stb_image.h>
 
 #include "../base/framebuffer.h"
@@ -15,25 +15,16 @@
 #include "skybox.h"
 
 Skybox::Skybox(
-    const std::string& equirectImagePath,
-    const std::string& equirectToCubemapVsFilepath,
-    const std::string& equirectToCubemapFsFilepath,
-    const uint32_t resolution
-) {
+    const std::string& equirectImagePath, const std::string& equirectToCubemapVsFilepath,
+    const std::string& equirectToCubemapFsFilepath, const uint32_t resolution) {
     createVertexResources();
     equirectangulerToCubemap(
-        equirectImagePath,
-        equirectToCubemapVsFilepath,
-        equirectToCubemapFsFilepath, 
-        resolution);
+        equirectImagePath, equirectToCubemapVsFilepath, equirectToCubemapFsFilepath, resolution);
 }
 
 Skybox::Skybox(Skybox&& rhs) noexcept
-    : _vao(rhs._vao), 
-      _vbo(rhs._vbo), 
-      _texture(rhs._texture),
-      irradianceMap(std::move(rhs.irradianceMap)),
-      prefilterMap(std::move(rhs.prefilterMap)),
+    : _vao(rhs._vao), _vbo(rhs._vbo), _texture(rhs._texture),
+      irradianceMap(std::move(rhs.irradianceMap)), prefilterMap(std::move(rhs.prefilterMap)),
       brdfLutMap(std::move(rhs.brdfLutMap)) {
     rhs._vao = 0;
     rhs._vbo = 0;
@@ -63,51 +54,51 @@ void Skybox::createVertexResources() {
     GLfloat vertices[] = {
         // back face
         -1.0f, -1.0f, -1.0f, // bottom-left
-         1.0f,  1.0f, -1.0f, // top-right
-         1.0f, -1.0f, -1.0f, // bottom-right         
-         1.0f,  1.0f, -1.0f, // top-right
+        1.0f, 1.0f, -1.0f,   // top-right
+        1.0f, -1.0f, -1.0f,  // bottom-right
+        1.0f, 1.0f, -1.0f,   // top-right
         -1.0f, -1.0f, -1.0f, // bottom-left
-        -1.0f,  1.0f, -1.0f, // top-left
+        -1.0f, 1.0f, -1.0f,  // top-left
         // front face
-        -1.0f, -1.0f,  1.0f, // bottom-left
-         1.0f, -1.0f,  1.0f, // bottom-right
-         1.0f,  1.0f,  1.0f, // top-right
-         1.0f,  1.0f,  1.0f, // top-right
-        -1.0f,  1.0f,  1.0f, // top-left
-        -1.0f, -1.0f,  1.0f, // bottom-left
+        -1.0f, -1.0f, 1.0f, // bottom-left
+        1.0f, -1.0f, 1.0f,  // bottom-right
+        1.0f, 1.0f, 1.0f,   // top-right
+        1.0f, 1.0f, 1.0f,   // top-right
+        -1.0f, 1.0f, 1.0f,  // top-left
+        -1.0f, -1.0f, 1.0f, // bottom-left
         // left face
-        -1.0f,  1.0f,  1.0f, // top-right
-        -1.0f,  1.0f, -1.0f, // top-left
+        -1.0f, 1.0f, 1.0f,   // top-right
+        -1.0f, 1.0f, -1.0f,  // top-left
         -1.0f, -1.0f, -1.0f, // bottom-left
         -1.0f, -1.0f, -1.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f, // bottom-right
-        -1.0f,  1.0f,  1.0f, // top-right
-        // right face
-         1.0f,  1.0f,  1.0f, // top-left
-         1.0f, -1.0f, -1.0f, // bottom-right
-         1.0f,  1.0f, -1.0f, // top-right         
-         1.0f, -1.0f, -1.0f, // bottom-right
-         1.0f,  1.0f,  1.0f, // top-left
-         1.0f, -1.0f,  1.0f, // bottom-left     
+        -1.0f, -1.0f, 1.0f,  // bottom-right
+        -1.0f, 1.0f, 1.0f,   // top-right
+                             // right face
+        1.0f, 1.0f, 1.0f,    // top-left
+        1.0f, -1.0f, -1.0f,  // bottom-right
+        1.0f, 1.0f, -1.0f,   // top-right
+        1.0f, -1.0f, -1.0f,  // bottom-right
+        1.0f, 1.0f, 1.0f,    // top-left
+        1.0f, -1.0f, 1.0f,   // bottom-left
         // bottom face
         -1.0f, -1.0f, -1.0f, // top-right
-         1.0f, -1.0f, -1.0f, // top-left
-         1.0f, -1.0f,  1.0f, // bottom-left
-         1.0f, -1.0f,  1.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f, // bottom-right
+        1.0f, -1.0f, -1.0f,  // top-left
+        1.0f, -1.0f, 1.0f,   // bottom-left
+        1.0f, -1.0f, 1.0f,   // bottom-left
+        -1.0f, -1.0f, 1.0f,  // bottom-right
         -1.0f, -1.0f, -1.0f, // top-right
         // top face
-        -1.0f,  1.0f, -1.0f, // top-left
-         1.0f,  1.0f , 1.0f, // bottom-right
-         1.0f,  1.0f, -1.0f, // top-right     
-         1.0f,  1.0f,  1.0f, // bottom-right
-        -1.0f,  1.0f, -1.0f, // top-left
-        -1.0f,  1.0f,  1.0f  // bottom-left
+        -1.0f, 1.0f, -1.0f, // top-left
+        1.0f, 1.0f, 1.0f,   // bottom-right
+        1.0f, 1.0f, -1.0f,  // top-right
+        1.0f, 1.0f, 1.0f,   // bottom-right
+        -1.0f, 1.0f, -1.0f, // top-left
+        -1.0f, 1.0f, 1.0f   // bottom-left
     };
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    
+
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -119,25 +110,22 @@ void Skybox::createVertexResources() {
 }
 
 void Skybox::equirectangulerToCubemap(
-    const std::string& equirectImagePath, 
-    const std::string& equirectToCubemapVsFilepath, 
-    const std::string& equirectToCubemapFsFilepath, 
-    uint32_t resolution
-) {
+    const std::string& equirectImagePath, const std::string& equirectToCubemapVsFilepath,
+    const std::string& equirectToCubemapFsFilepath, uint32_t resolution) {
     resolution = nextPow2(resolution);
 
-    // create cubemap texture 
+    // create cubemap texture
     glGenTextures(1, &_texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
     for (uint32_t i = 0; i < 6; ++i) {
 #ifdef __EMSCRIPTEN__
         glTexImage2D(
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-            0, GL_RGBA16F, resolution, resolution, 0, GL_RGBA, GL_HALF_FLOAT, nullptr);
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA16F, resolution, resolution, 0, GL_RGBA,
+            GL_HALF_FLOAT, nullptr);
 #else
         glTexImage2D(
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-            0, GL_RGB16F, resolution, resolution, 0, GL_RGB, GL_FLOAT, nullptr);
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, resolution, resolution, 0, GL_RGB,
+            GL_FLOAT, nullptr);
 #endif
     }
 
@@ -152,9 +140,8 @@ void Skybox::equirectangulerToCubemap(
     // load image and create texture
     stbi_set_flip_vertically_on_load(true);
     int width, height, channels;
-    std::unique_ptr<float, void(*)(float*)> data(
-        stbi_loadf(equirectImagePath.c_str(), &width, &height, &channels, 0),
-        [](float* data) {
+    std::unique_ptr<float, void (*)(float*)> data(
+        stbi_loadf(equirectImagePath.c_str(), &width, &height, &channels, 0), [](float* data) {
             stbi_image_free(data);
         });
 
@@ -203,16 +190,13 @@ void Skybox::equirectangulerToCubemap(
     for (uint32_t i = 0; i < 6; ++i) {
         shader.setUniformMat4("view", views[i]);
         glFramebufferTexture2D(
-            GL_FRAMEBUFFER, 
-            GL_COLOR_ATTACHMENT0, 
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-            _texture, 
-            0);
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, _texture, 0);
 
         GLenum status = framebuffer.checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-            throw std::runtime_error("convert equirectanguler map to cubemap failure, " +
-                framebuffer.getDiagnostic(status));
+            throw std::runtime_error(
+                "convert equirectanguler map to cubemap failure, "
+                + framebuffer.getDiagnostic(status));
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -221,7 +205,7 @@ void Skybox::equirectangulerToCubemap(
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     framebuffer.unbind();
-    
+
     // restore viewport
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     hdrTexture.unbind();
@@ -252,20 +236,16 @@ void Skybox::cleanup() {
 
 void Skybox::generateIrradianceMap(
     const std::string& irradianceConvolutionVsFilepath,
-    const std::string& irradianceConvolutionFsFilepath,
-    uint32_t resolution,
-    float deltaTheta,
-    float deltaPhi
-) {
+    const std::string& irradianceConvolutionFsFilepath, uint32_t resolution, float deltaTheta,
+    float deltaPhi) {
     resolution = nextPow2(resolution);
 
     // create irradianceMap texture
 #ifdef __EMSCRIPTEN__
-    irradianceMap.reset(new TextureCubemap(
-        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
+    irradianceMap.reset(
+        new TextureCubemap(GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
 #else
-    irradianceMap.reset(new TextureCubemap(
-        GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+    irradianceMap.reset(new TextureCubemap(GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
 #endif
 
     irradianceMap->bind();
@@ -291,7 +271,7 @@ void Skybox::generateIrradianceMap(
     shader.setUniformInt("environmentMap", 0);
     shader.setUniformFloat("deltaTheta", deltaTheta);
     shader.setUniformFloat("deltaPhi", deltaPhi);
-    
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
 
@@ -312,8 +292,8 @@ void Skybox::generateIrradianceMap(
 
         GLenum status = framebuffer.checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-            throw std::runtime_error("generate irradiance map failure, " + 
-                framebuffer.getDiagnostic(status));
+            throw std::runtime_error(
+                "generate irradiance map failure, " + framebuffer.getDiagnostic(status));
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -327,21 +307,17 @@ void Skybox::generateIrradianceMap(
 }
 
 void Skybox::generatePrefilterMap(
-    const std::string& prefilterVsFilepath,
-    const std::string& prefilterFsFilepath,
-    uint32_t resolution, 
-    uint32_t numSamples
-) {
+    const std::string& prefilterVsFilepath, const std::string& prefilterFsFilepath,
+    uint32_t resolution, uint32_t numSamples) {
     constexpr uint32_t maxMipLevels = 5;
     resolution = std::max(nextPow2(resolution), 1u << maxMipLevels);
 
     // create prefilterMap texture
 #ifdef __EMSCRIPTEN__
-    prefilterMap.reset(new TextureCubemap(
-        GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
+    prefilterMap.reset(
+        new TextureCubemap(GL_RGBA16F, resolution, resolution, GL_RGBA, GL_HALF_FLOAT));
 #else
-    prefilterMap.reset(new TextureCubemap(
-        GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
+    prefilterMap.reset(new TextureCubemap(GL_RGB16F, resolution, resolution, GL_RGB, GL_FLOAT));
 #endif
 
     prefilterMap->bind();
@@ -355,7 +331,7 @@ void Skybox::generatePrefilterMap(
     prefilterMap->generateMipmap();
     prefilterMap->unbind();
 
-    // create irradiance shader    
+    // create irradiance shader
     GLSLProgram shader;
     const std::string version = getVersion();
     shader.attachVertexShaderFromFile(prefilterVsFilepath, version);
@@ -364,7 +340,7 @@ void Skybox::generatePrefilterMap(
 
     const glm::mat4 projection = getProjection();
     const std::array<glm::mat4, 6> views = getViews();
-    
+
     shader.use();
     shader.setUniformInt("environmentMap", 0);
     shader.setUniformMat4("projection", projection);
@@ -380,26 +356,26 @@ void Skybox::generatePrefilterMap(
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
-    
+
     uint32_t mipResolution = resolution;
     for (uint32_t mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
         // set roughness
         float roughness = static_cast<float>(mipLevel) / (maxMipLevels - 1);
         shader.setUniformFloat("roughness", roughness);
-        
+
         // fit viewport to mipResolution
         glViewport(0, 0, mipResolution, mipResolution);
 
         // render prefilter result to mipmap
         for (uint32_t i = 0; i < 6; ++i) {
             shader.setUniformMat4("view", views[i]);
-            framebuffer.attachTexture2D(*prefilterMap, 
-                GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipLevel);
+            framebuffer.attachTexture2D(
+                *prefilterMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mipLevel);
 
             GLenum status = framebuffer.checkStatus();
             if (status != GL_FRAMEBUFFER_COMPLETE) {
-                throw std::runtime_error("generate prefilter map failure, " + 
-                    framebuffer.getDiagnostic(status));
+                throw std::runtime_error(
+                    "generate prefilter map failure, " + framebuffer.getDiagnostic(status));
             }
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -420,17 +396,13 @@ void Skybox::generatePrefilterMap(
 }
 
 void Skybox::generateBrdfLutMap(
-    const std::string brdfLutVsFilepath,
-    const std::string brdfLutFsFilepath,
-    uint32_t resolution,
-    uint32_t numSamples
-) {
+    const std::string brdfLutVsFilepath, const std::string brdfLutFsFilepath, uint32_t resolution,
+    uint32_t numSamples) {
     resolution = nextPow2(resolution);
 
     // create brdf look up table texture
-    brdfLutMap.reset(new Texture2D(
-        GL_RG16F, resolution, resolution, GL_RG, GL_FLOAT));
-    
+    brdfLutMap.reset(new Texture2D(GL_RG16F, resolution, resolution, GL_RG, GL_FLOAT));
+
     brdfLutMap->bind();
     brdfLutMap->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     brdfLutMap->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -459,8 +431,8 @@ void Skybox::generateBrdfLutMap(
     framebuffer.attachTexture2D(*brdfLutMap, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     GLenum status = framebuffer.checkStatus();
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        throw std::runtime_error("generate brdf lookup table failure, " + 
-            framebuffer.getDiagnostic(status));
+        throw std::runtime_error(
+            "generate brdf lookup table failure, " + framebuffer.getDiagnostic(status));
     }
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -486,14 +458,13 @@ glm::mat4 Skybox::getProjection() {
 }
 
 std::array<glm::mat4, 6> Skybox::getViews() {
-    return std::array<glm::mat4, 6> {
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-    };
+    return std::array<glm::mat4, 6>{
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 }
 
 std::string Skybox::getVersion() {
@@ -503,7 +474,7 @@ std::string Skybox::getVersion() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 }
 
 uint32_t Skybox::nextPow2(uint32_t n) {

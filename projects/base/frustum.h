@@ -1,8 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include "plane.h"
 #include "bounding_box.h"
+#include "plane.h"
+#include <iostream>
 
 struct Frustum {
 public:

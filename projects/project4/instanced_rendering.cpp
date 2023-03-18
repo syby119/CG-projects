@@ -7,7 +7,7 @@
 const std::string planetRelPath = "obj/sphere.obj";
 const std::string asternoidRelPath = "obj/rock.obj";
 
-InstancedRendering::InstancedRendering(const Options& options): Application(options) {
+InstancedRendering::InstancedRendering(const Options& options) : Application(options) {
     // import models
     _planet.reset(new Model(getAssetFullPath(planetRelPath)));
     _planet->transform.scale = glm::vec3(10.0f, 10.0f, 10.0f);
@@ -16,12 +16,11 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
 
     // init camera
     _camera.reset(new PerspectiveCamera(
-        glm::radians(45.0f),
-        1.0f * _windowWidth / _windowHeight,
-        0.1f, 10000.0f));
+        glm::radians(45.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
 
     _camera->transform.position = glm::vec3(0.0f, 25.0f, 100.0f);
-    _camera->transform.rotation = glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
+    _camera->transform.rotation =
+        glm::angleAxis(-glm::radians(20.0f), _camera->transform.getRight());
 
     /* shader issues */
     initShaders();
@@ -54,13 +53,14 @@ InstancedRendering::InstancedRendering(const Options& options): Application(opti
     // TODO: configure the instanced buffer and transfer the matrix data to GPU
     // write your code here
     // ---------------------------------------------------------
-    // glXXX(_instanceBuffer); ... 
+    // glXXX(_instanceBuffer); ...
     // ---------------------------------------------------------
 
     // init imGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
@@ -86,7 +86,7 @@ void InstancedRendering::initShaders() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     const char* planetVsCode =
         "layout(location = 0) in vec3 aPosition;\n"
@@ -133,7 +133,7 @@ void InstancedRendering::initShaders() {
         "}\n";
 
     _asternoidShader.reset(new GLSLProgram);
-    _asternoidShader->attachVertexShader(asternoidVsCode, version); 
+    _asternoidShader->attachVertexShader(asternoidVsCode, version);
     _asternoidShader->attachFragmentShader(asternoidFsCode, version);
     _asternoidShader->link();
 
@@ -150,19 +150,23 @@ void InstancedRendering::handleInput() {
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position +=
+            _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position -=
+            _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
-        _camera->transform.position -= _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position -=
+            _camera->transform.getFront() * _cameraMoveSpeed * _deltaTime;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
-        _camera->transform.position += _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
+        _camera->transform.position +=
+            _camera->transform.getRight() * _cameraMoveSpeed * _deltaTime;
     }
 }
 
@@ -221,9 +225,7 @@ void InstancedRendering::renderFrame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    const auto flags =
-        ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings;
+    const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
@@ -239,8 +241,9 @@ void InstancedRendering::renderFrame() {
 
         std::string fpsInfo = "avg fps: " + std::to_string(_fpsIndicator.getAverageFrameRate());
         ImGui::Text("%s", fpsInfo.c_str());
-        ImGui::PlotLines("", _fpsIndicator.getDataPtr(), _fpsIndicator.getSize(), 0,
-            nullptr, 0.0f, std::numeric_limits<float>::max(), ImVec2(240.0f, 50.0f));
+        ImGui::PlotLines(
+            "", _fpsIndicator.getDataPtr(), _fpsIndicator.getSize(), 0, nullptr, 0.0f,
+            std::numeric_limits<float>::max(), ImVec2(240.0f, 50.0f));
 
         ImGui::End();
     }

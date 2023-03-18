@@ -2,8 +2,8 @@
 
 #include <chrono>
 #include <functional>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -51,7 +51,7 @@ protected:
     /* timer for fps */
     std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;
     float _deltaTime = 0.0f;
-    FrameRateIndicator _fpsIndicator{ 64 };
+    FrameRateIndicator _fpsIndicator{64};
 
     /* input handler */
     Input _input;

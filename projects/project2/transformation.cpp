@@ -1,15 +1,15 @@
-#include <unordered_map>
-#include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
+#include <unordered_map>
 
 #include "../base/vertex.h"
-#include "transformation.h"
 #include "tiny_obj_loader.h"
+#include "transformation.h"
 
 const std::string modelRelPath = "obj/bunny.obj";
 
-Transformation::Transformation(const Options& options): Application(options) {
+Transformation::Transformation(const Options& options) : Application(options) {
     // use tiny_obj_loader to load mesh data
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -21,8 +21,8 @@ Transformation::Transformation(const Options& options): Application(options) {
     std::string::size_type index = modelPath.find_last_of("/");
     std::string mtlBaseDir = modelPath.substr(0, index + 1);
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials,
-        &warn, &err, modelPath.c_str(), mtlBaseDir.c_str())) {
+    if (!tinyobj::LoadObj(
+            &attrib, &shapes, &materials, &warn, &err, modelPath.c_str(), mtlBaseDir.c_str())) {
         throw std::runtime_error("load " + modelPath + " failure: " + err);
     }
 
@@ -81,14 +81,14 @@ Transformation::Transformation(const Options& options): Application(options) {
 void Transformation::handleInput() {
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
-    
+
     // update bunnies position / rotation / scale here
-    const glm::vec3 velocity = { 0.0f, 2.0f, 0.0f };
+    const glm::vec3 velocity = {0.0f, 2.0f, 0.0f};
     const float angulerVelocity = 1.0f;
     const float scaleRate = 0.2f;
-    
+
     // TODO: update transformation attributes
     // write your code here
     // --------------------------------------------------
@@ -105,7 +105,7 @@ void Transformation::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    // projection matrix transform the homogenous coordinates 
+    // projection matrix transform the homogenous coordinates
     // from view space to projection space, depending on following parameters:
     // @field of view
     constexpr float fovy = glm::radians(60.0f);
@@ -118,14 +118,14 @@ void Transformation::renderFrame() {
 
     const glm::mat4 projection = glm::perspective(fovy, aspect, znear, zfar);
 
-    // view matrix transform the homogenous coordinates 
+    // view matrix transform the homogenous coordinates
     // from world space to view space (view of camera), depending on following parameters:
     // @camera position
-    const glm::vec3 eye = { 0.0f, 0.0f, 15.0f };
+    const glm::vec3 eye = {0.0f, 0.0f, 15.0f};
     // @target, positon and target defines the direction the camera looking at
-    const glm::vec3 target = { 0.0f, 0.0f, 0.0f };
+    const glm::vec3 target = {0.0f, 0.0f, 0.0f};
     // @up, up vector of the camera
-    const glm::vec3 up = { 0.0f, 1.0f, 0.0f };
+    const glm::vec3 up = {0.0f, 1.0f, 0.0f};
 
     const glm::mat4 view = glm::lookAt(eye, target, up);
 
@@ -133,8 +133,9 @@ void Transformation::renderFrame() {
     for (std::size_t i = 0; i < _bunnies.size(); ++i) {
         _shader->setUniformMat4("projection", projection);
         _shader->setUniformMat4("view", view);
-        // model matrix transform the homogenous coodinates from 
-        // model space (raw vertex data of the model) to world space, depending on following parametes:
+        // model matrix transform the homogenous coodinates from
+        // model space (raw vertex data of the model) to world space, depending on following
+        // parametes:
         // TODO: calculate the translation, rotation, scale matrices
         // change your code here
         // -----------------------------------------------
@@ -160,7 +161,7 @@ void Transformation::initShader() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     const char* vsCode =
         "layout(location = 0) in vec3 aPosition;\n"
@@ -168,11 +169,11 @@ void Transformation::initShader() {
 
         "out vec3 worldPosition;\n"
         "out vec3 normal;\n"
-        
+
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
-        
+
         "void main() {\n"
         "    normal = mat3(transpose(inverse(model))) * aNormal;\n"
         "    worldPosition = vec3(model * vec4(aPosition, 1.0f));\n"

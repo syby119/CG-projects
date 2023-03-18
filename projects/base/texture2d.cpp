@@ -5,16 +5,14 @@
 #include "texture2d.h"
 
 Texture2D::Texture2D(
-    GLint internalFormat, int width, int height, GLenum format, GLenum dataType, void* data
-) {
+    GLint internalFormat, int width, int height, GLenum format, GLenum dataType, void* data) {
     glBindTexture(GL_TEXTURE_2D, _handle);
     setDefaultParameters();
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, data);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture2D::Texture2D(Texture2D&& rhs) noexcept
-    : Texture(std::move(rhs)) { }
+Texture2D::Texture2D(Texture2D&& rhs) noexcept : Texture(std::move(rhs)) {}
 
 void Texture2D::bind(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
@@ -41,12 +39,10 @@ void Texture2D::setDefaultParameters() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
-
-
-ImageTexture2D::ImageTexture2D(const std::string& path): _uri(path) {
+ImageTexture2D::ImageTexture2D(const std::string& path) : _uri(path) {
     // load image to the memory
     stbi_set_flip_vertically_on_load(true);
     int width = 0, height = 0, channels = 0;
@@ -59,13 +55,13 @@ ImageTexture2D::ImageTexture2D(const std::string& path): _uri(path) {
     // choose image format
     GLenum format = GL_RGB;
     switch (channels) {
-        case 1: format = GL_RED;  break;
-        case 3: format = GL_RGB;  break;
-        case 4: format = GL_RGBA; break;
-        default:
-            cleanup();
-            stbi_image_free(data);
-            throw std::runtime_error("unsupported format");
+    case 1: format = GL_RED; break;
+    case 3: format = GL_RGB; break;
+    case 4: format = GL_RGBA; break;
+    default:
+        cleanup();
+        stbi_image_free(data);
+        throw std::runtime_error("unsupported format");
     }
     GLint internalFormat = static_cast<GLint>(format);
 
@@ -87,14 +83,8 @@ ImageTexture2D::ImageTexture2D(const std::string& path): _uri(path) {
 }
 
 ImageTexture2D::ImageTexture2D(
-    const void* data, 
-    int width, 
-    int height, 
-    int channels,
-    GLint internalformat, 
-    GLenum format, 
-    GLenum type,
-    const std::string& uri)
+    const void* data, int width, int height, int channels, GLint internalformat, GLenum format,
+    GLenum type, const std::string& uri)
     : _uri(uri) {
     glBindTexture(GL_TEXTURE_2D, _handle);
 
@@ -111,8 +101,7 @@ ImageTexture2D::ImageTexture2D(
 }
 
 ImageTexture2D::ImageTexture2D(ImageTexture2D&& rhs) noexcept
-    : Texture2D(std::move(rhs)), 
-      _uri(std::move(rhs._uri)) {
+    : Texture2D(std::move(rhs)), _uri(std::move(rhs._uri)) {
     rhs._uri = "";
 }
 
@@ -128,20 +117,19 @@ void ImageTexture2D::setDefaultParameters() {
 }
 
 void ImageTexture2D::upload(
-    const void* data,
-    int width,
-    int height,
-    int channels,
-    GLint internalformat,
-    GLenum format,
+    const void* data, int width, int height, int channels, GLint internalformat, GLenum format,
     GLenum type) {
     // 1. set alignment for data transfer
     GLint alignment = 1;
     size_t pitch = width * channels * sizeof(unsigned char);
-    if (pitch % 8 == 0)      alignment = 8;
-    else if (pitch % 4 == 0) alignment = 4;
-    else if (pitch % 2 == 0) alignment = 2;
-    else                     alignment = 1;
+    if (pitch % 8 == 0)
+        alignment = 8;
+    else if (pitch % 4 == 0)
+        alignment = 4;
+    else if (pitch % 2 == 0)
+        alignment = 2;
+    else
+        alignment = 1;
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
 
@@ -152,20 +140,17 @@ void ImageTexture2D::upload(
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
-
-
 Texture2DArray::Texture2DArray(
-    GLint internalFormat, int width, int height, int layers, GLenum format, GLenum dataType
-) {
+    GLint internalFormat, int width, int height, int layers, GLenum format, GLenum dataType) {
     glBindTexture(GL_TEXTURE_2D_ARRAY, _handle);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, 
-        width, height, layers, 0, format, dataType, nullptr);
+    glTexImage3D(
+        GL_TEXTURE_2D_ARRAY, 0, internalFormat, width, height, layers, 0, format, dataType,
+        nullptr);
     setDefaultParameters();
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }
 
-Texture2DArray::Texture2DArray(Texture2DArray&& rhs) noexcept
-    : Texture(std::move(rhs)) { }
+Texture2DArray::Texture2DArray(Texture2DArray&& rhs) noexcept : Texture(std::move(rhs)) {}
 
 void Texture2DArray::bind(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);

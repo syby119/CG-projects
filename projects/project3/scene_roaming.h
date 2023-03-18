@@ -4,14 +4,14 @@
 #include <vector>
 
 #include "../base/application.h"
-#include "../base/glsl_program.h"
 #include "../base/camera.h"
+#include "../base/glsl_program.h"
 #include "../base/model.h"
 
 class SceneRoaming : public Application {
 public:
     SceneRoaming(const Options& options);
-    
+
     ~SceneRoaming() = default;
 
     void handleInput() override;

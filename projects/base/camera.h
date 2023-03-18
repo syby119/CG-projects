@@ -6,6 +6,7 @@
 class Camera {
 public:
     Transform transform;
+
 public:
     virtual ~Camera() = default;
 
@@ -16,13 +17,13 @@ public:
     virtual Frustum getFrustum() const = 0;
 };
 
-
 class PerspectiveCamera : public Camera {
 public:
     float fovy;
     float aspect;
     float znear;
     float zfar;
+
 public:
     PerspectiveCamera(float fovy, float aspect, float znear, float zfar);
 
@@ -33,7 +34,6 @@ public:
     virtual Frustum getFrustum() const override;
 };
 
-
 class OrthographicCamera : public Camera {
 public:
     float left;
@@ -42,9 +42,10 @@ public:
     float top;
     float znear;
     float zfar;
+
 public:
     OrthographicCamera(float left, float right, float bottom, float top, float znear, float zfar);
-    
+
     ~OrthographicCamera() = default;
 
     glm::mat4 getProjectionMatrix() const override;

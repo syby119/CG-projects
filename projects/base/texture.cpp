@@ -7,7 +7,7 @@ Texture::Texture() {
     glGenTextures(1, &_handle);
 }
 
-Texture::Texture(Texture&& rhs) noexcept: _handle(rhs._handle) {
+Texture::Texture(Texture&& rhs) noexcept : _handle(rhs._handle) {
     rhs._handle = 0;
 }
 

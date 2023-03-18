@@ -1,6 +1,6 @@
 #pragma once
-#include <cstdint>
 #include "material.h"
+#include <cstdint>
 
 struct Primitive {
     GLuint vertexArray;

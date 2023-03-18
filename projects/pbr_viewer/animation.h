@@ -8,7 +8,11 @@
 
 struct Animation {
     struct Channel {
-        enum class PathType { Translation, Rotation, Scale };
+        enum class PathType {
+            Translation,
+            Rotation,
+            Scale
+        };
 
         PathType path;
         Node* node;
@@ -16,7 +20,11 @@ struct Animation {
     };
 
     struct Sampler {
-        enum class InterpolationType { LINEAR, STEP, CUBICSPLINE };
+        enum class InterpolationType {
+            LINEAR,
+            STEP,
+            CUBICSPLINE
+        };
         InterpolationType interpolation;
         std::vector<float> inputs;
         std::vector<glm::vec4> outputs;

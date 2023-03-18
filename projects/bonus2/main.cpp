@@ -1,5 +1,5 @@
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 #include "frustum_culling.h"
 
@@ -12,9 +12,9 @@ Options getOptions(int argc, char* argv[]) {
     options.vSync = true;
     options.msaa = true;
 #ifdef _WIN32
-    options.glVersion = { 4, 3 };
+    options.glVersion = {4, 3};
 #else
-    options.glVersion = { 4, 0 };
+    options.glVersion = {4, 0};
 #endif
     options.backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     options.assetRootDir = "../../media/";

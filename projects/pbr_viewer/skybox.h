@@ -1,9 +1,9 @@
 #pragma once
 
 #include <array>
+#include <glm/glm.hpp>
 #include <memory>
 #include <string>
-#include <glm/glm.hpp>
 
 #include "../base/texture2d.h"
 #include "../base/texture_cubemap.h"
@@ -22,10 +22,8 @@ public:
 
 public:
     Skybox(
-        const std::string& equirectImagePath,
-        const std::string& equirectToCubemapVsFilepath,
-        const std::string& equirectToCubemapFsFilepath, 
-        const uint32_t resolution);
+        const std::string& equirectImagePath, const std::string& equirectToCubemapVsFilepath,
+        const std::string& equirectToCubemapFsFilepath, const uint32_t resolution);
 
     Skybox(Skybox&& rhs) noexcept;
 
@@ -33,34 +31,28 @@ public:
 
     void generateIrradianceMap(
         const std::string& irradianceConvolutionVsFilepath,
-        const std::string& irradianceConvolutionFsFilepath,
-        uint32_t resolution, 
-        float deltaTheta,
+        const std::string& irradianceConvolutionFsFilepath, uint32_t resolution, float deltaTheta,
         float deltaPhi);
 
     void generatePrefilterMap(
-        const std::string& prefilterVsFilepath,
-        const std::string& prefilterFsFilepath, 
-        uint32_t resolution, 
-        uint32_t numSamples);
+        const std::string& prefilterVsFilepath, const std::string& prefilterFsFilepath,
+        uint32_t resolution, uint32_t numSamples);
 
     void generateBrdfLutMap(
-        const std::string brdfLutVsFilepath,
-        const std::string brdfLutFsFilepath,
-        uint32_t resolution,
-        uint32_t numSamples);
+        const std::string brdfLutVsFilepath, const std::string brdfLutFsFilepath,
+        uint32_t resolution, uint32_t numSamples);
 
     void bindEnvironmentMap(int slot = 0) const;
 
     uint32_t getMaxPrefilterMipLevel() const;
 
-    void draw() const ;
+    void draw() const;
 
 private:
     GLuint _vao = 0;
     GLuint _vbo = 0;
 
-    // we'll use the naive handle here to prevent coupling with TextureCubemap 
+    // we'll use the naive handle here to prevent coupling with TextureCubemap
     // in project 6, in which the students are asked to finish the class on their own.
     GLuint _texture = 0;
 
@@ -69,10 +61,8 @@ private:
     void createVertexResources();
 
     void equirectangulerToCubemap(
-        const std::string& equirectImagePath,
-        const std::string& equirectToCubemapVsFilepath,
-        const std::string& equirectToCubemapFsFilepath,
-        uint32_t resolution);
+        const std::string& equirectImagePath, const std::string& equirectToCubemapVsFilepath,
+        const std::string& equirectToCubemapFsFilepath, uint32_t resolution);
 
     void cleanup();
 

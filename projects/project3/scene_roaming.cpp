@@ -2,7 +2,7 @@
 
 const std::string modelRelPath = "obj/bunny.obj";
 
-SceneRoaming::SceneRoaming(const Options& options): Application(options) {
+SceneRoaming::SceneRoaming(const Options& options) : Application(options) {
     // set input mode
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     _input.mouse.move.xNow = _input.mouse.move.xOld = 0.5f * _windowWidth;
@@ -17,13 +17,12 @@ SceneRoaming::SceneRoaming(const Options& options): Application(options) {
     constexpr float zfar = 10000.0f;
 
     // perspective camera
-    _cameras[0].reset(new PerspectiveCamera(
-        glm::radians(60.0f), aspect, 0.1f, 10000.0f));
+    _cameras[0].reset(new PerspectiveCamera(glm::radians(60.0f), aspect, 0.1f, 10000.0f));
     _cameras[0]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
     // orthographic camera
-    _cameras[1].reset(new OrthographicCamera(
-        -4.0f * aspect, 4.0f * aspect, -4.0f, 4.0f, znear, zfar));
+    _cameras[1].reset(
+        new OrthographicCamera(-4.0f * aspect, 4.0f * aspect, -4.0f, 4.0f, znear, zfar));
     _cameras[1]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
     // init model
@@ -39,7 +38,7 @@ void SceneRoaming::handleInput() {
 
     if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
         glfwSetWindowShouldClose(_window, true);
-        return ;
+        return;
     }
 
     if (_input.keyboard.keyStates[GLFW_KEY_SPACE] == GLFW_PRESS) {
@@ -122,7 +121,7 @@ void SceneRoaming::renderFrame() {
 
     glm::mat4 projection = _cameras[activeCameraIndex]->getProjectionMatrix();
     glm::mat4 view = _cameras[activeCameraIndex]->getViewMatrix();
-    
+
     _shader->use();
     _shader->setUniformMat4("projection", projection);
     _shader->setUniformMat4("view", view);
@@ -138,7 +137,7 @@ void SceneRoaming::initShader() {
 #else
         "330 core"
 #endif
-    ;
+        ;
 
     const char* vsCode =
         "layout(location = 0) in vec3 aPosition;\n"
@@ -146,11 +145,11 @@ void SceneRoaming::initShader() {
 
         "out vec3 worldPosition;\n"
         "out vec3 normal;\n"
-        
+
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
-        
+
         "void main() {\n"
         "    normal = mat3(transpose(inverse(model))) * aNormal;\n"
         "    worldPosition = vec3(model * vec4(aPosition, 1.0f));\n"

@@ -1,6 +1,5 @@
-#include <iostream>
 #include "hello_triangle.h"
-
+#include <iostream>
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
@@ -9,7 +8,7 @@ Options getOptions(int argc, char* argv[]) {
     options.windowHeight = 720;
     options.windowResizable = true;
     options.vSync = true;
-    options.glVersion = { 3, 3 };
+    options.glVersion = {3, 3};
     options.backgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     return options;

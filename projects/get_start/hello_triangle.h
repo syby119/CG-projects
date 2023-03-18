@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory> 
 #include "../base/application.h"
 #include "../base/glsl_program.h"
+#include <memory>
 
 struct Vertex {
     glm::vec3 position;
@@ -21,9 +21,9 @@ private:
     GLuint _vbo = 0;
 
     Vertex _vertices[3] = {
-        { glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) },
-        { glm::vec3(0.5f, -0.5f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f) },
-        { glm::vec3(0.0f,  0.5f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f) }
+        {glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+        { glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+        { glm::vec3(0.0f,  0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
     };
 
     std::unique_ptr<GLSLProgram> _shader;

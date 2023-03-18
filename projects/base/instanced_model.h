@@ -6,10 +6,9 @@
 #include "gl_utility.h"
 #include "model.h"
 
-class InstancedModel: public Model {
+class InstancedModel : public Model {
 public:
-    InstancedModel(const std::string& filepath, 
-                   const std::vector<glm::mat4>& modelMatrices);
+    InstancedModel(const std::string& filepath, const std::vector<glm::mat4>& modelMatrices);
 
     InstancedModel(InstancedModel&& rhs) noexcept;
 
@@ -30,6 +29,7 @@ public:
     void drawBoundingBox(int amount) const;
 
     GLuint getInstacenVbo() const;
+
 private:
     std::vector<glm::mat4> _modelMatrices;
     GLuint _instanceVbo = {};

@@ -35,30 +35,10 @@ set(BASE_SRC ../base/application.cpp
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 
+source_group("Header Files" FILES ${BASE_HDR} ${PROJECT_HDR})
+source_group("Source Files" FILES ${BASE_SRC} ${PROJECT_SRC})
+
 configure_project(${PROJECT_NAME})
-
-if (EMSCRIPTEN)
-    target_compile_options(${PROJECT_NAME} PRIVATE "-fexceptions")
-endif()
-
-if (USE_GLES)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GLES)
-endif()
-
-if (EMSCRIPTEN)
-    set(asset_paths
-        "obj/sphere.obj"
-        "texture/miscellaneous/earthmap.jpg"
-        "texture/miscellaneous/planet_Quom1200.png"
-        "texture/skybox/Right_Tex.jpg"
-        "texture/skybox/Left_Tex.jpg"
-        "texture/skybox/Up_Tex.jpg"
-        "texture/skybox/Down_Tex.jpg"
-        "texture/skybox/Front_Tex.jpg"
-        "texture/skybox/Back_Tex.jpg")
-
-    preload_files(${PROJECT_NAME} asset_paths)
-endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad)

@@ -38,6 +38,8 @@ set(BASE_SRC ../base/application.cpp
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR} ${PROJECT_SHADERS})
 
+source_group("Header Files" FILES ${BASE_HDR} ${PROJECT_HDR})
+source_group("Source Files" FILES ${BASE_SRC} ${PROJECT_SRC})
 source_group("Shader Files" FILES ${PROJECT_SHADERS})
 
 hardlink_shaders(${PROJECT_NAME} ${SHADER_TARGET_PATH} PROJECT_SHADERS)

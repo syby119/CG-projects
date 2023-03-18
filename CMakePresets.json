@@ -1,0 +1,326 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Configuration",
+      "description": "define the common build options",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "GLFW_BUILD_EXAMPLES": "OFF",
+        "GLFW_BUILD_TESTS": "OFF",
+        "GLFW_BUILD_DOCS": "OFF",
+        "TINYGLTF_BUILD_LOADER_EXAMPLE": "OFF",
+        "TINYGLTF_HEADER_ONLY": "OFF",
+        "TINYGLTF_INSTALL": "OFF"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "debug",
+      "description": "debug config",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "release",
+      "description": "release config",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "vs-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "gcc-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "c++"
+      }
+    },
+    {
+      "name": "clang-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "default",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "HostOS": "Windows"
+        }
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "default",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}",
+          "HostOS": "Linux"
+        }
+      }
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "inherits": "default",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "HostOS": "macOS"
+        }
+      }
+    },
+    {
+      "name": "windows-vs-debug",
+      "displayName": "x64 Debug",
+      "description": "Windows Visual Studio debug configuration",
+      "inherits": [ "windows-base", "vs-base", "debug" ]
+    },
+    {
+      "name": "windows-vs-release",
+      "displayName": "x64 Release",
+      "description": "Windows Visual Studio release configuration(RelWithDebInfo)",
+      "inherits": [ "windows-base", "vs-base", "release" ]
+    },
+    {
+      "name": "windows-mingw-debug",
+      "displayName": "MinGW Debug",
+      "description": "Windows MinGW debug configuration",
+      "inherits": [ "windows-base", "gcc-base", "debug" ],
+      "generator": "MinGW Makefiles"
+    },
+    {
+      "name": "windows-mingw-release",
+      "displayName": "MinGW Release",
+      "description": "Windows MinGW release configuration",
+      "inherits": [ "windows-base", "gcc-base", "release" ],
+      "generator": "MinGW Makefiles"
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "GCC Debug",
+      "description": "Linux/WSL2 GCC debug configuration",
+      "inherits": [ "linux-base", "gcc-base", "debug" ],
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "GCC Release",
+      "description": "Linux/WSL2 GCC release configuration",
+      "inherits": [ "linux-base", "gcc-base", "release" ],
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Clang Debug",
+      "description": "Linux/WSL2 Clang debug configuration",
+      "inherits": [ "linux-base", "clang-base", "debug" ],
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "linux-clang-release",
+      "displayName": "Clang Release",
+      "description": "Linux/WSL2 Clang release configuration",
+      "inherits": [ "linux-base", "clang-base", "release" ],
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "macos-xcode-debug",
+      "displayName": "Xcode Debug",
+      "description": "MacOS Xcode debug configuration",
+      "inherits": [ "macos-base", "clang-base", "debug" ],
+      "generator": "Xcode"
+    },
+    {
+      "name": "macos-xcode-release",
+      "displayName": "Xcode Release",
+      "description": "MacOS Xcode release configuration",
+      "inherits": [ "macos-base", "clang-base", "debug" ],
+      "generator": "Xcode"
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Clang Debug",
+      "description": "MacOS Clang debug configuration",
+      "inherits": [ "macos-base", "clang-base", "debug" ],
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Clang Release",
+      "description": "MacOS Clang release configuration",
+      "inherits": [ "macos-base", "clang-base", "release" ],
+      "generator": "Unix Makefiles"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "singlecore",
+      "hidden": true,
+      "jobs": 1
+    },
+    {
+      "name": "multicore",
+      "hidden": true,
+      "jobs": 16
+    },
+    {
+      "name": "multi-config-debug",
+      "hidden": true,
+      "configuration": "Debug"
+    },
+    {
+      "name": "multi-config-release",
+      "hidden": true,
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "inherits": "singlecore"
+    },
+    {
+      "name": "windows-vs-debug",
+      "displayName": "x64 Debug",
+      "configurePreset": "windows-vs-debug",
+      "inherits": [ "windows-base", "multi-config-debug" ]
+    },
+    {
+      "name": "windows-vs-release",
+      "displayName": "x64 Release",
+      "configurePreset": "windows-vs-release",
+      "inherits": [ "windows-base", "multi-config-release" ]
+    },
+    {
+      "name": "windows-mingw-debug",
+      "displayName": "MinGW Debug",
+      "configurePreset": "windows-mingw-debug",
+      "inherits": [ "windows-base", "multicore" ]
+    },
+    {
+      "name": "windows-mingw-release",
+      "displayName": "MinGW Release",
+      "configurePreset": "windows-mingw-release",
+      "inherits": [ "windows-base", "multicore" ]
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "GCC Debug",
+      "configurePreset": "linux-gcc-debug",
+      "inherits": [ "linux-base", "multicore" ],
+      "inheritConfigureEnvironment": true
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "GCC Release",
+      "configurePreset": "linux-gcc-release",
+      "inherits": [ "linux-base", "multicore" ]
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Clang Debug",
+      "configurePreset": "linux-clang-debug",
+      "inherits": [ "linux-base", "multicore" ]
+    },
+    {
+      "name": "linux-clang-release",
+      "displayName": "Clang Release",
+      "configurePreset": "linux-clang-release",
+      "inherits": [ "linux-base", "multicore" ]
+    },
+    {
+      "name": "macos-xcode-debug",
+      "displayName": "Xcode Debug",
+      "configurePreset": "macos-xcode-debug",
+      "inherits": [ "macos-base", "multi-config-debug" ]
+    },
+    {
+      "name": "macos-xcode-release",
+      "displayName": "Xcode Release",
+      "configurePreset": "macos-xcode-release",
+      "inherits": [ "macos-base", "multi-config-release" ]
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Clang Debug",
+      "configurePreset": "macos-clang-debug",
+      "inherits": [ "macos-base", "multicore" ]
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Clang Release",
+      "configurePreset": "macos-clang-release",
+      "inherits": [ "macos-base", "multicore" ]
+    }
+  ]
+}

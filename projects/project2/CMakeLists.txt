@@ -16,20 +16,10 @@ set(BASE_SRC ../base/application.cpp ../base/glsl_program.cpp)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 
+source_group("Header Files" FILES ${BASE_HDR} ${PROJECT_HDR})
+source_group("Source Files" FILES ${BASE_SRC} ${PROJECT_SRC})
+
 configure_project(${PROJECT_NAME})
-
-if (EMSCRIPTEN)
-    target_compile_options(${PROJECT_NAME} PRIVATE "-fexceptions")
-endif()
-
-if (USE_GLES)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GLES)
-endif()
-
-if (EMSCRIPTEN)
-    set(asset_path "obj/bunny.obj")
-    preload_files(${PROJECT_NAME} asset_path)
-endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 target_link_libraries(${PROJECT_NAME} PRIVATE glad)

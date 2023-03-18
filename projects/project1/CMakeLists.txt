@@ -16,6 +16,9 @@ set(BASE_SRC ../base/application.cpp ../base/glsl_program.cpp)
 
 add_executable(project1 ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR})
 
+source_group("Header Files" FILES ${BASE_HDR} ${PROJECT_HDR})
+source_group("Source Files" FILES ${BASE_SRC} ${PROJECT_SRC})
+
 configure_project(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)

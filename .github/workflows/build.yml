@@ -7,9 +7,6 @@ on:
     branches: [ "main", "web" ]
   workflow_dispatch:
 
-env:
-  BUILD_TYPE: Release
-
 jobs:
   build-linux:
     runs-on: ubuntu-latest
@@ -26,10 +23,14 @@ jobs:
         sudo apt install libgl-dev
 
     - name: Configure CMake
-      run: cmake -Bbuild . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake --preset=linux-gcc-debug
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v1
+      id: cpu-cores
 
     - name: Build
-      run: cmake --build build --config ${{env.BUILD_TYPE}} --parallel
+      run: cmake --build --preset=linux-gcc-debug --parallel ${{ steps.cpu-cores.outputs.count }}
 
   build-mac:
     runs-on: macos-latest
@@ -40,10 +41,14 @@ jobs:
           submodules: recursive
 
       - name: Config CMake
-        run: cmake -Bbuild . -G Xcode -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake --preset=macos-xcode-debug
+
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
 
       - name: Build
-        run: cmake --build build --config ${{env.BUILD_TYPE}} --parallel
+        run: cmake --build --preset=macos-xcode-debug --parallel ${{ steps.cpu-cores.outputs.count }}
 
   build-windows-vs:
     runs-on: windows-latest
@@ -54,10 +59,14 @@ jobs:
         submodules: recursive
 
     - name: Configure CMake with Visual Studio
-      run: cmake -Bbuild . -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -Bbuild .
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v1
+      id: cpu-cores
 
     - name: Build with Visual Studio
-      run: cmake --build build --config ${{env.BUILD_TYPE}} --parallel
+      run: cmake --build build --parallel ${{ steps.cpu-cores.outputs.count }}
 
   build-windows-mingw:
     runs-on: windows-latest
@@ -68,10 +77,10 @@ jobs:
         submodules: recursive
 
     - name: Configure CMake
-      run: cmake -Bbuild . -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake --preset=windows-mingw-debug
 
     - name: Build
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+      run: cmake --build --preset=windows-mingw-debug --parallel 1
 
   build-web:
     if: ${{ github.ref == 'refs/heads/web' }}

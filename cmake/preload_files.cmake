@@ -1,7 +1,0 @@
-function(preload_files target file_relative_paths)
-    set(flags "")
-    foreach(relpath ${${file_relative_paths}})
-        string(APPEND flags "--preload-file ${CMAKE_BINARY_DIR}/media/${relpath}@../../media/${relpath} ")
-    endforeach()
-    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS ${flags})
-endfunction()

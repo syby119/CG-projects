@@ -17,7 +17,9 @@ This will help you understanding:
 
 Basically, I follow the [Learning OpenGL](https://learnopengl-cn.github.io/) tutorials and refactor the old version assignments in an object oriented way. The students should have some knowledge of modern C++. Don't be panic if you haven't learnt C++ yet. You'll write no more than 20 lines of code for most of the assignments.
 
-You can find more materials in [Bilibili](https://space.bilibili.com/52683403/channel/collectiondetail?sid=749547&ctype=0)
+You can find more materials on [Bilibili](https://space.bilibili.com/52683403/channel/collectiondetail?sid=749547&ctype=0)
+
+You can also find the reference demos on [Github](https://github.com/syby119/CG-projects-reference)
 
 ### Get the repository
 ```shell

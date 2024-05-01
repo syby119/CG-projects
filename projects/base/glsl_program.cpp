@@ -222,7 +222,7 @@ void GLSLProgram::setUniformMat2(const std::string& name, const glm::mat2& mat2)
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform3fv(location, 1, glm::value_ptr(mat2));
+    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(mat2));
 }
 
 void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3) const {
@@ -231,7 +231,7 @@ void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3)
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    glUniform3fv(location, 1, glm::value_ptr(mat3));
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(mat3));
 }
 
 void GLSLProgram::setUniformMat4(const std::string& name, const glm::mat4& mat4) const {

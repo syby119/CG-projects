@@ -18,11 +18,11 @@ GLSLProgram::GLSLProgram() {
 GLSLProgram::GLSLProgram(GLSLProgram&& rhs) noexcept
     : _handle(rhs._handle), _vertexShaders(std::move(rhs._vertexShaders)),
       _geometryShaders(std::move(rhs._geometryShaders)),
-      _fragmentShaders(std::move(rhs._fragmentShaders)) {
+      _fragmentShaders(std::move(rhs._fragmentShaders)),
+      _computeShaders(std::move(rhs._computeShaders)),
+      _taskShaders(std::move(rhs._taskShaders)),
+      _meshShaders(std::move(rhs._meshShaders)) {
     rhs._handle = 0;
-    rhs._vertexShaders.clear();
-    rhs._geometryShaders.clear();
-    rhs._fragmentShaders.clear();
 }
 
 GLSLProgram::~GLSLProgram() {
@@ -36,6 +36,18 @@ GLSLProgram::~GLSLProgram() {
 
     for (const auto fragmentShader : _fragmentShaders) {
         glDeleteShader(fragmentShader);
+    }
+
+    for (const auto computeShader : _computeShaders) {
+        glDeleteShader(computeShader);
+    }
+
+    for (const auto taskShader : _taskShaders) {
+        glDeleteShader(taskShader);
+    }
+
+    for (const auto meshShader : _meshShaders) {
+        glDeleteShader(meshShader);
     }
 
     if (_handle) {
@@ -60,6 +72,24 @@ void GLSLProgram::attachFragmentShader(const std::string& code) {
     GLuint fragmentShader = createShader(code, GL_FRAGMENT_SHADER);
     glAttachShader(_handle, fragmentShader);
     _fragmentShaders.push_back(fragmentShader);
+}
+
+void GLSLProgram::attachComputeShader(const std::string& code) {
+    GLuint computeShader = createShader(code, GL_COMPUTE_SHADER);
+    glAttachShader(_handle, computeShader);
+    _computeShaders.push_back(computeShader);
+}
+
+void GLSLProgram::attachTaskShader(const std::string& code) {
+    GLuint taskShader = createShader(code, GL_TASK_SHADER_NV);
+    glAttachShader(_handle, taskShader);
+    _taskShaders.push_back(taskShader);
+}
+
+void GLSLProgram::attachMeshShader(const std::string& code) {
+    GLuint meshShader = createShader(code, GL_MESH_SHADER_NV);
+    glAttachShader(_handle, meshShader);
+    _meshShaders.push_back(meshShader);
 }
 
 void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {

@@ -17,9 +17,15 @@ public:
 
     void attachVertexShader(const std::string& code);
 
-    void attachGeometryShader(const std::string& filePath);
+    void attachGeometryShader(const std::string& code);
 
     void attachFragmentShader(const std::string& code);
+
+    void attachComputeShader(const std::string& code);
+
+    void attachTaskShader(const std::string& code);
+
+    void attachMeshShader(const std::string& code);
 
     void attachVertexShaderFromFile(const std::string& filePath);
 
@@ -71,6 +77,12 @@ private:
     std::vector<GLuint> _geometryShaders;
 
     std::vector<GLuint> _fragmentShaders;
+
+    std::vector<GLuint> _computeShaders;
+
+    std::vector<GLuint> _taskShaders;
+
+    std::vector<GLuint> _meshShaders;
 
     static std::string readFile(const std::string& filePath);
 

@@ -71,6 +71,9 @@ set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(./external/tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 
+add_subdirectory(./externel/meshoptimizer)
+set_target_properties(meshoptimizer PROPERTIES FOLDER "lib")
+
 # add projects
 set(PROJECTS_DIR ${CMAKE_SOURCE_DIR}/projects)
 file(GLOB targets LIST_DIRECTORIES true

@@ -1,0 +1,80 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+#extension GL_NV_gpu_shader5 : require
+
+#define WORK_GROUP_SIZE     32
+#define BV_MAX_COUNT         8
+#define BV_VERTEX_COUNT      8
+#define BV_LINE_COUNT       12
+#define BV_INDEX_COUNT      (2 * BV_LINE_COUNT)
+#define MAX_VERTICES        (BV_VERTEX_COUNT * BV_MAX_COUNT)
+#define MAX_PRIMITIVES      (BV_LINE_COUNT * BV_MAX_COUNT)
+
+#define VERTEX_ITERATIONS    ((MAX_VERTICES + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE)
+#define PRIMITIVE_ITERATIONS ((2 * MAX_PRIMITIVES + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE)
+
+layout(local_size_x = WORK_GROUP_SIZE) in;
+layout(lines, max_vertices = MAX_VERTICES, max_primitives = MAX_PRIMITIVES) out;
+
+layout(location = 0) out PerVertexData {
+    vec3 color;
+} vertOut[];
+
+struct MeshletBV {
+    vec3 pMin;
+    vec3 pMax;
+};
+
+uniform uint meshletBVCount;
+uniform mat4 viewProjection;
+uniform mat4 model;
+uniform vec3 lineColor;
+
+layout(std430, binding = 5) readonly buffer MeshletBVBuffer { MeshletBV meshletBVs[]; };
+
+vec3 getCorner(MeshletBV bv, uint i) {
+    bvec3 useMax = bvec3((i & 1) != 0, (i & 2) != 0, (i & 4) != 0);
+    return mix(bv.pMin, bv.pMax, useMax);
+}
+
+void main() {
+    uint bid = gl_WorkGroupID.x;        // blockIdx.x
+    uint tid = gl_LocalInvocationID.x;  // threadIdx.x
+
+    // vertices
+    uint bvBaseIndex = bid * BV_MAX_COUNT;
+    uint cIndex = tid % 8;
+    for (uint i = 0; i < VERTEX_ITERATIONS; ++i) {
+        uint index = tid + i * WORK_GROUP_SIZE;
+        uint bvIndex = bvBaseIndex + index / 8;
+        if (bvIndex >= meshletBVCount) {
+            break;
+        }
+
+        vec3 corner = getCorner(meshletBVs[bvIndex], cIndex);
+        gl_MeshVerticesNV[index].gl_Position = viewProjection * model * vec4(corner, 1.0);
+        vertOut[index].color = lineColor;
+    }
+
+    // indices
+    const uint bvCornerIndices[BV_INDEX_COUNT] = uint[](
+        0, 1, 0, 2, 1, 3, 2, 3,
+        0, 4, 1, 5, 2, 6, 3, 7,
+        4, 5, 4, 6, 5, 7, 6, 7
+    );
+    for (uint i = 0; i < PRIMITIVE_ITERATIONS; ++i) {
+        uint index = tid + i * WORK_GROUP_SIZE;
+        if (index >= 2 * MAX_PRIMITIVES) {
+            break;
+        }
+
+        uint bvIndex = index / BV_INDEX_COUNT;
+        uint cIndex = index % BV_INDEX_COUNT;
+        gl_PrimitiveIndicesNV[index] = bvIndex * BV_VERTEX_COUNT + bvCornerIndices[cIndex];
+    }
+
+    // primitive count
+    if (tid == 0) {
+        gl_PrimitiveCountNV = min(BV_MAX_COUNT, meshletBVCount - bvBaseIndex) * BV_LINE_COUNT;
+    }
+}

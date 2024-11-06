@@ -17,6 +17,7 @@ set(BASE_HDR ../base/gl_utility.h
              ../base/camera.h
              ../base/bounding_box.h
              ../base/texture.h
+             ../base/bounding_box.h
              ../base/model.h)
 
 set(BASE_SRC ../base/application.cpp

@@ -1,0 +1,99 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+#extension GL_NV_gpu_shader5 : require
+
+#define WORK_GROUP_SIZE          32
+#define MAX_VERTICES             64
+#define MAX_PRIMITIVES          126
+#define MESHLET_PER_TASK_GROUP   32
+#define ENABLE_STATISTIC          0
+
+#define VERTEX_ITERATIONS    ((MAX_VERTICES + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE)
+#define PRIMITIVE_ITERATIONS ((MAX_PRIMITIVES + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE)
+
+layout(local_size_x = WORK_GROUP_SIZE) in;
+layout(triangles, max_vertices = MAX_VERTICES, max_primitives = MAX_PRIMITIVES) out;
+
+taskNV in Task {
+    uint instanceIndex;
+    uint meshletBaseIndex;
+    uint8_t meshletDeltaIndices[MESHLET_PER_TASK_GROUP];
+} meshIn;
+
+out PerVertexData {
+    vec3 positionWS;
+    vec3 normalWS;
+    vec2 texCoord;
+} vertOut[];
+
+struct Vertex {
+    vec3 position;
+    float u;
+    vec3 normal;
+    float v;
+};
+
+struct Meshlet {
+    uint vertexCount;
+    uint vertexOffset;
+    uint primitiveCount;
+    uint primitiveOffset;
+};
+
+struct Statistics {
+    uint primitives;
+};
+
+layout(std430, binding = 0) readonly buffer VertexBuffer { Vertex vertices[]; };
+layout(std430, binding = 1) readonly buffer VertexIndicesBuffer { uint vertexIndices[]; };
+layout(std430, binding = 2) readonly buffer PrimitiveIndicesBuffer { uint8_t primitiveIndices[]; };
+layout(std430, binding = 3) readonly buffer MeshletBuffer { Meshlet meshlets[]; };
+layout(std430, binding = 4) readonly buffer InstanceMatricesBuffer { mat4 instanceMatrices[]; };
+layout(std430, binding = 7) readonly buffer StatisticsBuffer { Statistics statistics; };
+
+uniform mat4 viewProjection;
+
+void main() {
+    uint bid = gl_WorkGroupID.x;        // blockIdx.x
+    uint tid = gl_LocalInvocationID.x;  // threadIdx.x
+
+    mat4 model = instanceMatrices[meshIn.instanceIndex];
+    mat3 normalMatrix = mat3(transpose(inverse(model)));
+
+    uint meshletIndex = meshIn.meshletBaseIndex + meshIn.meshletDeltaIndices[bid];
+    Meshlet m = meshlets[meshletIndex];
+
+    // vertices
+    for (uint i = 0; i < VERTEX_ITERATIONS; ++i) {
+        uint index = tid + i * WORK_GROUP_SIZE;
+        if (index < m.vertexCount) {
+            Vertex vertex = vertices[vertexIndices[m.vertexOffset + index]];
+            vec4 positionWS = model * vec4(vertex.position, 1.0);
+
+            gl_MeshVerticesNV[index].gl_Position = viewProjection * positionWS;
+            vertOut[index].positionWS = positionWS.xyz;
+            vertOut[index].normalWS = normalMatrix * vertex.normal;
+            vertOut[index].texCoord = vec2(vertex.u, vertex.v);
+        }
+    }
+            
+    // indices
+    for (uint i = 0; i < PRIMITIVE_ITERATIONS; ++i) {
+        uint index = 3 * (tid + i * WORK_GROUP_SIZE);
+        if (index < 3 * m.primitiveCount) {
+            gl_PrimitiveIndicesNV[index + 0] = primitiveIndices[m.primitiveOffset + index + 0];
+            gl_PrimitiveIndicesNV[index + 1] = primitiveIndices[m.primitiveOffset + index + 1];
+            gl_PrimitiveIndicesNV[index + 2] = primitiveIndices[m.primitiveOffset + index + 2];
+        }
+    }
+
+    // primitive count
+    if (tid == 0) {
+        gl_PrimitiveCountNV = m.primitiveCount;
+#if ENABLE_STATISTIC
+        // atomicAdd the variable in the global memory will really harm performace
+        // It is reported with Vulkan as well, but DirectX 12 doesn't suffer from the problem
+        atomicAdd(statistics.primitives, gl_PrimitiveCountNV);
+#endif
+    }
+}

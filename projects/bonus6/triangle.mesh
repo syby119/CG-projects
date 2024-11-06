@@ -1,0 +1,41 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+
+layout(local_size_x = 1) in;
+layout(triangles, max_vertices = 3, max_primitives = 1) out;
+
+out PerVertexData {
+    vec3 color;
+} vertOut[];
+
+const vec3 vertices[3] = {
+    vec3(-0.8, -0.8, 0.0),
+    vec3(+0.0, +0.8, 0.0),
+    vec3(+0.8, -0.8, 0.0)
+};
+
+const vec3 colors[3] = {
+    vec3(1.0, 0.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+};
+
+void main() {
+    // position for rasterization
+    gl_MeshVerticesNV[0].gl_Position = vec4(vertices[0], 1.0);
+    gl_MeshVerticesNV[1].gl_Position = vec4(vertices[1], 1.0);
+    gl_MeshVerticesNV[2].gl_Position = vec4(vertices[2], 1.0);
+
+    // color for fragment shader
+    vertOut[0].color = colors[0];
+    vertOut[1].color = colors[1];
+    vertOut[2].color = colors[2];
+
+    // indices for rasterization
+    gl_PrimitiveIndicesNV[0] = 0;
+    gl_PrimitiveIndicesNV[1] = 1;
+    gl_PrimitiveIndicesNV[2] = 2;
+
+    // primitive count
+    gl_PrimitiveCountNV = 1;
+}

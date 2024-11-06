@@ -13,4 +13,11 @@ struct BoundingBox {
 
         return *this;
     }
+
+    BoundingBox& operator+=(const glm::vec3& point) {
+        min = glm::min(min, point);
+        max = glm::max(max, point);
+
+        return *this;
+    }
 };

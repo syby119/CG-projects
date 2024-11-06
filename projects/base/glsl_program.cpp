@@ -96,9 +96,8 @@ void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachVertexShader(code);
-    } catch (const std::runtime_error&) {
-        std::cerr << "Compile " << filePath << " error" << std::endl;
-        throw;
+    } catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
 
@@ -106,9 +105,9 @@ void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachGeometryShader(code);
-    } catch (const std::runtime_error&) {
-        std::cerr << "Compile " << filePath << " error" << std::endl;
-        throw;
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
 
@@ -116,9 +115,39 @@ void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachFragmentShader(code);
-    } catch (const std::runtime_error&) {
-        std::cerr << "Compile " << filePath << " error" << std::endl;
-        throw;
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
+    }
+}
+
+void GLSLProgram::attachComputeShaderFromFile(const std::string& filePath) {
+    const std::string& code = readFile(filePath);
+    try {
+        attachComputeShader(code);
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
+    }
+}
+
+void GLSLProgram::attachTaskShaderFromFile(const std::string& filePath) {
+    const std::string& code = readFile(filePath);
+    try {
+        attachTaskShader(code);
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
+    }
+}
+
+void GLSLProgram::attachMeshShaderFromFile(const std::string& filePath) {
+    const std::string& code = readFile(filePath);
+    try {
+        attachMeshShader(code);
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
 

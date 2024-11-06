@@ -11,5 +11,7 @@
 	path = external/glm
 	url = https://github.com/g-truc/glm.git
 [submodule "externel/meshoptimizer"]
-	path = externel/meshoptimizer
+	path = external/meshoptimizer
 	url = https://github.com/zeux/meshoptimizer.git
+[submodule "meshoptimizer"]
+	path = external/meshoptimizer

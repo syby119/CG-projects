@@ -1,0 +1,138 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+#extension GL_NV_gpu_shader5 : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+
+#define USE_CULLBITS             1
+#define WORK_GROUP_SIZE         32
+#define MESHLET_PER_TASK_GROUP  32
+
+#define MESHLET_ITERATION  (MESHLET_PER_TASK_GROUP + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE
+
+layout(local_size_x = WORK_GROUP_SIZE) in;
+
+struct MeshletBV {
+    vec3 pMin;
+    vec3 pMax;
+};
+
+uniform uint meshletCount;
+uniform mat4 viewProjection;
+
+layout(std430, binding = 4) readonly buffer InstanceMatricesBuffer { mat4 instanceMatrices[]; };
+layout(std430, binding = 5) readonly buffer MeshletBVBuffer { MeshletBV meshletBVs[]; };
+
+taskNV out Task {
+    uint instanceIndex;
+    uint meshletBaseIndex;
+    uint8_t meshletDeltaIndices[MESHLET_PER_TASK_GROUP];
+} taskOut;
+
+vec3 getCorner(MeshletBV bv, uint i) {
+    bvec3 useMax = bvec3((i & 1) != 0, (i & 2) != 0, (i & 4) != 0);
+    return mix(bv.pMin, bv.pMax, useMax);
+}
+
+uint getCullBits(vec4 positionCS) {
+    uint cullBits = 0;
+    cullBits |= positionCS.x < -positionCS.w ?  1 : 0;
+    cullBits |= positionCS.x >  positionCS.w ?  2 : 0;
+    cullBits |= positionCS.y < -positionCS.w ?  4 : 0;
+    cullBits |= positionCS.y >  positionCS.w ?  8 : 0;
+    cullBits |= positionCS.z < -positionCS.w ? 16 : 0;
+    cullBits |= positionCS.z >  positionCS.w ? 32 : 0;
+    cullBits |= positionCS.w <= 0            ? 64 : 0;
+
+    return cullBits;
+}
+
+bool isCulled(MeshletBV bv, mat4 mvp) {
+#if USE_CULLBITS
+    uint frustumBits = ~0;
+    for (int i = 0; i < 8; ++i) {
+        vec4 positionMS = vec4(getCorner(bv, i), 1.0);
+        frustumBits &= getCullBits(mvp * positionMS);
+        if (frustumBits == 0) {
+            break;
+        }
+    }
+
+    return frustumBits != 0;
+#else
+    vec4 corners[8] = vec4[](
+        mvp * vec4(getCorner(bv, 0), 1.0),
+        mvp * vec4(getCorner(bv, 1), 1.0),
+        mvp * vec4(getCorner(bv, 2), 1.0),
+        mvp * vec4(getCorner(bv, 3), 1.0),
+        mvp * vec4(getCorner(bv, 4), 1.0),
+        mvp * vec4(getCorner(bv, 5), 1.0),
+        mvp * vec4(getCorner(bv, 6), 1.0),
+        mvp * vec4(getCorner(bv, 7), 1.0)
+    );
+
+    for (int i = 0; i < 8; ++i) {
+       corners[i] /= corners[i].w;
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        if (corners[0][i] > 1 && 
+            corners[1][i] > 1 &&
+            corners[2][i] > 1 &&
+            corners[3][i] > 1 &&
+            corners[4][i] > 1 &&
+            corners[5][i] > 1 &&
+            corners[6][i] > 1 &&
+            corners[7][i] > 1) {
+            return true;    
+        }
+
+        if (corners[0][i] < -1 && 
+            corners[1][i] < -1 &&
+            corners[2][i] < -1 &&
+            corners[3][i] < -1 &&
+            corners[4][i] < -1 &&
+            corners[5][i] < -1 &&
+            corners[6][i] < -1 &&
+            corners[7][i] < -1) {
+            return true;    
+        }
+    }
+
+    return false;
+#endif
+}
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint bid = gl_WorkGroupID.x;
+
+    uint instBlockCnt = (meshletCount + MESHLET_PER_TASK_GROUP - 1) / MESHLET_PER_TASK_GROUP;
+    uint meshletBaseIndex = (bid % instBlockCnt) * MESHLET_PER_TASK_GROUP;
+    uint instanceIndex = bid / instBlockCnt;
+    mat4 mvp = viewProjection * instanceMatrices[instanceIndex];
+
+    uint meshletRenderCount = 0;
+    for (int i = 0; i < MESHLET_ITERATION; ++i) {
+        uint meshletLocalIndex = tid + i * WORK_GROUP_SIZE;
+        uint meshletGlobalIndex = meshletBaseIndex + meshletLocalIndex;
+
+        bool render = (meshletGlobalIndex < meshletCount) &&
+                      (!isCulled(meshletBVs[meshletGlobalIndex], mvp));
+        uvec4 renderMask = subgroupBallot(render);
+        uint renderCount = subgroupBallotBitCount(renderMask);
+        uint indexOffset = subgroupBallotExclusiveBitCount(renderMask) + meshletRenderCount;
+
+        if (render) {
+            taskOut.meshletDeltaIndices[indexOffset] = uint8_t(meshletLocalIndex);
+        }
+
+        meshletRenderCount += renderCount;
+    }
+
+    if (tid == 0) {
+        taskOut.instanceIndex = instanceIndex;
+        taskOut.meshletBaseIndex = meshletBaseIndex;
+        gl_TaskCountNV = meshletRenderCount;
+    }
+}

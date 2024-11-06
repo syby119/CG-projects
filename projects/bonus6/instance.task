@@ -1,0 +1,51 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+#extension GL_NV_gpu_shader5 : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+
+#define WORK_GROUP_SIZE         32
+#define MESHLET_PER_TASK_GROUP  32
+
+#define MESHLET_ITERATION (MESHLET_PER_TASK_GROUP + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE
+
+layout(local_size_x = WORK_GROUP_SIZE) in;
+
+uniform uint meshletCount;
+
+taskNV out Task {
+    uint instanceIndex;
+    uint meshletBaseIndex;
+    uint8_t meshletDeltaIndices[MESHLET_PER_TASK_GROUP];
+} taskOut;
+        
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint bid = gl_WorkGroupID.x;
+
+    uint instBlockCnt = (meshletCount + MESHLET_PER_TASK_GROUP - 1) / MESHLET_PER_TASK_GROUP;
+    uint meshletBaseIndex = (bid % instBlockCnt) * MESHLET_PER_TASK_GROUP;
+
+    uint meshletRenderCount = 0;
+    for (int i = 0; i < MESHLET_ITERATION; ++i) {
+        uint meshletLocalIndex = tid + i * WORK_GROUP_SIZE;
+        uint meshletGlobalIndex = meshletBaseIndex + meshletLocalIndex;
+
+        bool render = meshletGlobalIndex < meshletCount;
+        uvec4 renderMask = subgroupBallot(render);
+        uint renderCount = subgroupBallotBitCount(renderMask);
+        uint indexOffset = subgroupBallotExclusiveBitCount(renderMask) + meshletRenderCount;
+
+        if (render) {
+            taskOut.meshletDeltaIndices[indexOffset] = uint8_t(meshletLocalIndex);
+        }
+
+        meshletRenderCount += renderCount;
+    }
+
+    if (tid == 0) {
+        taskOut.instanceIndex = bid / instBlockCnt;
+        taskOut.meshletBaseIndex = meshletBaseIndex;
+        gl_TaskCountNV = meshletRenderCount;
+    }
+}

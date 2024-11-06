@@ -33,6 +33,12 @@ public:
 
     void attachFragmentShaderFromFile(const std::string& filePath);
 
+    void attachComputeShaderFromFile(const std::string& filePath);
+
+    void attachTaskShaderFromFile(const std::string& filePath);
+
+    void attachMeshShaderFromFile(const std::string& filePath);
+
     void setTransformFeedbackVaryings(const std::vector<const char*>& varyings, GLenum bufferMode);
 
     void link();

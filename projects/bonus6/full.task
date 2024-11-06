@@ -1,0 +1,118 @@
+#version 450 core
+#extension GL_NV_mesh_shader : require
+#extension GL_NV_gpu_shader5 : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+
+#define WORK_GROUP_SIZE         32
+#define MESHLET_PER_TASK_GROUP  32
+
+#define MESHLET_ITERATION  (MESHLET_PER_TASK_GROUP + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE
+
+layout(local_size_x = WORK_GROUP_SIZE) in;
+
+struct MeshletBV {
+    vec3 pMin;
+    vec3 pMax;
+};
+
+struct MeshletLodInfo {
+    uint meshletOffset;
+    uint meshletCount;
+};
+
+uniform mat4 viewProjection;
+uniform vec3 viewPositionWS;
+uniform vec3 centerMS;
+uniform uint lodCount;
+uniform float maxLodDistance;
+
+layout(std430, binding = 4) readonly buffer InstanceMatricesBuffer { mat4 instanceMatrices[]; };
+layout(std430, binding = 5) readonly buffer MeshletBVBuffer { MeshletBV meshletBVs[]; };
+layout(std430, binding = 6) readonly buffer MeshletLodInfoBuffer { MeshletLodInfo meshletLodInfos[]; };
+
+taskNV out Task {
+    uint instanceIndex;
+    uint meshletBaseIndex;
+    uint8_t meshletDeltaIndices[MESHLET_PER_TASK_GROUP];
+} taskOut;
+
+vec3 getCorner(MeshletBV bv, uint i) {
+    bvec3 useMax = bvec3((i & 1) != 0, (i & 2) != 0, (i & 4) != 0);
+    return mix(bv.pMin, bv.pMax, useMax);
+}
+
+uint getCullBits(vec4 positionCS) {
+    uint cullBits = 0;
+    cullBits |= positionCS.x < -positionCS.w ?  1 : 0;
+    cullBits |= positionCS.x >  positionCS.w ?  2 : 0;
+    cullBits |= positionCS.y < -positionCS.w ?  4 : 0;
+    cullBits |= positionCS.y >  positionCS.w ?  8 : 0;
+    cullBits |= positionCS.z < -positionCS.w ? 16 : 0;
+    cullBits |= positionCS.z >  positionCS.w ? 32 : 0;
+    cullBits |= positionCS.w <= 0            ? 64 : 0;
+
+    return cullBits;
+}
+
+bool isCulled(MeshletBV bv, mat4 mvp) {
+    uint frustumBits = ~0;
+    for (int i = 0; i < 8; ++i) {
+        bvec3 useMax = bvec3((i & 1) != 0, (i & 2) != 0, (i & 4) != 0);
+        vec4 positionMS = vec4(mix(bv.pMin, bv.pMax, useMax), 1.0);
+        frustumBits &= getCullBits(mvp * positionMS);
+        if (frustumBits == 0) {
+            break;
+        }
+    }
+
+    return frustumBits != 0;
+}
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint bid = gl_WorkGroupID.x;
+
+    uint instBlockCnt = 
+        (meshletLodInfos[0].meshletCount + MESHLET_PER_TASK_GROUP - 1) / MESHLET_PER_TASK_GROUP;
+    uint instanceIndex = bid / instBlockCnt;
+    uint meshletBaseIndex = (bid % instBlockCnt) * MESHLET_PER_TASK_GROUP;
+    
+    // select lod
+    vec3 centerWS = (instanceMatrices[instanceIndex] * vec4(centerMS, 1.0)).xyz;
+    float distToCamera = distance(viewPositionWS, centerWS);
+    float distPercetage = clamp(distToCamera / maxLodDistance, 0.0, 1.0);
+    uint lod = uint(pow(distPercetage, 0.65) * (lodCount - 1));
+
+    // select meshlet
+    uint meshletMax = meshletLodInfos[lod].meshletOffset + meshletLodInfos[lod].meshletCount;
+    meshletBaseIndex += meshletLodInfos[lod].meshletOffset;
+    
+    // select instance for culling
+    mat4 mvp = viewProjection * instanceMatrices[instanceIndex];
+
+    uint meshletRenderCount = 0;
+    for (int i = 0; i < MESHLET_ITERATION; ++i) {
+        uint meshletLocalIndex = tid + i * WORK_GROUP_SIZE;
+        uint meshletGlobalIndex = meshletBaseIndex + meshletLocalIndex;
+
+        bool render = (meshletGlobalIndex < meshletMax) &&
+                      (!isCulled(meshletBVs[meshletGlobalIndex], mvp));
+        uvec4 renderMask = subgroupBallot(render);
+        uint renderCount = subgroupBallotBitCount(renderMask);
+        uint indexOffset = subgroupBallotExclusiveBitCount(renderMask) + meshletRenderCount;
+
+        if (render) {
+            taskOut.meshletDeltaIndices[indexOffset] = uint8_t(meshletLocalIndex);
+        }
+
+        meshletRenderCount += renderCount;
+    }
+
+    if (tid == 0) {
+        taskOut.instanceIndex = instanceIndex;
+        taskOut.meshletBaseIndex = meshletBaseIndex;
+        gl_TaskCountNV = meshletRenderCount;
+    }
+}

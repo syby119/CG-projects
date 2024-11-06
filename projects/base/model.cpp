@@ -55,13 +55,12 @@ Model::Model(const std::string& filepath) {
             }
 
             // check if the vertex appeared before to reduce redundant data
-            //if (uniqueVertices.count(vertex) == 0) {
-            //    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+            if (uniqueVertices.count(vertex) == 0) {
+                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
                 vertices.push_back(vertex);
-            //}
+            }
 
-            //indices.push_back(uniqueVertices[vertex]);
-            indices.push_back(vertices.size() - 1);
+            indices.push_back(uniqueVertices[vertex]);
         }
     }
 

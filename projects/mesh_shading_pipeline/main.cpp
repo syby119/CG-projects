@@ -6,13 +6,13 @@
 Options getOptions(int argc, char* argv[]) {
     Options options;
     options.windowTitle = "MeshShader";
-    options.windowWidth = 3840;
-    options.windowHeight = 2160;
+    options.windowWidth = 1280;
+    options.windowHeight = 720;
     options.windowResizable = false;
     options.vSync = false;
     options.msaa = true;
     options.glVersion = {4, 5};
-    options.backgroundColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    options.backgroundColor = glm::vec4(0.051f, 0.142f, 0.191f, 1.0f);
     options.assetRootDir = "../../media/";
 
     return options;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(bonus6)
+project(mesh_shading_pipeline)
 
 set(SHADER_TARGET_PATH ${CMAKE_BINARY_DIR}/media/shader/${PROJECT_NAME})
 

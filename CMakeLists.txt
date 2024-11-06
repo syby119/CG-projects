@@ -71,7 +71,7 @@ set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(./external/tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 
-add_subdirectory(./externel/meshoptimizer)
+add_subdirectory(./external/meshoptimizer)
 set_target_properties(meshoptimizer PROPERTIES FOLDER "lib")
 
 # add projects

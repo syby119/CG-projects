@@ -135,83 +135,83 @@ void MeshShadingPipeline::initPrograms() {
     // traditional program
     _traditionalProgram.reset(new GLSLProgram);
     _traditionalProgram->attachVertexShaderFromFile(
-        getAssetFullPath("shader/bonus6/traditional.vert"));
+        getAssetFullPath("shader/mesh_shading_pipeline/traditional.vert"));
     _traditionalProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/lambert.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/lambert.frag"));
     _traditionalProgram->link();
 
     // generate triangle on the fly
     _triangleProgram.reset(new GLSLProgram);
     _triangleProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/triangle.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/triangle.mesh"));
     _triangleProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _triangleProgram->link();
 
     // render meshlet model use mesh shader
     _meshletProgram.reset(new GLSLProgram);
     _meshletProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/meshlet.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/meshlet.mesh"));
     _meshletProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _meshletProgram->link();
 
     // render meshlet model bv use mesh shader
     _meshletBVProgram.reset(new GLSLProgram);
     _meshletBVProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/bv.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/bv.mesh"));
     _meshletBVProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _meshletBVProgram->link();
 
     // render meshlet model use task shader and mesh shader
     _meshlet2Program.reset(new GLSLProgram);
     _meshlet2Program->attachTaskShaderFromFile(
-        getAssetFullPath("shader/bonus6/meshlet2.task"));
+        getAssetFullPath("shader/mesh_shading_pipeline/meshlet2.task"));
     _meshlet2Program->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/meshlet2.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/meshlet2.mesh"));
     _meshlet2Program->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _meshlet2Program->link();
 
     // render instanced meshlet model
     _instanceProgram.reset(new GLSLProgram);
     _instanceProgram->attachTaskShaderFromFile(
-        getAssetFullPath("shader/bonus6/instance.task"));
+        getAssetFullPath("shader/mesh_shading_pipeline/instance.task"));
     _instanceProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/instance.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/instance.mesh"));
     _instanceProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _instanceProgram->link();
 
     // frustum culling with instanced meshlet model
     _cullProgram.reset(new GLSLProgram);
     _cullProgram->attachTaskShaderFromFile(
-        getAssetFullPath("shader/bonus6/cull.task"));
+        getAssetFullPath("shader/mesh_shading_pipeline/cull.task"));
     _cullProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/cull.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/cull.mesh"));
     _cullProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _cullProgram->link();
 
     // level of detail with instanced meshlet model
     _lodProgram.reset(new GLSLProgram);
     _lodProgram->attachTaskShaderFromFile(
-        getAssetFullPath("shader/bonus6/lod.task"));
+        getAssetFullPath("shader/mesh_shading_pipeline/lod.task"));
     _lodProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/lod.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/lod.mesh"));
     _lodProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/flat_color.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/flat_color.frag"));
     _lodProgram->link();
 
     // frustum culling and level of detail with instanced meshlet model
     _fullProgram.reset(new GLSLProgram);
     _fullProgram->attachTaskShaderFromFile(
-        getAssetFullPath("shader/bonus6/full.task"));
+        getAssetFullPath("shader/mesh_shading_pipeline/full.task"));
     _fullProgram->attachMeshShaderFromFile(
-        getAssetFullPath("shader/bonus6/full.mesh"));
+        getAssetFullPath("shader/mesh_shading_pipeline/full.mesh"));
     _fullProgram->attachFragmentShaderFromFile(
-        getAssetFullPath("shader/bonus6/lambert.frag"));
+        getAssetFullPath("shader/mesh_shading_pipeline/lambert.frag"));
     _fullProgram->link();
 }
 
@@ -416,7 +416,6 @@ void MeshShadingPipeline::renderTriangle() {
 
 void MeshShadingPipeline::renderMeshlet(bool showBV) {
     glm::mat4 viewProjection{ _camera->getProjectionMatrix() * _camera->getViewMatrix() };
-    //glm::mat4 model{ glm::mat4(1.0f) };
     float theta{ (float)glfwGetTime() };
     glm::mat4 model{ glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f)) };
 
@@ -462,9 +461,7 @@ void MeshShadingPipeline::renderMeshlet(bool showBV) {
 
 void MeshShadingPipeline::renderMeshlet2() {
     glm::mat4 viewProjection{ _camera->getProjectionMatrix() * _camera->getViewMatrix() };
-    //glm::mat4 model{ glm::mat4(1.0f) };
-    //float theta{ (float)glfwGetTime() };
-    float theta{ 0.0f };
+    float theta{ (float)glfwGetTime() };
     glm::mat4 model{ glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f)) };
 
     _meshlet2Program->use();

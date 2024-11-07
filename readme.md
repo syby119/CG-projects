@@ -81,38 +81,42 @@ python run_webassembly.py pbr_viewer.html
     <img src="./screenshots/run_demo_web.png" width="100%"/>
 </div>
 
+### Experimental
+The **experimental** branch contains the projects that are not cross-platform and require specfic hardware support. Windows + Nvidia GPU is tested only.
+
 ### Screenshots
 
-| **get_start: triangle**                              | **pbr_viewer: PBR/IBL**                               |
-| :--------------------------------------------------: | :---------------------------------------------------: |
-| <img src="./screenshots/get_start.png" width="100%"> | <img src="./screenshots/pbr_viewer.png" width="100%"> |
-| **project1: geometry**                               | **bonus1: transparency**                              |
-| <img src="./screenshots/project1.png" width="80%">   | <img src="./screenshots/bonus1.png" width="100%">     |
-| **project2: transformation**                         | **bonus2: frustum culling**                           |
-| <img src="./screenshots/project2.png" width="100%">  | <img src="./screenshots/bonus2.png" width="100%">     |
-| **project3: scene roaming**                          | **bonus3: post processing**                           |
-| <img src="./screenshots/project3.png" width="100%">  | <img src="./screenshots/bonus3.png" width="100%">     |
-| **project4: instanced rendering**                    | **bonus4: shadow mapping**                            |
-| <img src="./screenshots/project4.png" width="100%">  | <img src="./screenshots/bonus4.png" width="100%">     |
-| **project5: shading tutorial**                       | **bonus5: raytracing**                                |
-| <img src="./screenshots/project5.png" width="100%">  | <img src="./screenshots/bonus5.png" width="100%">     |
-| **project6: texture mapping**                        |                                                       |
-| <img src="./screenshots/project6.png" width="100%">  |                                                       |
+| **get_start: triangle**                              | **pbr_viewer: PBR/IBL**                                          |
+| :--------------------------------------------------: | :--------------------------------------------------------------: |
+| <img src="./screenshots/get_start.png" width="100%"> | <img src="./screenshots/pbr_viewer.png" width="100%">            |
+| **project1: geometry**                               | **bonus1: transparency**                                         |
+| <img src="./screenshots/project1.png" width="80%">   | <img src="./screenshots/bonus1.png" width="100%">                |
+| **project2: transformation**                         | **bonus2: frustum culling**                                      |
+| <img src="./screenshots/project2.png" width="100%">  | <img src="./screenshots/bonus2.png" width="100%">                |
+| **project3: scene roaming**                          | **bonus3: post processing**                                      |
+| <img src="./screenshots/project3.png" width="100%">  | <img src="./screenshots/bonus3.png" width="100%">                |
+| **project4: instanced rendering**                    | **bonus4: shadow mapping**                                       |
+| <img src="./screenshots/project4.png" width="100%">  | <img src="./screenshots/bonus4.png" width="100%">                |
+| **project5: shading tutorial**                       | **bonus5: raytracing**                                           |
+| <img src="./screenshots/project5.png" width="100%">  | <img src="./screenshots/bonus5.png" width="100%">                |
+| **project6: texture mapping**                        | **experimental: mesh shading pipeline**                          |
+| <img src="./screenshots/project6.png" width="100%">  | <img src="./screenshots/mesh_shading_pipeline.png" width="100%"> |
 
 ### Platform
 
-|                | **Windows 10** | **WSL 2** | **Ubuntu 20.04** | **MacOS** | **Chrome 107 Windows10** |
-| :------------: | :------------: | :-------: | :--------------: | :-------: | :----------------------: |
-| **get_start**  | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project1**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project2**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project3**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project4**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project5**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **project6**   | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **bonus1**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **bonus2**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **bonus3**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **bonus4**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **bonus5**     | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
-| **pbr_viewer** | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+|                           | **Windows 10** | **WSL 2** | **Ubuntu 20.04** | **MacOS** | **Chrome 107 Windows10** |
+| :-----------------------: | :------------: | :-------: | :--------------: | :-------: | :----------------------: |
+| **get_start**             | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project1**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project2**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project3**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project4**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project5**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **project6**              | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus1**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus2**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus3**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus4**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **bonus5**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **pbr_viewer**            | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
+| **mesh_shading_pipeline** | &#9745;        | &#9746;   | &#9746;          | &#9746;   | &#9746;                  |

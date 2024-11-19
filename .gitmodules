@@ -13,8 +13,6 @@
 [submodule "externel/meshoptimizer"]
 	path = external/meshoptimizer
 	url = https://github.com/zeux/meshoptimizer.git
-[submodule "meshoptimizer"]
-	path = external/meshoptimizer
 [submodule "external/shaderc"]
 	path = external/shaderc
 	url = https://github.com/google/shaderc.git

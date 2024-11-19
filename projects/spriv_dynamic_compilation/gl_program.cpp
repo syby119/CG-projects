@@ -55,12 +55,26 @@ void GLProgram::link() {
     }
 }
 
+void GLProgram::setUniformInfoMap(ShaderUniformVarInfoMap const& uniformInfoMap) {
+    m_uniformInfoMap = uniformInfoMap;
+}
+
 void GLProgram::use() {
     glUseProgram(m_handle);
 }
 
 void GLProgram::unuse() {
     glUseProgram(0);
+}
+
+int GLProgram::getUniformLocation(std::string_view name) const {
+    for (auto const& [uName, info] : m_uniformInfoMap) {
+        if (uName == name) {
+            return info.location;
+        }
+    }
+
+    return -1;
 }
 
 void GLProgram::setUniform(int location, bool value) const {

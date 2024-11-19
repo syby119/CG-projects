@@ -28,9 +28,9 @@ public:
 
 private:
     using ShaderUniform = std::variant<
-        bool,
+        bool, glm::bvec2, glm::bvec3, glm::bvec4,
         int, glm::ivec2, glm::ivec3, glm::ivec4,
-        unsigned int, glm::uvec2, glm::uvec3, glm::uvec4,
+        unsigned, glm::uvec2, glm::uvec3, glm::uvec4,
         float, glm::vec2, glm::vec3, glm::vec4,
         glm::mat2, glm::mat2x3, glm::mat2x4,
         glm::mat3x2, glm::mat3, glm::mat3x4,

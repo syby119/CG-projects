@@ -3,13 +3,16 @@
 #include "../base/gl_utility.h"
 #include <glm/glm.hpp>
 
-#include <string>
-#include <vector>
+#include <string_view>
+#include <map>
 
 #include "shader_module.h"
-
+#include "shader_resource.h"
 
 class GLProgram {
+public:
+    using ShaderUniformVarInfoMap = std::map<std::string, ShaderUniformVarInfo>;
+
 public:
     GLProgram();
 
@@ -25,9 +28,13 @@ public:
 
     void link();
 
+    void setUniformInfoMap(ShaderUniformVarInfoMap const& uniformInfoMap);
+
     void use();
 
     void unuse();
+
+    int getUniformLocation(std::string_view name) const;
 
     void setUniform(int location, bool value) const;
 
@@ -51,4 +58,6 @@ public:
 
 private:
     GLuint m_handle{ 0 };
+
+    std::map<std::string, ShaderUniformVarInfo> m_uniformInfoMap;
 };

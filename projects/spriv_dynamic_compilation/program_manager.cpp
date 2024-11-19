@@ -182,6 +182,7 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         }
 
         code = std::string(preprocessResult.cbegin(), preprocessResult.cend());
+        std::cout << code << std::endl;
 
         auto compileResult{ compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options) };
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {

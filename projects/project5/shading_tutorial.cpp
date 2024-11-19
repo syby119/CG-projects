@@ -262,6 +262,7 @@ void ShadingTutorial::renderFrame() {
         _ambientShader->setUniformFloat("ambientLight.intensity", _ambientLight->intensity);
         break;
     case RenderMode::Lambert:
+        std::cout << "lambert" << std::endl;
         _lambertShader->use();
         // 1. transfer mvp matrix to the shader
         _lambertShader->setUniformMat4("projection", _camera->getProjectionMatrix());

@@ -9,8 +9,10 @@
 #include "../base/light.h"
 #include "../base/model.h"
 #include "../base/uniform_buffer.h"
+#include "../base/texture2d.h"
 
 #include "program_manager.h"
+#include "material.h"
 
 class SprivDynamicCompilation : public Application {
 public:
@@ -28,6 +30,8 @@ private:
 
     std::shared_ptr<GLProgram> _lambertProgram;
 
+    std::unique_ptr<Material> _lambertMaterial;
+
 private:
     void handleInput() override;
 
@@ -35,5 +39,5 @@ private:
 
     void renderUI();
 
-    void initPrograms();
+    void initMaterial();
 };

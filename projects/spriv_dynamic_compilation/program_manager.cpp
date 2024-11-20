@@ -3,8 +3,9 @@
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross.hpp>
 #include <spirv_glsl.hpp>
-
 #include <fstream>
+
+#include "shader_resource.h"
 
 namespace details {
     class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface {
@@ -88,15 +89,15 @@ namespace details {
 
     static std::string getTypeStr(spirv_cross::SPIRType type) {
         switch (type.basetype) {
-        case spirv_cross::SPIRType::Unknown : return "????";
-        case spirv_cross::SPIRType::Void : return "void";
-        case spirv_cross::SPIRType::Boolean : return "bool";
+        case spirv_cross::SPIRType::Unknown: return "????";
+        case spirv_cross::SPIRType::Void: return "void";
+        case spirv_cross::SPIRType::Boolean: return "bool";
         case spirv_cross::SPIRType::SByte: return "int8";
         case spirv_cross::SPIRType::UByte: return "uint8";
         case spirv_cross::SPIRType::Short: return "int16";
         case spirv_cross::SPIRType::UShort: return "uint16";
-        case spirv_cross::SPIRType::Int : return "int";
-        case spirv_cross::SPIRType::UInt : return "uint";
+        case spirv_cross::SPIRType::Int: return "int";
+        case spirv_cross::SPIRType::UInt: return "uint";
         case spirv_cross::SPIRType::Int64: return "int64";
         case spirv_cross::SPIRType::UInt64: return "uint64";
         case spirv_cross::SPIRType::AtomicCounter: return "atomic";
@@ -182,9 +183,13 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         }
 
         code = std::string(preprocessResult.cbegin(), preprocessResult.cend());
-        std::cout << code << std::endl;
+        //std::cout << code << std::endl;
 
-        auto compileResult{ compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options) };
+        shaderc::SpvCompilationResult compileResult;
+        std::vector<uint32_t> spirv;
+
+        // 1. compile the shader module with zero optimization for reflection
+        compileResult = compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options);
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader compile error" << std::endl;
             std::cerr << compileResult.GetErrorMessage() << std::endl;
@@ -192,19 +197,27 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
             throw std::runtime_error("Cannot ...");
         }
 
-        std::vector<uint32_t> spirv(compileResult.cbegin(), compileResult.cend());
+        // reflection
+        spirv.insert(spirv.end(), compileResult.begin(), compileResult.end());
+        //reflect(spirv);
+
+        printSpirvReflection(spirv);
+
+        // 2. compile the shader module with performance option for runtime 
+        options.SetOptimizationLevel(shaderc_optimization_level_performance);
+        compileResult = compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options);
+        if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
+            std::cerr << "shader compile error" << std::endl;
+            std::cerr << compileResult.GetErrorMessage() << std::endl;
+            //return nullptr;
+            throw std::runtime_error("Cannot ...");
+        }
+
+        spirv.clear();
+        spirv.insert(spirv.end(), compileResult.cbegin(), compileResult.cend());
+
         shaderModules.emplace_back(spirv, shaderSource.stage, shaderSource.entrypoint.c_str());
         spirvCodes.push_back(std::move(spirv));
-    }
-
-    // Reflect
-    for (size_t i = 0; i < spirvCodes.size(); ++i) {
-        std::cout << shaderSources[i].filepath << std::endl;
-        printSpirvReflection(spirvCodes[i]);
-        //auto outpath{ 
-        //    shaderSources[i].filepath.parent_path() / (shaderSources[i].filepath.filename().string() + ".spv") };
-        //std::ofstream fp(outpath);
-        //fp.write(reinterpret_cast<char const*>(spirvCodes[i].data()), spirvCodes[i].size() * sizeof(uint32_t));
     }
 
     std::shared_ptr<GLProgram> program{ new GLProgram };
@@ -228,6 +241,243 @@ void ProgramManager::remove(GLProgram& program) {
 
 void ProgramManager::reload(GLProgram& program) {
 
+}
+
+void ProgramManager::reflect(std::vector<uint32_t> const& spirv) {
+    spirv_cross::Compiler compiler(spirv);
+    spirv_cross::ShaderResources resources{ compiler.get_shader_resources() };
+
+    for (auto const& uniform : resources.gl_plain_uniforms) {
+        std::string name{ uniform.name.empty() };
+        if (name.empty()) {
+            std::cerr << "shader uniform doesn't have name, fallback..." << std::endl;
+            name = compiler.get_fallback_name(uniform.id);
+        }
+
+        int location{ -1 };
+        spirv_cross::Bitset mask{ compiler.get_decoration_bitset(uniform.id) };
+        if (mask.get(spv::DecorationLocation)) {
+            location = compiler.get_decoration(uniform.id, spv::DecorationLocation);
+        }
+        else {
+            std::cerr << "Cannot get shader uniform location" << std::endl;
+        }
+
+        spirv_cross::SPIRType type{ compiler.get_type(uniform.base_type_id) };
+        ShaderVarType varType{ ShaderVarType::Unknown };
+
+        if (type.basetype != spirv_cross::SPIRType::Struct) {
+            //switch (type.basetype) {
+            //case spirv_cross::SPIRType::Unknown: return "????";
+            //case spirv_cross::SPIRType::Void: return "void";
+            //case spirv_cross::SPIRType::Boolean: return "bool";
+            //case spirv_cross::SPIRType::SByte: return "int8";
+            //case spirv_cross::SPIRType::UByte: return "uint8";
+            //case spirv_cross::SPIRType::Short: return "int16";
+            //case spirv_cross::SPIRType::UShort: return "uint16";
+            //case spirv_cross::SPIRType::Int: return "int";
+            //case spirv_cross::SPIRType::UInt: return "uint";
+            //case spirv_cross::SPIRType::Int64: return "int64";
+            //case spirv_cross::SPIRType::UInt64: return "uint64";
+            //case spirv_cross::SPIRType::AtomicCounter: return "atomic";
+            //case spirv_cross::SPIRType::Half: return "half";
+            //case spirv_cross::SPIRType::Float: return "float";
+            //case spirv_cross::SPIRType::Double: return "double";
+            //case spirv_cross::SPIRType::Struct: return "struct";
+            //case spirv_cross::SPIRType::Image: return "image";
+            //case spirv_cross::SPIRType::SampledImage: return "gsampler";
+            //case spirv_cross::SPIRType::Sampler: return "sampler";
+            //case spirv_cross::SPIRType::AccelerationStructure: return "AccelerationStructure";
+            //case spirv_cross::SPIRType::RayQuery: return "RayQuery";
+            //case spirv_cross::SPIRType::ControlPointArray: return "ControlPointArray";
+            //case spirv_cross::SPIRType::Interpolant: return "Interpolant";
+            //case spirv_cross::SPIRType::Char: return "Char";
+            //case spirv_cross::SPIRType::MeshGridProperties: return "MeshGridProperties";
+            //default: std::cerr << "Unknown Type" << std::endl;
+            //}
+
+            if (type.vecsize == 1) {
+                switch (type.basetype) {
+                case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::Bool; break;
+                case spirv_cross::SPIRType::Int: varType = ShaderVarType::Int; break;
+                case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UInt; break;
+                case spirv_cross::SPIRType::Float: varType = ShaderVarType::Float; break;
+                case spirv_cross::SPIRType::Double: varType = ShaderVarType::Double; break;
+                case spirv_cross::SPIRType::SampledImage: varType = ShaderVarType::Tex2D; break;
+                case spirv_cross::SPIRType::AtomicCounter: varType = ShaderVarType::AtomicCounter; break;
+                case spirv_cross::SPIRType::AccelerationStructure: varType = ShaderVarType::AccelerationStructure; break;
+                case spirv_cross::SPIRType::RayQuery: varType = ShaderVarType::RayQuery; break;
+                }
+            }
+            else {
+                // can be a vector/matrix
+                if (type.columns > 1) {
+                    // can be a matrix
+                    if (type.basetype == spirv_cross::SPIRType::Float) {
+                        // TODO: Check it.....
+                        switch (type.vecsize) {
+                        case 2:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::Mat2; break;
+                            case 3: varType = ShaderVarType::Mat2x3; break;
+                            case 4: varType = ShaderVarType::Mat2x4; break;
+                            }
+                            break;
+                        case 3:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::Mat2; break;
+                            case 3: varType = ShaderVarType::Mat2x3; break;
+                            case 4: varType = ShaderVarType::Mat2x4; break;
+                            }
+                            break;
+                        case 4:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::Mat2; break;
+                            case 3: varType = ShaderVarType::Mat2x3; break;
+                            case 4: varType = ShaderVarType::Mat2x4; break;
+                            }
+                            break;
+                        }
+                    }
+                    else if (type.basetype == spirv_cross::SPIRType::Double) {
+                        switch (type.vecsize) {
+                        case 2:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::DMat2; break;
+                            case 3: varType = ShaderVarType::DMat2x3; break;
+                            case 4: varType = ShaderVarType::DMat2x4; break;
+                            }
+                            break;
+                        case 3:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::DMat2; break;
+                            case 3: varType = ShaderVarType::DMat2x3; break;
+                            case 4: varType = ShaderVarType::DMat2x4; break;
+                            }
+                            break;
+                        case 4:
+                            switch (type.columns) {
+                            case 2: varType = ShaderVarType::DMat2; break;
+                            case 3: varType = ShaderVarType::DMat2x3; break;
+                            case 4: varType = ShaderVarType::DMat2x4; break;
+                            }
+                            break;
+                        }
+                    }
+                    else {
+                        switch (type.vecsize) {
+                        case 2:
+                            switch (type.basetype) {
+                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec2; break;
+                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec2; break;
+                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec2; break;
+                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec2; break;
+                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec2; break;
+                            }
+                            break;
+                        case 3:
+                            switch (type.basetype) {
+                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec3; break;
+                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec3; break;
+                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec3; break;
+                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec3; break;
+                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec3; break;
+                            }
+                            break;
+                        case 4:
+                            switch (type.basetype) {
+                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec4; break;
+                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec4; break;
+                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec4; break;
+                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec4; break;
+                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec4; break;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                const auto& memberType{ compiler.get_type(type.member_types[i]) };
+                printf("    %s%dx%d %s",
+                    details::getTypeStr(type).c_str(),
+                    type.vecsize, type.columns,
+                    name.c_str());
+                if (!type.array.empty()) {
+                    for (auto d : type.array) {
+                        printf("[%d]", d);
+                    }
+                }
+                printf("\n");
+                continue;
+            }
+        }
+        else {
+            for (size_t i = 0; i < type.member_types.size(); ++i) {
+                const auto& memberType{ compiler.get_type(type.member_types[i]) };
+                std::string memberName{ compiler.get_member_name(type.self, i) };
+                if (memberType.basetype != spirv_cross::SPIRType::Struct) {
+                    printf("    %s%dx%d %s",
+                        details::getTypeStr(memberType).c_str(),
+                        memberType.vecsize, memberType.columns,
+                        memberName.c_str());
+                    if (!memberType.array.empty()) {
+                        for (auto d : memberType.array) {
+                            printf("[%d]", d);
+                        }
+                    }
+
+                    printf("\n");
+
+                    continue;
+                }
+            }
+        }
+
+        // handle arrays of array...
+
+    }
+
+    for (auto const& pushConstant : resources.push_constant_buffers) {
+        std::cerr << "OpenGL glsl do not have push constant" << std::endl;
+    }
+
+    for (auto const& texture : resources.sampled_images) {
+        std::string name{ texture.name };
+        if (name.empty()) {
+            std::cerr << "shader texture doesn't have name, fallback..." << std::endl;
+            name = compiler.get_fallback_name(texture.id);
+        }
+
+        
+    }
+
+    for (auto const& uniformBuffer : resources.uniform_buffers) {
+
+    }
+
+    for (auto const& storageBuffer : resources.storage_buffers) {
+        ShaderVarType varType{ ShaderVarType::StorageBuffer };
+    }
+
+    for (auto const& storageBuffer : resources.storage_images) {
+        ShaderVarType varType{  };
+    }
+
+    for (auto const& atomicCounter : resources.atomic_counters) {
+
+    }
+
+    for (auto const& subpassInput : resources.subpass_inputs) {
+        std::cerr << "OpenGL glsl do not have subpass input" << std::endl;
+    }
+
+    for (auto const& seperateSampler : resources.separate_samplers) {
+        std::cerr << "OpenGL glsl do not have seperate samplers" << std::endl;
+    }
+
+    for (auto const& seperateImages : resources.separate_images) {
+        std::cerr << "OpenGL glsl do not have seperate images" << std::endl;
+    }
 }
 
 void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
@@ -263,13 +513,17 @@ void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
                     (compiler.get_storage_class(res.id) == spv::StorageClass::StorageClassUniform ||
                      compiler.get_storage_class(res.id) == spv::StorageClass::StorageClassUniformConstant) };
 
+                //std::cout << "isPushConstant: " << isPushConstant << std::endl;
+                //std::cout << "isBlock: " << isBlock << std::endl;
+                //std::cout << "isSizedBlock: " << isSizedBlock << std::endl;
+
                 spirv_cross::ID fallback_id{ !isPushConstant && isBlock ?
                     spirv_cross::ID(res.base_type_id) : spirv_cross::ID(res.id) };
 
-                uint32_t blockSize = 0;
-                uint32_t runtimeArrayStride = 0;
+                uint32_t blockSize{ 0 };
+                uint32_t runtimeArrayStride{ 0 };
                 if (isSizedBlock) {
-                    auto& base_type = compiler.get_type(res.base_type_id);
+                    auto& base_type{ compiler.get_type(res.base_type_id) };
                     blockSize = uint32_t(compiler.get_declared_struct_size(base_type));
                     runtimeArrayStride = uint32_t(
                         compiler.get_declared_struct_size_runtime_array(base_type, 1) -
@@ -280,8 +534,9 @@ void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
                     compiler.get_buffer_block_flags(res.id) : compiler.get_decoration_bitset(res.id) };
 
                 std::string array;
-                for (auto arr : type.array)
+                for (auto arr : type.array) {
                     array = spirv_cross::join("[", arr ? spirv_cross::convert_to_string(arr) : "", "]") + array;
+                }
 
                 printf(" ID %03u : %s%s",
                     uint32_t(res.id),
@@ -347,7 +602,7 @@ void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
                     const auto& memberType{ compiler.get_type(type.member_types[i]) };
                     std::string memberName{ compiler.get_member_name(type.self, i) };
                     if (memberType.basetype != spirv_cross::SPIRType::Struct) {
-                        printf("    %s%dx%d %s", 
+                        printf("    %s%dx%d %s",
                             details::getTypeStr(memberType).c_str(),
                             memberType.vecsize, memberType.columns,
                             memberName.c_str());
@@ -358,8 +613,6 @@ void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
                         }
 
                         printf("\n");
-
-                        continue;
                     }
 
                     std::cout << "      memberType.vecsize: " << memberType.vecsize << std::endl;

@@ -55,6 +55,8 @@ public:
 
     void reload(GLProgram& program);
 
+    void reflect(std::vector<uint32_t> const& spirv);
+
     void printSpirvReflection(std::vector<uint32_t> const& spirv);
 
     static bool readFile(std::filesystem::path const& filepath, std::string& content) noexcept;

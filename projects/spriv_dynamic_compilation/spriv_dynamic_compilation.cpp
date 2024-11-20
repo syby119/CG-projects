@@ -16,7 +16,7 @@ SprivDynamicCompilation::SprivDynamicCompilation(const Options& options) : Appli
         glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
     _camera->transform.position.z = 10.0f;
 
-    initPrograms();
+    initMaterial();
 
     _uboCamera = std::make_unique<UniformBuffer>(144, GL_DYNAMIC_DRAW);
     _uboCamera->setOffset("projection", 0);
@@ -39,18 +39,17 @@ SprivDynamicCompilation::SprivDynamicCompilation(const Options& options) : Appli
     checkGLErrors();
 }
 
-void SprivDynamicCompilation::initPrograms() {
+void SprivDynamicCompilation::initMaterial() {
     _programManager.reset(new ProgramManager);
 
     std::vector<ProgramManager::MarcoDefinition> macros{
-        { "OUTPUT_RED_CHANNAL", "1" },
+        { "OUTPUT_RED_CHANNAL", "0" },
     };
 
     std::vector<ProgramManager::ShaderSource> shaderSources{
         {
             ShaderModule::Stage::Vertex,
             getAssetFullPath("shader/spriv_dynamic_compilation/lambert.vert"),
-            macros
         },
         { 
             ShaderModule::Stage::Fragment, 
@@ -60,6 +59,7 @@ void SprivDynamicCompilation::initPrograms() {
     };
 
     _lambertProgram = _programManager->create(shaderSources);
+    _lambertMaterial = std::make_unique<Material>(_lambertProgram);
 }
 
 void SprivDynamicCompilation::handleInput() {

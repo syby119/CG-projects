@@ -46,8 +46,8 @@ void main() {
     vec3 diffuse = Li * max(dot(lightDir, normal), 0.0f) * MTL_FIELD(kd);
 
 #if OUTPUT_RED_CHANNAL
-    color = vec4(diffuse, 1.0f);
-#else
     color = vec4(diffuse.r, 0.0f, 0.0f, 1.0f);
+#else
+    color = vec4(diffuse, 1.0f);
 #endif
 }

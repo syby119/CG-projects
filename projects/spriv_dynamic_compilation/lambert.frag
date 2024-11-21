@@ -22,22 +22,39 @@ struct Level1 {
 };
 
 struct Level0 {
-    vec3 d[2][2][2];
+    vec3 d[2][3];
     Level1 l1;
     sampler2D ccc;
 };
 
 layout(location = 1) uniform vec3 MTL_FIELD(kd);
 
-// name light[2]
-//layout(location = 2) uniform DirectionalLight light[2];
 layout(location = 2) uniform DirectionalLight light;
 
-layout(location = 6) uniform Level0 composed;
+//layout(location = 6) uniform Level0 composed;
+layout(location = 6) uniform Level1 composed[2];
+//layout(location = 6) uniform float array[2];
 
-layout(binding = 0) uniform sampler2D MTL_FIELD(tex1);
-layout(binding = 1) uniform sampler2D MTL_FIELD(tex2);
+//layout(binding = 0) uniform sampler2D MTL_FIELD(tex1);
+//layout(binding = 1) uniform sampler2D MTL_FIELD(tex2);
 
+layout(binding = 6) uniform sampler2D texs[2];
+
+layout(binding = 1) buffer SSBO {
+    float ssbo[];
+};
+
+layout(rg32ui, binding = 0)
+uniform readonly uimage2D pointLightGrid;
+
+layout(binding = 0, offset = 12) uniform atomic_uint one;
+layout(binding = 0) uniform atomic_uint two;
+layout(binding = 0, offset = 4) uniform atomic_uint three;
+
+//layout(binding = 1) uniform atomic_uint four;
+//layout(binding = 1) uniform atomic_uint five;
+//layout(binding = 1, offset = 20) uniform atomic_uint six;
+//layout(binding = 0) uniform atomic_uint seven;
 
 void main() {
     vec3 normal = normalize(fNormal);

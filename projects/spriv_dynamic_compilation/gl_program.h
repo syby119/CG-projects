@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "shader_module.h"
-#include "shader_resource.h"
 
 class GLProgram {
 public:
@@ -38,24 +37,24 @@ public:
         DVec2,
         DVec3,
         DVec4,
-        Mat2,
+        Mat2x2,
         Mat2x3,
         Mat2x4,
         Mat3x2,
-        Mat3,
+        Mat3x3,
         Mat3x4,
         Mat4x2,
         Mat4x3,
-        Mat4,
-        DMat2,
+        Mat4x4,
+        DMat2x2,
         DMat2x3,
         DMat2x4,
         DMat3x2,
-        DMat3,
+        DMat3x3,
         DMat3x4,
         DMat4x2,
         DMat4x3,
-        DMat4,
+        DMat4x4,
         Tex1D,
         Tex2D,
         Tex3D,
@@ -80,66 +79,51 @@ public:
         Image2DMSArray,
         StorageBuffer,
         AtomicCounter,
-        AccelerationStructure,
-        RayQuery
+        // Not in OpenGL
+        //AccelerationStructure,
+        //RayQuery
     };
-
-    using BindingPoint = int;
 
     struct UniformVarInfo {
         VarType type;
         int location;
     };
 
-    struct UniformBlockVarInfo {
+    struct TextureInfo {
+        int binding;
         VarType type;
-        int offset;
-    };
-
-    struct AtomicCounterVarInfo {
-        std::string name;
-        int offset;
     };
 
     struct UniformBlockInfo {
         int binding;
         uint32_t size;
-        std::map<std::string, UniformBlockVarInfo> varInfoMap;
     };
 
-    struct ShaderStorageBufferInfo {
-        BindingPoint binding;
+    struct StorageBufferInfo {
+        int binding;
     };
 
-    struct TextureInfo {
-        BindingPoint binding;
+    struct StorageImageInfo {
+        int binding;
         VarType type;
     };
 
-    struct ImageInfo {
-        BindingPoint binding;
-        VarType type;
-    };
-
-    struct AtomicCounterVarInfo {
-        std::string name;
+    struct AtomicCounterInfo {
+        int binding;
         int offset;
     };
 
-    struct AtomicCounterBlockVarInfo {
-        uint32_t size;
-        std::vector<AtomicCounterVarInfo> varInfos;
-    };
+    using UniformVarInfoMap = std::map<std::string, UniformVarInfo>;
 
-    using UniformVarInfoMap = std::map<std::string, ShaderUniformVarInfo>;
+    using TextureInfoMap = std::map<std::string, TextureInfo>;
 
     using UniformBlockInfoMap = std::map<std::string, UniformBlockInfo>;
 
-    using ShaderStorageBufferInfoMap = std::map<std::string, ShaderStorageBufferInfo>;
+    using StorageBufferInfoMap = std::map<std::string, StorageBufferInfo>;
 
-    using ImageInfoMap = std::map<std::string, ImageInfo>;
+    using StorageImageInfoMap = std::map<std::string, StorageImageInfo>;
 
-    using AtomicCounterBufferInfoMap = std::map<BindingPoint, AtomicCounterBlockVarInfo>;
+    using AtomicCounterInfoMap = std::map<std::string, AtomicCounterInfo>;
 
 public:
     GLProgram();
@@ -150,17 +134,13 @@ public:
 
     GLProgram& operator=(GLProgram&& rhs) noexcept;
 
-    void attach(ShaderModule const& shaderModule);
-
-    void detach(ShaderModule const& shaderModule);
-
-    void link();
-
     void use();
 
     void unuse();
 
-    int getUniformLocation(std::string_view name) const;
+    int getUniformVarLocation(std::string_view name) const;
+
+    int getTextureBinding(std::string_view name) const;
 
     void setUniform(int location, bool value) const;
 
@@ -182,14 +162,37 @@ public:
 
     void setUniform(int location, const glm::mat4& mat4) const;
 
+    void printResourceInfos() const;
+
+    void printUniformVarInfos() const;
+
+    void printTextureInfos() const;
+
+    void printUniformBlockInfos() const;
+
+    void printStorageBufferInfos() const;
+
+    void printStorageImageInfos() const;
+
+    void printAtomicCounterInfos() const;
+
 private:
     GLuint m_handle{ 0 };
 
     UniformVarInfoMap m_uniformVarInfos;
+    TextureInfoMap m_textureInfos;
     UniformBlockInfoMap m_uniformBlockInfos;
-    ShaderStorageBufferInfoMap m_storageBufferInfos;
-    ImageInfoMap m_imageInfoMap;
-    AtomicCounterBufferInfoMap m_atomicCounterInfoMap;
+    StorageBufferInfoMap m_storageBufferInfos;
+    StorageImageInfoMap m_storageImageInfos;
+    AtomicCounterInfoMap m_atomicCounterInfos;
 
+private:
+    void attach(ShaderModule const& shaderModule);
+
+    void detach(ShaderModule const& shaderModule);
+
+    void link();
+
+private:
     friend class ProgramManager;
 };

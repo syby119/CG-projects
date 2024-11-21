@@ -4,8 +4,7 @@
 #include <spirv_cross.hpp>
 #include <spirv_glsl.hpp>
 #include <fstream>
-
-#include "shader_resource.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace details {
     class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface {
@@ -118,6 +117,495 @@ namespace details {
 
         return "Unknown";
     }
+
+    static bool getNextIndices(
+        spirv_cross::SmallVector<uint32_t> const& limits, std::vector<uint32_t>& indices) {
+        // @ref: https://github.com/KhronosGroup/SPIRV-Cross/wiki/Reflection-API-user-guide
+        // spirv_cross treat the array of array
+        // int a[4][6];
+        // limits = { 6, 4 };
+        for (int i = 0; i < indices.size(); ++i) {
+            if (indices[i] + 1 >= limits[i]) {
+                indices[i] = 0;
+            }
+            else {
+                indices[i] += 1;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static std::string getArrayIndexStr(std::vector<uint32_t> const& indices) {
+        std::string indexStr;
+        for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
+            indexStr += "[" + std::to_string(*it) + "]";
+        }
+        return indexStr;
+    }
+
+    static GLProgram::VarType getImageType(spirv_cross::SPIRType const& type) {
+        if (type.basetype == spirv_cross::SPIRType::SampledImage) {
+            if (type.image.sampled != 1) {
+                return GLProgram::VarType::Unknown;
+            }
+
+            switch (type.image.dim) {
+            case spv::Dim1D:
+                if (!type.image.arrayed) {
+                    return GLProgram::VarType::Tex1D;
+                }
+                else {
+                    return GLProgram::VarType::Tex1DArray;
+                }
+            case spv::Dim2D:
+                if (type.image.ms) {
+                    if (!type.image.arrayed) {
+                        return GLProgram::VarType::Tex2DMS;
+                    }
+                    else {
+                        return GLProgram::VarType::Tex2DMSArray;
+                    }
+                }
+                else {
+                    if (!type.image.arrayed) {
+                        return GLProgram::VarType::Tex2D;
+                    }
+                    else {
+                        return GLProgram::VarType::Tex2DArray;
+                    }
+                }
+            case spv::Dim3D: return GLProgram::VarType::Tex3D;
+            case spv::DimCube:
+                if (!type.image.arrayed) {
+                    return GLProgram::VarType::TexCube;
+                }
+                else {
+                    return GLProgram::VarType::TexCubeArray;
+                }
+            case spv::DimRect: return GLProgram::VarType::Tex2DRect;
+            case spv::DimBuffer: return GLProgram::VarType::TexBuffer;
+            }
+        }
+        else if (type.basetype == spirv_cross::SPIRType::Image) {
+            if (type.image.sampled != 2) {
+                return GLProgram::VarType::Unknown;
+            }
+
+            switch (type.image.dim) {
+            case spv::Dim1D:
+                if (!type.image.arrayed) {
+                    return GLProgram::VarType::Image1D;
+                }
+                else {
+                    return GLProgram::VarType::Image1DArray;
+                }
+            case spv::Dim2D:
+                if (type.image.ms) {
+                    if (!type.image.arrayed) {
+                        return GLProgram::VarType::Image2DMS;
+                    }
+                    else {
+                        return GLProgram::VarType::Image2DMSArray;
+                    }
+                }
+                else {
+                    if (!type.image.arrayed) {
+                        return GLProgram::VarType::Image2D;
+                    }
+                    else {
+                        return GLProgram::VarType::Image2DArray;
+                    }
+                }
+            case spv::Dim3D: return GLProgram::VarType::Image3D;
+            case spv::DimCube:
+                if (!type.image.arrayed) {
+                    return GLProgram::VarType::ImageCube;
+                }
+                else {
+                    return GLProgram::VarType::ImageCubeArray;
+                }
+            case spv::DimRect: return GLProgram::VarType::Image2DRect;
+            case spv::DimBuffer: return GLProgram::VarType::ImageBuffer;
+            }
+        }
+
+        return GLProgram::VarType::Unknown;
+    }
+
+    static int reflectUniformVarRecursive(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SPIRType const& type,
+        std::string const& name, int location,
+        GLProgram::UniformVarInfoMap& uniformVarInfos) {
+        using VarType = GLProgram::VarType;
+        using UniformVarInfo = GLProgram::UniformVarInfo;
+
+        VarType varType{ VarType::Unknown };
+        // non struct case
+        if (type.basetype != spirv_cross::SPIRType::Struct) {
+            if (type.vecsize == 1) {
+                switch (type.basetype) {
+                case spirv_cross::SPIRType::Boolean: varType = VarType::Bool; break;
+                case spirv_cross::SPIRType::Int: varType = VarType::Int; break;
+                case spirv_cross::SPIRType::UInt: varType = VarType::UInt; break;
+                case spirv_cross::SPIRType::Float: varType = VarType::Float; break;
+                case spirv_cross::SPIRType::Double: varType = VarType::Double; break;
+                case spirv_cross::SPIRType::SampledImage: varType = details::getImageType(type); break;
+                }
+            }
+            else {
+                // can be a vector/matrix
+                if (type.columns == 1) {
+                    switch (type.vecsize) {
+                    case 2:
+                        switch (type.basetype) {
+                        case spirv_cross::SPIRType::Boolean: varType = VarType::BVec2; break;
+                        case spirv_cross::SPIRType::Int: varType = VarType::IVec2; break;
+                        case spirv_cross::SPIRType::UInt: varType = VarType::UVec2; break;
+                        case spirv_cross::SPIRType::Float: varType = VarType::Vec2; break;
+                        case spirv_cross::SPIRType::Double: varType = VarType::DVec2; break;
+                        }
+                        break;
+                    case 3:
+                        switch (type.basetype) {
+                        case spirv_cross::SPIRType::Boolean: varType = VarType::BVec3; break;
+                        case spirv_cross::SPIRType::Int: varType = VarType::IVec3; break;
+                        case spirv_cross::SPIRType::UInt: varType = VarType::UVec3; break;
+                        case spirv_cross::SPIRType::Float: varType = VarType::Vec3; break;
+                        case spirv_cross::SPIRType::Double: varType = VarType::DVec3; break;
+                        }
+                        break;
+                    case 4:
+                        switch (type.basetype) {
+                        case spirv_cross::SPIRType::Boolean: varType = VarType::BVec4; break;
+                        case spirv_cross::SPIRType::Int: varType = VarType::IVec4; break;
+                        case spirv_cross::SPIRType::UInt: varType = VarType::UVec4; break;
+                        case spirv_cross::SPIRType::Float: varType = VarType::Vec4; break;
+                        case spirv_cross::SPIRType::Double: varType = VarType::DVec4; break;
+                        }
+                        break;
+                    }
+                }
+                else if (type.columns > 1) {
+                    // can be a matrix
+                    if (type.basetype == spirv_cross::SPIRType::Float) {
+                        switch (type.vecsize) {
+                        case 2:
+                            switch (type.columns) {
+                            case 2: varType = VarType::Mat2x2; break;
+                            case 3: varType = VarType::Mat3x2; break;
+                            case 4: varType = VarType::Mat4x2; break;
+                            }
+                            break;
+                        case 3:
+                            switch (type.columns) {
+                            case 2: varType = VarType::Mat2x3; break;
+                            case 3: varType = VarType::Mat3x3; break;
+                            case 4: varType = VarType::Mat4x3; break;
+                            }
+                            break;
+                        case 4:
+                            switch (type.columns) {
+                            case 2: varType = VarType::Mat2x4; break;
+                            case 3: varType = VarType::Mat3x4; break;
+                            case 4: varType = VarType::Mat4x4; break;
+                            }
+                            break;
+                        }
+                    }
+                    else if (type.basetype == spirv_cross::SPIRType::Double) {
+                        switch (type.vecsize) {
+                        case 2:
+                            switch (type.columns) {
+                            case 2: varType = VarType::DMat2x2; break;
+                            case 3: varType = VarType::DMat3x2; break;
+                            case 4: varType = VarType::DMat4x2; break;
+                            }
+                            break;
+                        case 3:
+                            switch (type.columns) {
+                            case 2: varType = VarType::DMat2x3; break;
+                            case 3: varType = VarType::DMat3x3; break;
+                            case 4: varType = VarType::DMat4x3; break;
+                            }
+                            break;
+                        case 4:
+                            switch (type.columns) {
+                            case 2: varType = VarType::DMat2x4; break;
+                            case 3: varType = VarType::DMat3x4; break;
+                            case 4: varType = VarType::DMat4x4; break;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (type.array.empty()) {
+                uniformVarInfos[name] = { varType, location++ };
+            }
+            else {
+                // handle array / array of array
+                std::vector<uint32_t> indices(type.array.size(), 0);
+                do {
+                    auto nameIndexed = name + details::getArrayIndexStr(indices);
+                    uniformVarInfos[nameIndexed] = { varType, location++ };
+                } while (details::getNextIndices(type.array, indices));
+            }
+
+            return location;
+        }
+
+        // struct case
+        if (type.array.empty()) {
+            for (size_t i = 0; i < type.member_types.size(); ++i) {
+                const auto& memberType{ compiler.get_type(type.member_types[i]) };
+                auto memberName{ compiler.get_member_name(type.self, i) };
+                if (memberName.empty()) {
+                    std::cerr << "Shader uniform doesn't have name, fallback..." << std::endl;
+                    memberName = compiler.get_fallback_member_name(i);
+                }
+
+                location = details::reflectUniformVarRecursive(
+                    compiler, memberType,
+                    name + "." + memberName, location, uniformVarInfos);
+            }
+        }
+        else {
+            // handle array / array of array
+            std::vector<uint32_t> indices(type.array.size(), 0);
+            do {
+                auto nameIndexed = name + details::getArrayIndexStr(indices);
+                for (size_t i = 0; i < type.member_types.size(); ++i) {
+                    const auto& memberType{ compiler.get_type(type.member_types[i]) };
+                    auto memberName{ compiler.get_member_name(type.self, i) };
+                    if (memberName.empty()) {
+                        std::cerr << "Shader uniform doesn't have name, fallback..." << std::endl;
+                        memberName = compiler.get_fallback_member_name(i);
+                    }
+
+                    location = details::reflectUniformVarRecursive(
+                        compiler, memberType,
+                        nameIndexed + "." + memberName, location, uniformVarInfos);
+                }
+            } while (details::getNextIndices(type.array, indices));
+        }
+
+        return location;
+    }
+
+    static GLProgram::UniformVarInfoMap reflectUniformVarInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& uniforms) {
+        // TODO: The spriv_cross failed to reflect top level array
+        // https://github.com/KhronosGroup/SPIRV-Cross/issues/2421
+        GLProgram::UniformVarInfoMap uniformVarInfos;
+        for (auto const& uniform : uniforms) {
+            // name
+            std::string name{ uniform.name };
+            if (name.empty()) {
+                std::cerr << "Shader uniform doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(uniform.id);
+            }
+
+            // location
+            int location{ -1 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(uniform.id) };
+            if (mask.get(spv::DecorationLocation)) {
+                location = compiler.get_decoration(uniform.id, spv::DecorationLocation);
+            }
+            else {
+                std::cerr << "Cannot get shader uniform location" << std::endl;
+            }
+
+            reflectUniformVarRecursive(
+                compiler, compiler.get_type(uniform.type_id), name, location, uniformVarInfos);
+        }
+
+        return uniformVarInfos;
+    }
+
+    static GLProgram::TextureInfoMap reflectTextureInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& sampledImages) {
+        using VarType = GLProgram::VarType;
+        using TextureInfoMap = GLProgram::TextureInfoMap;
+
+        TextureInfoMap textureInfos;
+        for (auto const& sampledImage : sampledImages) {
+            // name
+            std::string name{ sampledImage.name };
+            if (name.empty()) {
+                std::cerr << "Shader texture doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(spirv_cross::ID(sampledImage.id));
+            }
+
+            // binding
+            int binding{ 0 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(sampledImage.id) };
+            if (mask.get(spv::DecorationBinding)) {
+                binding = compiler.get_decoration(sampledImage.id, spv::DecorationBinding);
+            }
+            else {
+                std::cerr << "Cannot get texture binding" << std::endl;
+                std::cerr << "Should vulkan workflow to specify texture binding, instead of location" << std::endl;
+            }
+
+            // type
+            auto type{ compiler.get_type(sampledImage.type_id) };
+            auto varType{ details::getImageType(type) };
+
+            if (type.array.empty()) {
+                textureInfos[name] = { binding , varType };
+            }
+            else {
+                // handle array / array of array
+                // https://stackoverflow.com/questions/62031259/specifying-binding-for-texture-arrays-in-glsl
+                // TODO: The spriv_cross failed to reflect top level array
+                // https://github.com/KhronosGroup/SPIRV-Cross/issues/2421
+                std::vector<uint32_t> indices(type.array.size(), 0);
+                do {
+                    auto nameIndexed = name + details::getArrayIndexStr(indices);
+                    textureInfos[nameIndexed] = { binding++, varType };
+                } while (details::getNextIndices(type.array, indices));
+            }
+        }
+
+        return textureInfos;
+    }
+
+    static GLProgram::UniformBlockInfoMap reflectUniformBlockInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& uniformBuffers) {
+        GLProgram::UniformBlockInfoMap uniformBufferInfos;
+
+        for (auto const& uniformBuffer : uniformBuffers) {
+            // name
+            std::string name{ uniformBuffer.name };
+            if (name.empty()) {
+                std::cerr << "Shader uniform block doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(spirv_cross::ID(uniformBuffer.base_type_id));
+            }
+
+            // binding
+            int binding{ 0 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(uniformBuffer.id) };
+            if (mask.get(spv::DecorationBinding)) {
+                compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
+            }
+            else {
+                std::cerr << "Cannot get binding for storage buffer " << name << std::endl;
+            }
+
+            // size
+            auto const& type{ compiler.get_type(uniformBuffer.base_type_id) };
+            uint32_t size{ static_cast<uint32_t>(compiler.get_declared_struct_size(type)) };
+
+            uniformBufferInfos[name] = { binding, size };
+        }
+
+        return uniformBufferInfos;
+    }
+
+    static GLProgram::StorageBufferInfoMap reflectStorageBufferInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& storageBuffers) {
+        GLProgram::StorageBufferInfoMap storageBufferInfos;
+
+        for (auto const& storageBuffer : storageBuffers) {
+            // name
+            std::string name{ storageBuffer.name };
+            if (name.empty()) {
+                std::cerr << "Storage block doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(spirv_cross::ID(storageBuffer.base_type_id));
+            }
+
+            // binding
+            int binding{ 0 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(storageBuffer.id) };
+            if (mask.get(spv::DecorationBinding)) {
+                compiler.get_decoration(storageBuffer.id, spv::DecorationBinding);
+            }
+            else {
+                std::cerr << "Cannot get binding for storage buffer " << name << std::endl;
+            }
+
+            storageBufferInfos[name] = { binding };
+        }
+
+        return storageBufferInfos;
+    }
+
+    static GLProgram::StorageImageInfoMap reflectImageInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& storageImages) {
+        GLProgram::StorageImageInfoMap storageImageInfos;
+
+        for (auto const& storageImage : storageImages) {
+            // name
+            std::string name{ storageImage.name };
+            if (name.empty()) {
+                std::cerr << "Storage image doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(spirv_cross::ID(storageImage.id));
+            }
+
+            // binding
+            int binding{ 0 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(storageImage.id) };
+            if (mask.get(spv::DecorationBinding)) {
+                compiler.get_decoration(storageImage.id, spv::DecorationBinding);
+            }
+            else {
+                std::cerr << "Cannot get binding for storage image " << name << std::endl;
+            }
+
+            // type
+            auto type{ compiler.get_type(storageImage.base_type_id) };
+            storageImageInfos[name] = { binding, getImageType(type) };
+        }
+
+        return storageImageInfos;
+    }
+
+    static GLProgram::AtomicCounterInfoMap reflectAtomicCounterBufferInfos(
+        spirv_cross::Compiler const& compiler,
+        spirv_cross::SmallVector<spirv_cross::Resource> const& atomicCounters) {
+        GLProgram::AtomicCounterInfoMap atomicCounterInfos;
+        for (auto const& atomicCounter : atomicCounters) {
+            auto const& type{ compiler.get_type(atomicCounter.type_id) };
+
+            // name
+            std::string name{ atomicCounter.name };
+            if (name.empty()) {
+                std::cerr << "Storage image doesn't have name, fallback..." << std::endl;
+                name = compiler.get_fallback_name(spirv_cross::ID(atomicCounter.id));
+            }
+
+            // binding
+            int binding{ 0 };
+            spirv_cross::Bitset mask{ compiler.get_decoration_bitset(atomicCounter.id) };
+            if (mask.get(spv::DecorationBinding)) {
+                binding = compiler.get_decoration(atomicCounter.id, spv::DecorationBinding);
+            }
+            else {
+                std::cerr << "Cannot get binding for atomic counter " << name << std::endl;
+            }
+
+            int offset{ 0 };
+            if (mask.get(spv::DecorationOffset)) {
+                offset = compiler.get_decoration(atomicCounter.id, spv::DecorationOffset);
+            }
+            else {
+                std::cerr << "Cannot get offset for atomic counter " << name << std::endl;
+            }
+
+            atomicCounterInfos[name] = { binding, offset };
+        }
+
+        return atomicCounterInfos;
+    }
 }
 
 void ProgramManager::addIncludeDirectory(std::filesystem::path const& includeDir) {
@@ -128,12 +616,20 @@ void ProgramManager::addIncludeDirectory(std::filesystem::path const& includeDir
 }
 
 std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> const& shaderSources) {
-    using  SprivCode = std::vector<uint32_t>;
+    using SprivCode = std::vector<uint32_t>;
+    using Stage = ShaderModule::Stage;
 
     shaderc::Compiler compiler;
 
     std::vector<ShaderModule> shaderModules;
     std::vector<SprivCode> spirvCodes;
+    std::map<Stage, GLProgram::UniformVarInfoMap> uniformVarStageInfos;
+    std::map<Stage, GLProgram::TextureInfoMap> textureStageInfos;
+    std::map<Stage, GLProgram::UniformBlockInfoMap> uniformBlockStageInfos;
+    std::map<Stage, GLProgram::StorageBufferInfoMap> storageBufferStageInfos;
+    std::map<Stage, GLProgram::StorageImageInfoMap> storageImageStageInfos;
+    std::map<Stage, GLProgram::AtomicCounterInfoMap> atomicCounterStageInfos;
+
     for (auto& shaderSource : shaderSources) {
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
@@ -178,7 +674,6 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         if (preprocessResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader preprocess error" << std::endl;
             std::cerr << preprocessResult.GetErrorMessage() << std::endl;
-            //return nullptr;
             throw std::runtime_error("Cannot ...");
         }
 
@@ -186,22 +681,34 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         //std::cout << code << std::endl;
 
         shaderc::SpvCompilationResult compileResult;
-        std::vector<uint32_t> spirv;
 
         // 1. compile the shader module with zero optimization for reflection
         compileResult = compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options);
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader compile error" << std::endl;
             std::cerr << compileResult.GetErrorMessage() << std::endl;
-            //return nullptr;
             throw std::runtime_error("Cannot ...");
         }
 
         // reflection
-        spirv.insert(spirv.end(), compileResult.begin(), compileResult.end());
-        //reflect(spirv);
+        SprivCode spirvReflect{ compileResult.begin(), compileResult.end() };
+        printSpirvReflection(spirvReflect);
 
-        printSpirvReflection(spirv);
+        spirv_cross::Compiler compilerReflect{ spirvReflect };
+        spirv_cross::ShaderResources resources{ compilerReflect.get_shader_resources() };
+
+        uniformVarStageInfos.emplace(shaderSource.stage,
+            details::reflectUniformVarInfos(compilerReflect, resources.gl_plain_uniforms));
+        textureStageInfos.emplace(shaderSource.stage,
+            details::reflectTextureInfos(compilerReflect, resources.sampled_images));
+        uniformBlockStageInfos.emplace(shaderSource.stage,
+            details::reflectUniformBlockInfos(compilerReflect, resources.uniform_buffers));
+        storageBufferStageInfos.emplace(shaderSource.stage,
+            details::reflectStorageBufferInfos(compilerReflect, resources.storage_buffers));
+        storageImageStageInfos.emplace(shaderSource.stage,
+            details::reflectImageInfos(compilerReflect, resources.storage_images));
+        atomicCounterStageInfos.emplace(shaderSource.stage,
+            details::reflectAtomicCounterBufferInfos(compilerReflect, resources.atomic_counters));
 
         // 2. compile the shader module with performance option for runtime 
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
@@ -209,15 +716,12 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader compile error" << std::endl;
             std::cerr << compileResult.GetErrorMessage() << std::endl;
-            //return nullptr;
             throw std::runtime_error("Cannot ...");
         }
 
-        spirv.clear();
-        spirv.insert(spirv.end(), compileResult.cbegin(), compileResult.cend());
-
-        shaderModules.emplace_back(spirv, shaderSource.stage, shaderSource.entrypoint.c_str());
-        spirvCodes.push_back(std::move(spirv));
+        SprivCode spirvRuntime{ compileResult.cbegin(), compileResult.cend() };
+        shaderModules.emplace_back(spirvRuntime, shaderSource.stage, shaderSource.entrypoint.c_str());
+        spirvCodes.push_back(std::move(spirvRuntime));
     }
 
     std::shared_ptr<GLProgram> program{ new GLProgram };
@@ -233,251 +737,65 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
 
     m_programInfos.push_back({ program, shaderSources });
 
+    // assemble reflection data from different stage
+    // note: in OpenGL, we don't care about different stage, so combine them all together
+    for (auto const& [stage, varInfos] : uniformVarStageInfos) {
+        for (auto const& [name, varInfo] : varInfos) {
+            if (program->m_uniformVarInfos.find(name) == program->m_uniformVarInfos.end()) {
+                program->m_uniformVarInfos[name] = varInfo;
+            }
+        }
+    }
+
+    for (auto const& [stage, textureInfos] : textureStageInfos) {
+        for (auto const& [name, textureInfo] : textureInfos) {
+            if (program->m_textureInfos.find(name) == program->m_textureInfos.end()) {
+                program->m_textureInfos[name] = textureInfo;
+            }
+        }
+    }
+
+    for (auto const& [stage, blockInfos] : uniformBlockStageInfos) {
+        for (auto const& [name, blockInfo] : blockInfos) {
+            if (program->m_uniformBlockInfos.find(name) == program->m_uniformBlockInfos.end()) {
+                program->m_uniformBlockInfos[name] = blockInfo;
+            }
+        }
+    }
+
+    for (auto const& [stage, bufferInfos] : storageBufferStageInfos) {
+        for (auto const& [name, bufferInfo] : bufferInfos) {
+            if (program->m_storageBufferInfos.find(name) == program->m_storageBufferInfos.end()) {
+                program->m_storageBufferInfos[name] = bufferInfo;
+            }
+        }
+    }
+
+    for (auto const& [stage, imageInfos] : storageImageStageInfos) {
+        for (auto const& [name, imageInfo] : imageInfos) {
+            if (program->m_storageImageInfos.find(name) == program->m_storageImageInfos.end()) {
+                program->m_storageImageInfos[name] = imageInfo;
+            }
+        }
+    }
+
+    for (auto const& [stage, atomicInfos] : atomicCounterStageInfos) {
+        for (auto const& [name, atomicInfo] : atomicInfos) {
+            if (program->m_atomicCounterInfos.find(name) == program->m_atomicCounterInfos.end()) {
+                program->m_atomicCounterInfos[name] = atomicInfo;
+            }
+        }
+    }
+
     return program;
 }
 
 void ProgramManager::remove(GLProgram& program) {
+
 }
 
 void ProgramManager::reload(GLProgram& program) {
 
-}
-
-void ProgramManager::reflect(std::vector<uint32_t> const& spirv) {
-    spirv_cross::Compiler compiler(spirv);
-    spirv_cross::ShaderResources resources{ compiler.get_shader_resources() };
-
-    for (auto const& uniform : resources.gl_plain_uniforms) {
-        std::string name{ uniform.name.empty() };
-        if (name.empty()) {
-            std::cerr << "shader uniform doesn't have name, fallback..." << std::endl;
-            name = compiler.get_fallback_name(uniform.id);
-        }
-
-        int location{ -1 };
-        spirv_cross::Bitset mask{ compiler.get_decoration_bitset(uniform.id) };
-        if (mask.get(spv::DecorationLocation)) {
-            location = compiler.get_decoration(uniform.id, spv::DecorationLocation);
-        }
-        else {
-            std::cerr << "Cannot get shader uniform location" << std::endl;
-        }
-
-        spirv_cross::SPIRType type{ compiler.get_type(uniform.base_type_id) };
-        ShaderVarType varType{ ShaderVarType::Unknown };
-
-        if (type.basetype != spirv_cross::SPIRType::Struct) {
-            //switch (type.basetype) {
-            //case spirv_cross::SPIRType::Unknown: return "????";
-            //case spirv_cross::SPIRType::Void: return "void";
-            //case spirv_cross::SPIRType::Boolean: return "bool";
-            //case spirv_cross::SPIRType::SByte: return "int8";
-            //case spirv_cross::SPIRType::UByte: return "uint8";
-            //case spirv_cross::SPIRType::Short: return "int16";
-            //case spirv_cross::SPIRType::UShort: return "uint16";
-            //case spirv_cross::SPIRType::Int: return "int";
-            //case spirv_cross::SPIRType::UInt: return "uint";
-            //case spirv_cross::SPIRType::Int64: return "int64";
-            //case spirv_cross::SPIRType::UInt64: return "uint64";
-            //case spirv_cross::SPIRType::AtomicCounter: return "atomic";
-            //case spirv_cross::SPIRType::Half: return "half";
-            //case spirv_cross::SPIRType::Float: return "float";
-            //case spirv_cross::SPIRType::Double: return "double";
-            //case spirv_cross::SPIRType::Struct: return "struct";
-            //case spirv_cross::SPIRType::Image: return "image";
-            //case spirv_cross::SPIRType::SampledImage: return "gsampler";
-            //case spirv_cross::SPIRType::Sampler: return "sampler";
-            //case spirv_cross::SPIRType::AccelerationStructure: return "AccelerationStructure";
-            //case spirv_cross::SPIRType::RayQuery: return "RayQuery";
-            //case spirv_cross::SPIRType::ControlPointArray: return "ControlPointArray";
-            //case spirv_cross::SPIRType::Interpolant: return "Interpolant";
-            //case spirv_cross::SPIRType::Char: return "Char";
-            //case spirv_cross::SPIRType::MeshGridProperties: return "MeshGridProperties";
-            //default: std::cerr << "Unknown Type" << std::endl;
-            //}
-
-            if (type.vecsize == 1) {
-                switch (type.basetype) {
-                case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::Bool; break;
-                case spirv_cross::SPIRType::Int: varType = ShaderVarType::Int; break;
-                case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UInt; break;
-                case spirv_cross::SPIRType::Float: varType = ShaderVarType::Float; break;
-                case spirv_cross::SPIRType::Double: varType = ShaderVarType::Double; break;
-                case spirv_cross::SPIRType::SampledImage: varType = ShaderVarType::Tex2D; break;
-                case spirv_cross::SPIRType::AtomicCounter: varType = ShaderVarType::AtomicCounter; break;
-                case spirv_cross::SPIRType::AccelerationStructure: varType = ShaderVarType::AccelerationStructure; break;
-                case spirv_cross::SPIRType::RayQuery: varType = ShaderVarType::RayQuery; break;
-                }
-            }
-            else {
-                // can be a vector/matrix
-                if (type.columns > 1) {
-                    // can be a matrix
-                    if (type.basetype == spirv_cross::SPIRType::Float) {
-                        // TODO: Check it.....
-                        switch (type.vecsize) {
-                        case 2:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::Mat2; break;
-                            case 3: varType = ShaderVarType::Mat2x3; break;
-                            case 4: varType = ShaderVarType::Mat2x4; break;
-                            }
-                            break;
-                        case 3:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::Mat2; break;
-                            case 3: varType = ShaderVarType::Mat2x3; break;
-                            case 4: varType = ShaderVarType::Mat2x4; break;
-                            }
-                            break;
-                        case 4:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::Mat2; break;
-                            case 3: varType = ShaderVarType::Mat2x3; break;
-                            case 4: varType = ShaderVarType::Mat2x4; break;
-                            }
-                            break;
-                        }
-                    }
-                    else if (type.basetype == spirv_cross::SPIRType::Double) {
-                        switch (type.vecsize) {
-                        case 2:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::DMat2; break;
-                            case 3: varType = ShaderVarType::DMat2x3; break;
-                            case 4: varType = ShaderVarType::DMat2x4; break;
-                            }
-                            break;
-                        case 3:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::DMat2; break;
-                            case 3: varType = ShaderVarType::DMat2x3; break;
-                            case 4: varType = ShaderVarType::DMat2x4; break;
-                            }
-                            break;
-                        case 4:
-                            switch (type.columns) {
-                            case 2: varType = ShaderVarType::DMat2; break;
-                            case 3: varType = ShaderVarType::DMat2x3; break;
-                            case 4: varType = ShaderVarType::DMat2x4; break;
-                            }
-                            break;
-                        }
-                    }
-                    else {
-                        switch (type.vecsize) {
-                        case 2:
-                            switch (type.basetype) {
-                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec2; break;
-                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec2; break;
-                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec2; break;
-                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec2; break;
-                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec2; break;
-                            }
-                            break;
-                        case 3:
-                            switch (type.basetype) {
-                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec3; break;
-                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec3; break;
-                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec3; break;
-                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec3; break;
-                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec3; break;
-                            }
-                            break;
-                        case 4:
-                            switch (type.basetype) {
-                            case spirv_cross::SPIRType::Boolean: varType = ShaderVarType::BVec4; break;
-                            case spirv_cross::SPIRType::Int: varType = ShaderVarType::IVec4; break;
-                            case spirv_cross::SPIRType::UInt: varType = ShaderVarType::UVec4; break;
-                            case spirv_cross::SPIRType::Float: varType = ShaderVarType::Vec4; break;
-                            case spirv_cross::SPIRType::Double: varType = ShaderVarType::DVec4; break;
-                            }
-                            break;
-                        }
-                    }
-                }
-
-                const auto& memberType{ compiler.get_type(type.member_types[i]) };
-                printf("    %s%dx%d %s",
-                    details::getTypeStr(type).c_str(),
-                    type.vecsize, type.columns,
-                    name.c_str());
-                if (!type.array.empty()) {
-                    for (auto d : type.array) {
-                        printf("[%d]", d);
-                    }
-                }
-                printf("\n");
-                continue;
-            }
-        }
-        else {
-            for (size_t i = 0; i < type.member_types.size(); ++i) {
-                const auto& memberType{ compiler.get_type(type.member_types[i]) };
-                std::string memberName{ compiler.get_member_name(type.self, i) };
-                if (memberType.basetype != spirv_cross::SPIRType::Struct) {
-                    printf("    %s%dx%d %s",
-                        details::getTypeStr(memberType).c_str(),
-                        memberType.vecsize, memberType.columns,
-                        memberName.c_str());
-                    if (!memberType.array.empty()) {
-                        for (auto d : memberType.array) {
-                            printf("[%d]", d);
-                        }
-                    }
-
-                    printf("\n");
-
-                    continue;
-                }
-            }
-        }
-
-        // handle arrays of array...
-
-    }
-
-    for (auto const& pushConstant : resources.push_constant_buffers) {
-        std::cerr << "OpenGL glsl do not have push constant" << std::endl;
-    }
-
-    for (auto const& texture : resources.sampled_images) {
-        std::string name{ texture.name };
-        if (name.empty()) {
-            std::cerr << "shader texture doesn't have name, fallback..." << std::endl;
-            name = compiler.get_fallback_name(texture.id);
-        }
-
-        
-    }
-
-    for (auto const& uniformBuffer : resources.uniform_buffers) {
-
-    }
-
-    for (auto const& storageBuffer : resources.storage_buffers) {
-        ShaderVarType varType{ ShaderVarType::StorageBuffer };
-    }
-
-    for (auto const& storageBuffer : resources.storage_images) {
-        ShaderVarType varType{  };
-    }
-
-    for (auto const& atomicCounter : resources.atomic_counters) {
-
-    }
-
-    for (auto const& subpassInput : resources.subpass_inputs) {
-        std::cerr << "OpenGL glsl do not have subpass input" << std::endl;
-    }
-
-    for (auto const& seperateSampler : resources.separate_samplers) {
-        std::cerr << "OpenGL glsl do not have seperate samplers" << std::endl;
-    }
-
-    for (auto const& seperateImages : resources.separate_images) {
-        std::cerr << "OpenGL glsl do not have seperate images" << std::endl;
-    }
 }
 
 void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
@@ -617,7 +935,7 @@ void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
 
                     std::cout << "      memberType.vecsize: " << memberType.vecsize << std::endl;
                     std::cout << "      memberType.columns: " << memberType.columns << std::endl;
-                    std::cout << "memberType.array.size(): " << memberType.array.size() << std::endl;
+                    std::cout << "      memberType.array.size(): " << memberType.array.size() << std::endl;
                 }
             }
             printf("\n");

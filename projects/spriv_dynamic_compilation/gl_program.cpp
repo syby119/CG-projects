@@ -1,11 +1,11 @@
-#pragma once
-
 #include "gl_program.h"
+
+#include <magic_enum/magic_enum.hpp>
 #include <glm/ext.hpp>
 
 GLProgram::GLProgram() : m_handle{ glCreateProgram() } {
     if (!m_handle) {
-        std::runtime_error("Create ...");
+        throw std::runtime_error("Create ...");
     }
 }
 
@@ -55,10 +55,6 @@ void GLProgram::link() {
     }
 }
 
-void GLProgram::setUniformInfoMap(ShaderUniformVarInfoMap const& uniformInfoMap) {
-    m_uniformInfoMap = uniformInfoMap;
-}
-
 void GLProgram::use() {
     glUseProgram(m_handle);
 }
@@ -67,14 +63,24 @@ void GLProgram::unuse() {
     glUseProgram(0);
 }
 
-int GLProgram::getUniformLocation(std::string_view name) const {
-    for (auto const& [uName, info] : m_uniformInfoMap) {
+int GLProgram::getUniformVarLocation(std::string_view name) const {
+    for (auto const& [uName, info] : m_uniformVarInfos) {
         if (uName == name) {
             return info.location;
         }
     }
 
     return -1;
+}
+
+int GLProgram::getTextureBinding(std::string_view name) const {
+    for (auto const& [tName, info] : m_textureInfos) {
+        if (tName == name) {
+            return info.binding;
+        }
+    }
+
+    return 0;
 }
 
 void GLProgram::setUniform(int location, bool value) const {
@@ -115,4 +121,67 @@ void GLProgram::setUniform(int location, const glm::mat3& mat3) const {
 
 void GLProgram::setUniform(int location, const glm::mat4& mat4) const {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat4));
+}
+
+void GLProgram::printResourceInfos() const {
+    std::cout << "Resource Infos" << std::endl;
+    printUniformVarInfos();
+    printTextureInfos();
+    printUniformBlockInfos();
+    printStorageBufferInfos();
+    printStorageImageInfos();
+    printAtomicCounterInfos();
+}
+
+void GLProgram::printUniformVarInfos() const {
+    std::cout << "+ Uniform Var Infos" << std::endl;
+    for (auto const& [name, varInfo] : m_uniformVarInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + location: " << varInfo.location << std::endl;
+        std::cout << "    + type:     " << magic_enum::enum_name(varInfo.type) << std::endl;
+    }
+}
+
+void GLProgram::printTextureInfos() const {
+    std::cout << "+ Texture Infos" << std::endl;
+    for (auto const& [name, texInfo] : m_textureInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + binding: " << texInfo.binding << std::endl;
+        std::cout << "    + type:    " << magic_enum::enum_name(texInfo.type) << std::endl;
+    }
+}
+
+void GLProgram::printUniformBlockInfos() const {
+    std::cout << "+ Uniform Block Infos" << std::endl;
+    for (auto const& [name, uboInfo] : m_uniformBlockInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + binding: " << uboInfo.binding << std::endl;
+        std::cout << "    + size:    " << uboInfo.size << std::endl;
+    }
+}
+
+void GLProgram::printStorageBufferInfos() const {
+    std::cout << "+ Storage Buffer Infos" << std::endl;
+    for (auto const& [name, ssboInfo] : m_storageBufferInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + binding: " << ssboInfo.binding << std::endl;
+    }
+}
+
+void GLProgram::printStorageImageInfos() const {
+    std::cout << "+ Storage Image Infos" << std::endl;
+    for (auto const& [name, imageInfo] : m_storageImageInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + binding: " << imageInfo.binding << std::endl;
+        std::cout << "    + type:    " << magic_enum::enum_name(imageInfo.type) << std::endl;
+    }
+}
+
+void GLProgram::printAtomicCounterInfos() const {
+    std::cout << "+ Atomic Counter Infos" << std::endl;
+    for (auto const& [name, atomicInfo] : m_atomicCounterInfos) {
+        std::cout << "  + " << name << std::endl;
+        std::cout << "    + binding:    " << atomicInfo.binding << std::endl;
+        std::cout << "    + offset:  " << atomicInfo.offset << std::endl;
+    }
 }

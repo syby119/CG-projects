@@ -60,6 +60,8 @@ void SprivDynamicCompilation::initMaterial() {
 
     _lambertProgram = _programManager->create(shaderSources);
     _lambertMaterial = std::make_unique<Material>(_lambertProgram);
+
+    _lambertProgram->printResourceInfos();
 }
 
 void SprivDynamicCompilation::handleInput() {
@@ -85,6 +87,8 @@ void SprivDynamicCompilation::renderFrame() {
     _lambertProgram->setUniform(2, _dirLight->transform.getFront());
     _lambertProgram->setUniform(3, _dirLight->intensity);
     _lambertProgram->setUniform(4, _dirLight->color);
+    _lambertProgram->setUniform(6, _array[0]);
+    _lambertProgram->setUniform(7, _array[1]);
 
     _model->draw();
 
@@ -108,6 +112,9 @@ void SprivDynamicCompilation::renderUI() {
         ImGui::SliderFloat("intensity", &_dirLight->intensity, 0.0f, 1.0f);
         ImGui::ColorEdit3("color", (float*)&_dirLight->color);
         ImGui::NewLine();
+
+        ImGui::SliderFloat("array[0]", &_array[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("array[1]", &_array[1], 0.0f, 1.0f);
 
         ImGui::End();
     }

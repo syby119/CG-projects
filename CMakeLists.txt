@@ -74,6 +74,9 @@ set_target_properties(tinygltf PROPERTIES FOLDER "lib")
 add_subdirectory(./external/meshoptimizer)
 set_target_properties(meshoptimizer PROPERTIES FOLDER "lib")
 
+add_subdirectory(./external/magic_enum)
+set_target_properties(magic_enum PROPERTIES FOLDER "lib")
+
 set(SPIRV_HEADERS_ENABLE_TESTS OFF CACHE INTERNAL "Skip building SPIRV-Headers tests" FORCE)
 add_subdirectory(./external/SPIRV-HEADERS)
 

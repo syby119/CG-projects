@@ -19,15 +19,18 @@ public:
 
     struct ShaderSource {
         ShaderSource(ShaderModule::Stage stage, std::string filepath)
-            : stage{ stage }, filepath{ filepath } { }
+            : stage{ stage }, filepath{ filepath } {
+        }
 
         ShaderSource(ShaderModule::Stage stage, std::string filepath,
             std::vector<MarcoDefinition> const& macros)
-            : stage{ stage }, filepath{ filepath }, macros{ macros } { }
+            : stage{ stage }, filepath{ filepath }, macros{ macros } {
+        }
 
         ShaderSource(ShaderModule::Stage stage, std::string filepath,
             std::string const& entrypoint, std::vector<MarcoDefinition> const& macros)
-            : stage{ stage }, filepath{ filepath }, entrypoint{ entrypoint }, macros{ macros } { }
+            : stage{ stage }, filepath{ filepath }, entrypoint{ entrypoint }, macros{ macros } {
+        }
 
         ShaderModule::Stage stage;
         std::filesystem::path filepath;
@@ -55,14 +58,13 @@ public:
 
     void reload(GLProgram& program);
 
-    void reflect(std::vector<uint32_t> const& spirv);
-
-    void printSpirvReflection(std::vector<uint32_t> const& spirv);
-
     static bool readFile(std::filesystem::path const& filepath, std::string& content) noexcept;
 
 private:
     std::vector<std::filesystem::path> m_includeDirectories;
 
     std::vector<ProgramInfo> m_programInfos;
+
+private:
+    void printSpirvReflection(std::vector<uint32_t> const& spirv);
 };

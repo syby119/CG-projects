@@ -32,6 +32,8 @@ private:
 
     std::unique_ptr<Material> _lambertMaterial;
 
+    float _array[2]{1.0f, 1.0f};
+
 private:
     void handleInput() override;
 

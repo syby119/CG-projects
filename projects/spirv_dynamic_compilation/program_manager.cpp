@@ -668,9 +668,9 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
             throw std::runtime_error("Cannot ...");
         }
 
-        std::string inputFileName{ shaderSource.filepath.u8string().c_str() };
+        std::u8string inputFileName{ shaderSource.filepath.u8string().c_str() };
 
-        auto preprocessResult{ compiler.PreprocessGlsl(code, kind, inputFileName.c_str(), options) };
+        auto preprocessResult{ compiler.PreprocessGlsl(code, kind, (char*)inputFileName.c_str(), options) };
         if (preprocessResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader preprocess error" << std::endl;
             std::cerr << preprocessResult.GetErrorMessage() << std::endl;
@@ -683,7 +683,7 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
         shaderc::SpvCompilationResult compileResult;
 
         // 1. compile the shader module with zero optimization for reflection
-        compileResult = compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options);
+        compileResult = compiler.CompileGlslToSpv(code, kind, (char*)inputFileName.c_str(), options);
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader compile error" << std::endl;
             std::cerr << compileResult.GetErrorMessage() << std::endl;
@@ -692,7 +692,7 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
 
         // reflection
         SprivCode spirvReflect{ compileResult.begin(), compileResult.end() };
-        printSpirvReflection(spirvReflect);
+        //printSpirvReflection(spirvReflect);
 
         spirv_cross::Compiler compilerReflect{ spirvReflect };
         spirv_cross::ShaderResources resources{ compilerReflect.get_shader_resources() };
@@ -712,7 +712,7 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
 
         // 2. compile the shader module with performance option for runtime 
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
-        compileResult = compiler.CompileGlslToSpv(code, kind, inputFileName.c_str(), options);
+        compileResult = compiler.CompileGlslToSpv(code, kind, (char*)inputFileName.c_str(), options);
         if (compileResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             std::cerr << "shader compile error" << std::endl;
             std::cerr << compileResult.GetErrorMessage() << std::endl;

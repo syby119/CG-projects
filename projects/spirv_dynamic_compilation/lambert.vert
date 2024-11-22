@@ -12,7 +12,7 @@ layout(std140, binding = 0) uniform UboCamera {
     mat4 projection;
     mat4 view;
     vec3 viewPosition;
-} uboCamera;
+};
 
 layout(location = 0) uniform mat4 model;
 
@@ -20,5 +20,5 @@ void main() {
     fPosition = vec3(model * vec4(aPosition, 1.0f));
     fNormal = mat3(transpose(inverse(model))) * aNormal;
     fTexCoord = aTexCoord;
-    gl_Position = uboCamera.projection * uboCamera.view * model * vec4(aPosition, 1.0f);
+    gl_Position = projection * view * model * vec4(aPosition, 1.0f);
 }

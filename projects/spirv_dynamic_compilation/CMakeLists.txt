@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(spriv_dynamic_compilation)
+project(spirv_dynamic_compilation)
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SHADER_TARGET_PATH ${CMAKE_BINARY_DIR}/media/shader/${PROJECT_NAME})
 
@@ -16,11 +20,16 @@ set(BASE_HDR ../base/gl_utility.h
              ../base/camera.h
              ../base/bounding_box.h
              ../base/texture.h
+             ../base/texture2d.h
+             ../base/texture_cubemap.h
              ../base/model.h)
 
 set(BASE_SRC ../base/application.cpp
              ../base/transform.cpp
              ../base/camera.cpp
+             ../base/texture.cpp
+             ../base/texture2d.cpp
+             ../base/texture_cubemap.cpp
              ../base/model.cpp)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${PROJECT_HDR} ${BASE_SRC} ${BASE_HDR} ${PROJECT_SHADERS})

@@ -142,25 +142,81 @@ public:
 
     int getTextureBinding(std::string_view name) const;
 
-    void setUniform(int location, bool value) const;
+    void setUniform(int location, bool const& value) const;
 
-    void setUniform(int location, int value) const;
+    void setUniform(int location, glm::bvec2 const& value) const;
 
-    void setUniform(int location, uint32_t value) const;
+    void setUniform(int location, glm::bvec3 const& value) const;
 
-    void setUniform(int location, float value) const;
+    void setUniform(int location, glm::bvec4 const& value) const;
 
-    void setUniform(int location, const glm::vec2& v2) const;
+    void setUniform(int location, int const& value) const;
 
-    void setUniform(int location, const glm::vec3& v3) const;
+    void setUniform(int location, glm::ivec2 const& value) const;
 
-    void setUniform(int location, const glm::vec4& v4) const;
+    void setUniform(int location, glm::ivec3 const& value) const;
 
-    void setUniform(int location, const glm::mat2& mat2) const;
+    void setUniform(int location, glm::ivec4 const& value) const;
+    
+    void setUniform(int location, uint32_t const& value) const;
 
-    void setUniform(int location, const glm::mat3& mat3) const;
+    void setUniform(int location, glm::uvec2 const& value) const;
 
-    void setUniform(int location, const glm::mat4& mat4) const;
+    void setUniform(int location, glm::uvec3 const& value) const;
+
+    void setUniform(int location, glm::uvec4 const& value) const;
+
+    void setUniform(int location, float const& value) const;
+
+    void setUniform(int location, glm::vec2 const& value) const;
+
+    void setUniform(int location, glm::vec3 const& value) const;
+
+    void setUniform(int location, glm::vec4 const& value) const;
+
+    void setUniform(int location, double const& value) const;
+
+    void setUniform(int location, glm::dvec2 const& value) const;
+
+    void setUniform(int location, glm::dvec3 const& value) const;
+
+    void setUniform(int location, glm::dvec4 const& value) const;
+
+    void setUniform(int location, glm::mat2x2 const& value) const;
+
+    void setUniform(int location, glm::mat2x3 const& value) const;
+
+    void setUniform(int location, glm::mat2x4 const& value) const;
+
+    void setUniform(int location, glm::mat3x2 const& value) const;
+
+    void setUniform(int location, glm::mat3x3 const& value) const;
+
+    void setUniform(int location, glm::mat3x4 const& value) const;
+
+    void setUniform(int location, glm::mat4x2 const& value) const;
+
+    void setUniform(int location, glm::mat4x3 const& value) const;
+
+    void setUniform(int location, glm::mat4x4 const& value) const;
+
+    void setUniform(int location, glm::dmat2x2 const& value) const;
+
+    void setUniform(int location, glm::dmat2x3 const& value) const;
+
+    void setUniform(int location, glm::dmat2x4 const& value) const;
+
+    void setUniform(int location, glm::dmat3x2 const& value) const;
+
+    void setUniform(int location, glm::dmat3x3 const& value) const;
+
+    void setUniform(int location, glm::dmat3x4 const& value) const;
+
+    void setUniform(int location, glm::dmat4x2 const& value) const;
+
+    void setUniform(int location, glm::dmat4x3 const& value) const;
+
+    void setUniform(int location, glm::dmat4x4 const& value) const;
 
     void printResourceInfos() const;
 
@@ -175,6 +231,18 @@ public:
     void printStorageImageInfos() const;
 
     void printAtomicCounterInfos() const;
+
+    UniformVarInfoMap const& getUniformVarInfos() const noexcept { return m_uniformVarInfos; }
+
+    TextureInfoMap  const& getTextureInfos() const noexcept { return m_textureInfos; }
+    
+    UniformBlockInfoMap const& getUniformBlockInfos() const noexcept { return m_uniformBlockInfos; }
+    
+    StorageBufferInfoMap const& getStorageBufferInfos() const noexcept { return m_storageBufferInfos; }
+    
+    StorageImageInfoMap const& getStorageImageInfos() const noexcept { return m_storageImageInfos; }
+    
+    AtomicCounterInfoMap const& getAtomicCounterInfos() const noexcept { return m_atomicCounterInfos; }
 
 private:
     GLuint m_handle{ 0 };

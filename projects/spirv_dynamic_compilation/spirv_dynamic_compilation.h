@@ -14,25 +14,25 @@
 #include "program_manager.h"
 #include "material.h"
 
-class SprivDynamicCompilation : public Application {
+class SpirvDynamicCompilation : public Application {
 public:
-    SprivDynamicCompilation(const Options& options);
+    SpirvDynamicCompilation(const Options& options);
 
 private:
     std::unique_ptr<DirectionalLight> _dirLight;
+    std::unique_ptr<UniformBuffer> _uboLights;
 
     std::unique_ptr<Camera> _camera;
     std::unique_ptr<UniformBuffer> _uboCamera;
 
     std::unique_ptr<Model> _model;
+    std::shared_ptr<Texture2D> _texture;
 
     std::unique_ptr<ProgramManager> _programManager;
 
     std::shared_ptr<GLProgram> _lambertProgram;
 
     std::unique_ptr<Material> _lambertMaterial;
-
-    float _array[2]{1.0f, 1.0f};
 
 private:
     void handleInput() override;
@@ -42,4 +42,8 @@ private:
     void renderUI();
 
     void initMaterial();
+
+    void renderLightUI();
+
+    void renderMaterialUI();
 };

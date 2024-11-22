@@ -1,11 +1,11 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "spriv_dynamic_compilation.h"
+#include "spirv_dynamic_compilation.h"
 
 Options getOptions(int argc, char* argv[]) {
     Options options;
-    options.windowTitle = "GLSL Include";
+    options.windowTitle = "SPIRV dynamic compilation";
     options.windowWidth = 1280;
     options.windowHeight = 720;
     options.windowResizable = false;
@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     Options options = getOptions(argc, argv);
 
     try {
-        SprivDynamicCompilation app(options);
+        SpirvDynamicCompilation app(options);
         app.run();
     }
     catch (std::exception& e) {

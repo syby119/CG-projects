@@ -86,21 +86,23 @@ The **experimental** branch contains the projects that are not cross-platform an
 
 ### Screenshots
 
-| **get_start: triangle**                              | **pbr_viewer: PBR/IBL**                                          |
-| :--------------------------------------------------: | :--------------------------------------------------------------: |
-| <img src="./screenshots/get_start.png" width="100%"> | <img src="./screenshots/pbr_viewer.png" width="100%">            |
-| **project1: geometry**                               | **bonus1: transparency**                                         |
-| <img src="./screenshots/project1.png" width="80%">   | <img src="./screenshots/bonus1.png" width="100%">                |
-| **project2: transformation**                         | **bonus2: frustum culling**                                      |
-| <img src="./screenshots/project2.png" width="100%">  | <img src="./screenshots/bonus2.png" width="100%">                |
-| **project3: scene roaming**                          | **bonus3: post processing**                                      |
-| <img src="./screenshots/project3.png" width="100%">  | <img src="./screenshots/bonus3.png" width="100%">                |
-| **project4: instanced rendering**                    | **bonus4: shadow mapping**                                       |
-| <img src="./screenshots/project4.png" width="100%">  | <img src="./screenshots/bonus4.png" width="100%">                |
-| **project5: shading tutorial**                       | **bonus5: raytracing**                                           |
-| <img src="./screenshots/project5.png" width="100%">  | <img src="./screenshots/bonus5.png" width="100%">                |
-| **project6: texture mapping**                        | **experimental: mesh shading pipeline**                          |
-| <img src="./screenshots/project6.png" width="100%">  | <img src="./screenshots/mesh_shading_pipeline.png" width="100%"> |
+| **get_start: triangle**                              | **bonus1: transparency**                                             |
+| :--------------------------------------------------: | :------------------------------------------------------------------: |
+| <img src="./screenshots/get_start.png" width="100%"> | <img src="./screenshots/bonus1.png" width="100%">                    |
+| **project1: geometry**                               | **bonus2: frustum culling**                                          |
+| <img src="./screenshots/project1.png" width="80%">   | <img src="./screenshots/bonus2.png" width="100%">                    |
+| **project2: transformation**                         | **bonus3: post processing**                                          |
+| <img src="./screenshots/project2.png" width="100%">  | <img src="./screenshots/bonus3.png" width="100%">                    |
+| **project3: scene roaming**                          | **bonus4: shadow mapping**                                           |
+| <img src="./screenshots/project3.png" width="100%">  | <img src="./screenshots/bonus4.png" width="100%">                    |
+| **project4: instanced rendering**                    | **bonus5: raytracing**                                               |
+| <img src="./screenshots/project4.png" width="100%">  | <img src="./screenshots/bonus5.png" width="100%">                    |
+| **project5: shading tutorial**                       | **experimental: mesh shading pipeline**                              |
+| <img src="./screenshots/project5.png" width="100%">  | <img src="./screenshots/mesh_shading_pipeline.png" width="100%">     |
+| **project6: texture mapping**                        | **experimental: spirv dynamic compilation**                          |
+| <img src="./screenshots/project6.png" width="100%">  | <img src="./screenshots/spirv_dynamic_compilation.png" width="100%"> |
+| **pbr_viewer: PBR/IBL**                              |                                                                      |
+| <img src="./screenshots/pbr_viewer.png" width="100%">|                                                                      |
 
 ### Platform
 
@@ -120,3 +122,4 @@ The **experimental** branch contains the projects that are not cross-platform an
 | **bonus5**                | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
 | **pbr_viewer**            | &#9745;        | &#9745;   | &#9745;          | &#9745;   | &#9745;                  |
 | **mesh_shading_pipeline** | &#9745;        | &#9746;   | &#9746;          | &#9746;   | &#9746;                  |
+| **mesh_shading_pipeline** | &#9745;        | &#9745;   | &#9745;          | &#9746;   | &#9746;                  |

@@ -790,14 +790,6 @@ std::shared_ptr<GLProgram> ProgramManager::create(std::vector<ShaderSource> cons
     return program;
 }
 
-void ProgramManager::remove(GLProgram& program) {
-
-}
-
-void ProgramManager::reload(GLProgram& program) {
-
-}
-
 void ProgramManager::printSpirvReflection(std::vector<uint32_t> const& spirv) {
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;

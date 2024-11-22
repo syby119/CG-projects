@@ -1,11 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "../base/application.h"
 #include "../base/camera.h"
-#include "../base/glsl_program.h"
 #include "../base/light.h"
 #include "../base/model.h"
 #include "../base/uniform_buffer.h"

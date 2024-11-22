@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "glad/gl.h"
-
 #include "shader_module.h"
 #include "gl_program.h"
 
@@ -18,7 +16,7 @@ public:
     };
 
     struct ShaderSource {
-        ShaderSource(ShaderModule::Stage stage, std::string filepath)
+        ShaderSource(ShaderModule::Stage stage, std::filesystem::path filepath)
             : stage{ stage }, filepath{ filepath } {
         }
 
@@ -53,10 +51,6 @@ public:
     }
 
     std::shared_ptr<GLProgram> create(std::vector<ShaderSource> const& sources);
-
-    void remove(GLProgram& program);
-
-    void reload(GLProgram& program);
 
     static bool readFile(std::filesystem::path const& filepath, std::string& content) noexcept;
 

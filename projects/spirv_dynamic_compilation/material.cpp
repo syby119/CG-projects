@@ -107,28 +107,28 @@ Material::Material(std::shared_ptr<GLProgram> program) : m_program{ program } {
                 m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
                 break;
             case GLProgram::VarType::DMat2x3:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x3(0.0) };
                 break;
             case GLProgram::VarType::DMat2x4:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x4(0.0) };
                 break;
             case GLProgram::VarType::DMat3x2:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat3x2(0.0) };
                 break;
             case GLProgram::VarType::DMat3x3:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat3x3(0.0) };
                 break;
             case GLProgram::VarType::DMat3x4:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat3x4(0.0) };
                 break;
             case GLProgram::VarType::DMat4x2:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat4x2(0.0) };
                 break;
             case GLProgram::VarType::DMat4x3:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat4x3(0.0) };
                 break;
             case GLProgram::VarType::DMat4x4:
-                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat2x2(0.0) };
+                m_attributeInfos[name] = { varInfo.location, varInfo.type, isColor , glm::dmat4x4(0.0) };
                 break;
             }
         }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
 project(imgui)
 
@@ -8,6 +8,11 @@ file(GLOB IMGUI_HDR *.h)
 file(GLOB IMGUI_SRC *.cpp)
 
 add_library(imgui ${IMGUI_HDR} ${IMGUI_SRC})
+
+target_compile_options(imgui PUBLIC
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-nontrivial-memaccess>
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-nontrivial-memcall>
+)
 
 target_include_directories(imgui INTERFACE .)
 target_include_directories(imgui PRIVATE ${THIRD_PARTY_LIBRARY_PATH}/glfw/include)

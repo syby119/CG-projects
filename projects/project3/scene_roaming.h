@@ -23,6 +23,7 @@ private:
     int activeCameraIndex = 0;
 
     std::unique_ptr<Model> _bunny;
+    std::unique_ptr<Model> _ground;
 
     std::unique_ptr<GLSLProgram> _shader;
 

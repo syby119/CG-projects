@@ -28,6 +28,17 @@ SceneRoaming::SceneRoaming(const Options& options) : Application(options) {
     // init model
     _bunny.reset(new Model(getAssetFullPath(modelRelPath)));
 
+    std::vector<Vertex> vertices{
+        //         position         |        normal        |   texcoord
+        { { -5.0f, 0.0f, -5.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } },
+        { {  5.0f, 0.0f, -5.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
+        { {  5.0f, 0.0f,  5.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } },
+        { { -5.0f, 0.0f,  5.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }
+    };
+    std::vector<uint32_t> indices{ 0, 2, 1, 0, 3, 2 };
+
+    _ground.reset(new Model(vertices, indices));
+
     // init shader
     initShader();
 }
@@ -128,6 +139,9 @@ void SceneRoaming::renderFrame() {
     _shader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
 
     _bunny->draw();
+
+    _shader->setUniformMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0, -2.25, 0)));
+    _ground->draw();
 }
 
 void SceneRoaming::initShader() {

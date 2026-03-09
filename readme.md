@@ -33,7 +33,7 @@ git submodule update
 
 #### Preliminaries
 + CMake >= 3.20
-+ C++ Compiler supports at least C++14
++ C++ Compiler supports at least C++17
 
 #### Build and Compile
 ```shell

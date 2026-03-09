@@ -3,7 +3,16 @@
 #include <limits>
 #include <unordered_map>
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4819)
+#endif
+
 #include <tiny_obj_loader.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include "model.h"
 

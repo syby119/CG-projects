@@ -58,6 +58,9 @@ set_target_properties(glm PROPERTIES FOLDER "lib/glm")
 
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")
+if (MSVC)
+    target_compile_options(tinyobjloader PRIVATE /wd4819)
+endif()
 
 add_subdirectory(./external/imgui)
 set_target_properties(imgui PROPERTIES FOLDER "lib")
@@ -70,6 +73,10 @@ set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "" FORCE)
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(./external/tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER "lib")
+target_compile_options(tinygltf PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-literal-operator>
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-literal-operator>
+)
 
 add_subdirectory(./external/meshoptimizer)
 set_target_properties(meshoptimizer PROPERTIES FOLDER "lib")

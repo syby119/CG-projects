@@ -18,6 +18,10 @@ public:
 
     virtual ~Model();
 
+    Model& operator=(const Model& rhs) = delete;
+
+    Model& operator=(Model&& rhs) noexcept;
+
     GLuint getVao() const;
 
     GLuint getBoundingBoxVao() const;

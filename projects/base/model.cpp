@@ -121,6 +121,19 @@ Model::~Model() {
     cleanup();
 }
 
+Model& Model::operator=(Model&& rhs) noexcept {
+    if (this != &rhs) {
+        std::swap(_vao, rhs._vao);
+        std::swap(_vbo, rhs._vbo);
+        std::swap(_ebo, rhs._ebo);
+        std::swap(_boxVao, rhs._boxVao);
+        std::swap(_boxVbo, rhs._boxVbo);
+        std::swap(_boxEbo, rhs._boxEbo);
+    }
+
+    return *this;
+}
+
 BoundingBox Model::getBoundingBox() const {
     return _boundingBox;
 }

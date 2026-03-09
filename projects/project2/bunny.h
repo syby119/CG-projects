@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include <glm/glm.hpp>
-
 #include "../base/gl_utility.h"
 #include "../base/vertex.h"
 

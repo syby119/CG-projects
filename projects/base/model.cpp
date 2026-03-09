@@ -123,6 +123,8 @@ Model::~Model() {
 
 Model& Model::operator=(Model&& rhs) noexcept {
     if (this != &rhs) {
+        _vertices = std::move(rhs._vertices);
+        _indices = std::move(rhs._indices);
         std::swap(_vao, rhs._vao);
         std::swap(_vbo, rhs._vbo);
         std::swap(_ebo, rhs._ebo);

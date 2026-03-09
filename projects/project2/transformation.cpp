@@ -1,10 +1,23 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_interpolation.hpp>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4819)
+#endif
+
+#include <tiny_obj_loader.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <unordered_map>
 
 #include "../base/vertex.h"
-#include "tiny_obj_loader.h"
+
 #include "transformation.h"
 
 const std::string modelRelPath = "obj/bunny.obj";

@@ -218,7 +218,6 @@ void GLSLProgram::setUniformBool(const std::string& name, bool value) const {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform1i(location, static_cast<int>(value));
 }
 
@@ -228,7 +227,6 @@ void GLSLProgram::setUniformInt(const std::string& name, int value) const {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform1i(location, value);
 }
 
@@ -238,7 +236,6 @@ void GLSLProgram::setUniformUint(const std::string& name, uint32_t value) const 
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform1ui(location, value);
 }
 
@@ -248,7 +245,6 @@ void GLSLProgram::setUniformFloat(const std::string& name, float value) const {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform1f(location, value);
 }
 
@@ -258,7 +254,6 @@ void GLSLProgram::setUniformVec2(const std::string& name, const glm::vec2& v2) c
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform2fv(location, 1, glm::value_ptr(v2));
 }
 
@@ -268,7 +263,6 @@ void GLSLProgram::setUniformVec3(const std::string& name, const glm::vec3& v3) c
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform3fv(location, 1, glm::value_ptr(v3));
 }
 
@@ -278,7 +272,6 @@ void GLSLProgram::setUniformVec4(const std::string& name, const glm::vec4& v4) c
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniform4fv(location, 1, glm::value_ptr(v4));
 }
 
@@ -288,7 +281,6 @@ void GLSLProgram::setUniformMat2(const std::string& name, const glm::mat2& mat2)
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(mat2));
 }
 
@@ -298,7 +290,6 @@ void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3)
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(mat3));
 }
 
@@ -308,7 +299,6 @@ void GLSLProgram::setUniformMat4(const std::string& name, const glm::mat4& mat4)
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
 
-    std::cout << name << ": " << location << std::endl;
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat4));
 }
 

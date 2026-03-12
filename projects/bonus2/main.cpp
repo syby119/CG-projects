@@ -9,7 +9,7 @@ Options getOptions(int argc, char* argv[]) {
     options.windowWidth = 1280;
     options.windowHeight = 720;
     options.windowResizable = false;
-    options.vSync = true;
+    options.vSync = false;
     options.msaa = true;
 #ifdef _WIN32
     options.glVersion = {4, 3};

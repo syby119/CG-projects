@@ -33,7 +33,8 @@ git submodule update
 
 #### Preliminaries
 + CMake >= 3.20
-+ C++ Compiler supports at least C++17
++ A C++ compiler that supports at least C++17
+    + MinGW >= 11.2.0 to support `std::basic_ifstream(const wchar_t*, std::ios_base::openmode)`
 
 #### Build and Compile
 ```shell

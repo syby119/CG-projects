@@ -34,7 +34,12 @@ git submodule update
 #### Preliminaries
 + CMake >= 3.20
 + A C++ compiler that supports at least C++17
-    + MinGW >= 11.2.0 to support `std::basic_ifstream(const wchar_t*, std::ios_base::openmode)`
+    + MinGW >= 11.2.0 to support
+        ```C++
+        template<typename _CharT, typename _Traits>
+        std::basic_ifstream<_CharT, _Traits>::basic_ifstream(
+            const wchar_t* , std::ios_base::openmode = std::ios_base::in);
+        ```
 
 #### Build and Compile
 ```shell

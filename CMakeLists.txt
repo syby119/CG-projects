@@ -58,6 +58,7 @@ set_target_properties(glm PROPERTIES FOLDER "lib/glm")
 
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")
+set_target_properties(tinyobjloader_c PROPERTIES FOLDER "lib")
 if (MSVC)
     target_compile_options(tinyobjloader PUBLIC /utf-8)
 endif()

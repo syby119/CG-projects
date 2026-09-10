@@ -96,7 +96,8 @@ foreach(target IN ITEMS spirv-tools-build-version spirv-tools-header-DebugInfo
         spv-tools-spv-amd-gs spv-tools-spv-amd-sb spv-tools-spv-amd-sevp spv-tools-spv-amd-stm
         spv-tools-vkspreflection SPIRV-Tools-diff SPIRV-Tools-link SPIRV-Tools-lint
         SPIRV-Tools-opt SPIRV-Tools-reduce SPIRV-Tools-shared SPIRV-Tools-static
-        spirv-tools-vimsyntax core_tables enum_string_mapping extinst_tables spirv-tools-pkg-config)
+        spirv-tools-vimsyntax core_tables enum_string_mapping extinst_tables spirv-tools-pkg-config
+        spirv-tools-check-python-tests spirv-tools-check-python-types spirv-tools-tables)
     if (TARGET ${target})
         set_target_properties(${target} PROPERTIES FOLDER "lib/spirv-tools")
     endif()

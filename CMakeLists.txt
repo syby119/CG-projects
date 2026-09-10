@@ -59,7 +59,7 @@ set_target_properties(glm PROPERTIES FOLDER "lib/glm")
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")
 if (MSVC)
-    target_compile_options(tinyobjloader PRIVATE /wd4819)
+    target_compile_options(tinyobjloader PUBLIC /utf-8)
 endif()
 
 add_subdirectory(./external/imgui)
@@ -111,7 +111,6 @@ foreach(target IN ITEMS spirv-cross spirv-cross-c spirv-cross-core spirv-cross-c
 endforeach()
 
 set(GLSLANG_TESTS OFF CACHE BOOL "Skip building glslang tests" FORCE)
-set(ENABLE_HLSL OFF CACHE BOOL "Disable deprecated glslang HLSL front-end" FORCE)
 add_subdirectory(./external/glslang)
 foreach(target IN ITEMS GenericCodeGen glslang glslang-default-resource-limits MachineIndependent
         OSDependent SPIRV SPVRemapper glslang-standalone spirv-remap)

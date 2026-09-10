@@ -59,7 +59,7 @@ set_target_properties(glm PROPERTIES FOLDER "lib/glm")
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")
 if (MSVC)
-    target_compile_options(tinyobjloader PRIVATE /wd4819)
+    target_compile_options(tinyobjloader PUBLIC /utf-8)
 endif()
 
 add_subdirectory(./external/imgui)

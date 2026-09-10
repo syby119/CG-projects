@@ -20,7 +20,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
-        sudo apt install libgl-dev
+        sudo apt install libgl-dev libwayland-dev libwayland-bin wayland-protocols libxkbcommon-dev
 
     - name: Configure CMake
       run: cmake --preset=linux-gcc-debug

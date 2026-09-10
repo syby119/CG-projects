@@ -66,8 +66,8 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glm)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
-# target_link_libraries(${PROJECT_NAME} PRIVATE stb)
-target_link_libraries(${PROJECT_NAME} PRIVATE tinygltf)
+target_link_libraries(${PROJECT_NAME} PRIVATE stb)
+target_link_libraries(${PROJECT_NAME} PRIVATE tinygltf_v3)
 
 if (EMSCRIPTEN)
     target_link_libraries(${PROJECT_NAME} PRIVATE "-s USE_GLFW=3")

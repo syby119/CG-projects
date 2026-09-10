@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <tiny_gltf.h>
+#include <tiny_gltf_v3.h>
 
 #include "../base/gl_utility.h"
 #include "../base/glsl_program.h"
@@ -43,27 +43,27 @@ private:
 
     void load(const std::string& filepath);
 
-    void loadSamplers(const tinygltf::Model& gltfModel);
+    void loadSamplers(const tg3_model& gltfModel);
 
-    void loadTextures(const tinygltf::Model& gltfModel);
+    void loadTextures(const tg3_model& gltfModel, const std::string& filepath);
 
-    void loadMaterials(const tinygltf::Model& gltfModel);
+    void loadMaterials(const tg3_model& gltfModel);
 
-    void loadAnimations(const tinygltf::Model& gltfModel);
+    void loadAnimations(const tg3_model& gltfModel);
 
-    void loadSkins(const tinygltf::Model& gltfModel);
+    void loadSkins(const tg3_model& gltfModel);
 
     void loadNode(
-        Node* parent, const tinygltf::Node& node, uint32_t nodeIndex, const tinygltf::Model& model);
+        Node* parent, const tg3_node& node, uint32_t nodeIndex, const tg3_model& model);
 
     void cleanup();
 
     std::pair<size_t, size_t> getNodeProps(
-        const tinygltf::Node& node, const tinygltf::Model& model);
+        const tg3_node& node, const tg3_model& model);
 
     template <typename T>
     static bool getAttributeBufferInfo(
-        const tinygltf::Model& gltfModel, const tinygltf::Primitive& gltfPrimitive,
+        const tg3_model& gltfModel, const tg3_primitive& gltfPrimitive,
         const std::string& name, const T*& data, int& byteStride, size_t& count);
 
     Node* getNodeByIndex(int index) const;

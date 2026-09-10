@@ -68,15 +68,11 @@ set_target_properties(imgui PROPERTIES FOLDER "lib")
 add_subdirectory(./external/stb)
 set_target_properties(stb PROPERTIES FOLDER "lib")
 
-set(TINYGLTF_BUILD_LOADER_EXAMPLE OFF CACHE INTERNAL "" FORCE)
-set(TINYGLTF_HEADER_ONLY OFF CACHE INTERNAL "" FORCE)
-set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
-add_subdirectory(./external/tinygltf)
-set_target_properties(tinygltf PROPERTIES FOLDER "lib")
-target_compile_options(tinygltf PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-literal-operator>
-    $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-literal-operator>
-)
+add_library(tinygltf_v3 STATIC external/tinygltf/tiny_gltf_v3.c)
+target_compile_features(tinygltf_v3 PUBLIC c_std_11)
+target_compile_definitions(tinygltf_v3 PRIVATE TINYGLTF3_ENABLE_FS)
+target_include_directories(tinygltf_v3 PUBLIC external/tinygltf)
+set_target_properties(tinygltf_v3 PROPERTIES FOLDER "lib")
 
 add_subdirectory(./external/meshoptimizer)
 set_target_properties(meshoptimizer PROPERTIES FOLDER "lib")

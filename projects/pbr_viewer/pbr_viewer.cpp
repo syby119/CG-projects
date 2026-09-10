@@ -7,7 +7,7 @@
 
 const std::string modelRelPath = "gltf/DamagedHelmet.gltf";
 // const std::string modelRelPath = "gltf/drone/scene.gltf";
-// const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
+ //const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
 
 const std::string pbrVertShaderRelPath = "shader/pbr_viewer/pbr.vert";
 const std::string pbrFragShaderRelPath = "shader/pbr_viewer/pbr.frag";

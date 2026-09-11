@@ -28,7 +28,7 @@ public:
     GLuint getHandle() const;
 
 protected:
-    GLuint _handle = {};
+    GLuint m_handle = {};
 
     void check();
 

@@ -43,27 +43,27 @@ public:
 
 private:
     // model
-    std::unique_ptr<Model> _bunny;
+    std::unique_ptr<Model> m_bunny;
 
     // materials
-    std::unique_ptr<AmbientMaterial> _ambientMaterial;
-    std::unique_ptr<LambertMaterial> _lambertMaterial;
-    std::unique_ptr<PhongMaterial> _phongMaterial;
+    std::unique_ptr<AmbientMaterial> m_ambientMaterial;
+    std::unique_ptr<LambertMaterial> m_lambertMaterial;
+    std::unique_ptr<PhongMaterial> m_phongMaterial;
 
     // shaders
-    std::unique_ptr<GLSLProgram> _ambientShader;
-    std::unique_ptr<GLSLProgram> _lambertShader;
-    std::unique_ptr<GLSLProgram> _phongShader;
+    std::unique_ptr<GLSLProgram> m_ambientShader;
+    std::unique_ptr<GLSLProgram> m_lambertShader;
+    std::unique_ptr<GLSLProgram> m_phongShader;
 
     // lights
-    std::unique_ptr<AmbientLight> _ambientLight;
-    std::unique_ptr<DirectionalLight> _directionalLight;
-    std::unique_ptr<SpotLight> _spotLight;
+    std::unique_ptr<AmbientLight> m_ambientLight;
+    std::unique_ptr<DirectionalLight> m_directionalLight;
+    std::unique_ptr<SpotLight> m_spotLight;
 
     // camera
-    std::unique_ptr<PerspectiveCamera> _camera;
+    std::unique_ptr<PerspectiveCamera> m_camera;
 
-    RenderMode _renderMode = RenderMode::Ambient;
+    RenderMode m_renderMode = RenderMode::Ambient;
 
     // I = ka * albedo
     void initAmbientShader();

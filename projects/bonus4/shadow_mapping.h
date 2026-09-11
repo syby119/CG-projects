@@ -40,56 +40,56 @@ public:
     ~ShadowMapping();
 
 private:
-    std::unique_ptr<PerspectiveCamera> _camera;
+    std::unique_ptr<PerspectiveCamera> m_camera;
 
-    std::vector<std::unique_ptr<Model>> _bunnies;
-    std::unique_ptr<LambertMaterial> _bunnyMaterial;
+    std::vector<std::unique_ptr<Model>> m_bunnies;
+    std::unique_ptr<LambertMaterial> m_bunnyMaterial;
 
-    std::unique_ptr<Model> _ground;
-    std::unique_ptr<LambertMaterial> _groundMaterial;
+    std::unique_ptr<Model> m_ground;
+    std::unique_ptr<LambertMaterial> m_groundMaterial;
 
-    std::unique_ptr<GLSLProgram> _lambertShader;
+    std::unique_ptr<GLSLProgram> m_lambertShader;
 
-    std::unique_ptr<AmbientLight> _ambientLight;
-    std::unique_ptr<DirectionalLight> _directionalLight;
-    std::unique_ptr<PointLight> _pointLight;
+    std::unique_ptr<AmbientLight> m_ambientLight;
+    std::unique_ptr<DirectionalLight> m_directionalLight;
+    std::unique_ptr<PointLight> m_pointLight;
 
-    std::unique_ptr<Model> _arrow;
-    std::unique_ptr<Model> _sphere;
-    std::unique_ptr<GLSLProgram> _lightShader;
+    std::unique_ptr<Model> m_arrow;
+    std::unique_ptr<Model> m_sphere;
+    std::unique_ptr<GLSLProgram> m_lightShader;
 
-    std::unique_ptr<GLSLProgram> _directionalDepthShader;
+    std::unique_ptr<GLSLProgram> m_directionalDepthShader;
 
-    std::unique_ptr<Framebuffer> _depthFbo;
-    std::unique_ptr<Texture2D> _depthTexture;
-    glm::mat4 _directionalLightSpaceMatrix;
+    std::unique_ptr<Framebuffer> m_depthFbo;
+    std::unique_ptr<Texture2D> m_depthTexture;
+    glm::mat4 m_directionalLightSpaceMatrix;
 
-    std::array<std::unique_ptr<Framebuffer>, cascadeLevels> _depthCascadeFbos;
-    std::unique_ptr<Texture2DArray> _depthTextureArray;
-    std::array<glm::mat4, cascadeLevels> _directionalLightSpaceMatrices;
+    std::array<std::unique_ptr<Framebuffer>, cascadeLevels> m_depthCascadeFbos;
+    std::unique_ptr<Texture2DArray> m_depthTextureArray;
+    std::array<glm::mat4, cascadeLevels> m_directionalLightSpaceMatrices;
 
-    std::unique_ptr<GLSLProgram> _omnidirectionalDepthShader;
+    std::unique_ptr<GLSLProgram> m_omnidirectionalDepthShader;
 
-    std::array<std::unique_ptr<Framebuffer>, 6> _depthCubeFbos;
-    std::unique_ptr<TextureCubemap> _depthCubeTexture;
-    std::array<glm::mat4, 6> _pointLightSpaceMatrices;
-    float _pointLightZfar = 100.0f;
+    std::array<std::unique_ptr<Framebuffer>, 6> m_depthCubeFbos;
+    std::unique_ptr<TextureCubemap> m_depthCubeTexture;
+    std::array<glm::mat4, 6> m_pointLightSpaceMatrices;
+    float m_pointLightZfar = 100.0f;
 
-    int _directionalFilterRadius = 0;
-    bool _enableOmnidirectionalPCF = false;
-    bool _enableCascadeShadowMapping = false;
+    int m_directionalFilterRadius = 0;
+    bool m_enableOmnidirectionalPCF = false;
+    bool m_enableCascadeShadowMapping = false;
 
-    DebugView _debugView = DebugView::None;
+    DebugView m_debugView = DebugView::None;
 
-    std::unique_ptr<FullscreenQuad> _quad;
-    std::unique_ptr<GLSLProgram> _quadShader;
-    std::unique_ptr<GLSLProgram> _quadCascadeShader;
+    std::unique_ptr<FullscreenQuad> m_quad;
+    std::unique_ptr<GLSLProgram> m_quadShader;
+    std::unique_ptr<GLSLProgram> m_quadCascadeShader;
 
-    std::unique_ptr<Model> _cube;
-    std::unique_ptr<GLSLProgram> _cubeShader;
+    std::unique_ptr<Model> m_cube;
+    std::unique_ptr<GLSLProgram> m_cubeShader;
 
     // TODO: Change the value here
-    std::array<float, cascadeLevels> _cascadeBiasModifiers = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    std::array<float, cascadeLevels> m_cascadeBiasModifiers = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
     void handleInput() override;
 

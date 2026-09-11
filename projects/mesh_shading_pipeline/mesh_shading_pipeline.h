@@ -34,65 +34,65 @@ public:
     MeshShadingPipeline(const Options& options);
 
 private:
-    RenderCase _renderCase{ RenderCase::Traditional };
+    RenderCase m_renderCase{ RenderCase::Traditional };
 
-    std::unique_ptr<DirectionalLight> _dirLight;
+    std::unique_ptr<DirectionalLight> m_dirLight;
 
-    std::unique_ptr<Camera> _camera;
-    float _cameraMoveSpeed{ 1.0f };
+    std::unique_ptr<Camera> m_camera;
+    float m_cameraMoveSpeed{ 1.0f };
 
-    LambertMaterial _material{ glm::vec3(0.8f) };
+    LambertMaterial m_material{ glm::vec3(0.8f) };
 
-    std::unique_ptr<Model> _model;
+    std::unique_ptr<Model> m_model;
 
-    static constexpr uint32_t _vertexBinding{ 0 };
-    static constexpr uint32_t _vertexIndicesBinding{ 1 };
-    static constexpr uint32_t _primitiveIndicesBinding{ 2 };
-    static constexpr uint32_t _meshletBinding{ 3 };
-    static constexpr uint32_t _instanceMatricesBinding{ 4 };
-    static constexpr uint32_t _bvBinding{ 5 };
-    static constexpr uint32_t _lodInfoBinding{ 6 };
-    static constexpr uint32_t _statisticsBinding{ 7 };
+    static constexpr uint32_t m_vertexBinding{ 0 };
+    static constexpr uint32_t m_vertexIndicesBinding{ 1 };
+    static constexpr uint32_t m_primitiveIndicesBinding{ 2 };
+    static constexpr uint32_t m_meshletBinding{ 3 };
+    static constexpr uint32_t m_instanceMatricesBinding{ 4 };
+    static constexpr uint32_t m_bvBinding{ 5 };
+    static constexpr uint32_t m_lodInfoBinding{ 6 };
+    static constexpr uint32_t m_statisticsBinding{ 7 };
 
-    std::unique_ptr<MeshletModel> _meshletModel;
-    std::unique_ptr<ShaderStorageBuffer> _ssboVerticesBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboVertexIndicesBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboPrimitiveIndicesBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboMeshletBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboMeshletBVBuffer;
+    std::unique_ptr<MeshletModel> m_meshletModel;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboVerticesBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboVertexIndicesBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboPrimitiveIndicesBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletBVBuffer;
 
-    std::unique_ptr<MeshletModelLod> _meshletModelLod;
-    std::unique_ptr<ShaderStorageBuffer> _ssboVerticesLodBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboVertexIndicesLodBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboPrimitiveIndicesLodBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboMeshletLodBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboMeshletLodInfoBuffer;
-    std::unique_ptr<ShaderStorageBuffer> _ssboMeshletLodBVBuffer;
-    float _maxLodDistance{ 10.0f };
+    std::unique_ptr<MeshletModelLod> m_meshletModelLod;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboVerticesLodBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboVertexIndicesLodBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboPrimitiveIndicesLodBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodInfoBuffer;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodBVBuffer;
+    float m_maxLodDistance{ 10.0f };
 
-    std::unique_ptr<ShaderStorageBuffer> _ssboStatistics;
+    std::unique_ptr<ShaderStorageBuffer> m_ssboStatistics;
 
-    uint32_t _instanceSpanXCount{ 100 };
-    uint32_t _instanceSpanZCount{ 100 };
-    std::unique_ptr<ShaderStorageBuffer> _ssboInstanceMatricesBuffer;
+    uint32_t m_instanceSpanXCount{ 100 };
+    uint32_t m_instanceSpanZCount{ 100 };
+    std::unique_ptr<ShaderStorageBuffer> m_ssboInstanceMatricesBuffer;
 
-    std::unique_ptr<GLSLProgram> _traditionalProgram;
+    std::unique_ptr<GLSLProgram> m_traditionalProgram;
 
-    std::unique_ptr<GLSLProgram> _triangleProgram;
+    std::unique_ptr<GLSLProgram> m_triangleProgram;
 
-    std::unique_ptr<GLSLProgram> _meshletProgram;
+    std::unique_ptr<GLSLProgram> m_meshletProgram;
 
-    std::unique_ptr<GLSLProgram> _meshletBVProgram;
+    std::unique_ptr<GLSLProgram> m_meshletBVProgram;
 
-    std::unique_ptr<GLSLProgram> _meshlet2Program;
+    std::unique_ptr<GLSLProgram> m_meshlet2Program;
 
-    std::unique_ptr<GLSLProgram> _instanceProgram;
+    std::unique_ptr<GLSLProgram> m_instanceProgram;
 
-    std::unique_ptr<GLSLProgram> _cullProgram;
+    std::unique_ptr<GLSLProgram> m_cullProgram;
 
-    std::unique_ptr<GLSLProgram> _lodProgram;
+    std::unique_ptr<GLSLProgram> m_lodProgram;
 
-    std::unique_ptr<GLSLProgram> _fullProgram;
+    std::unique_ptr<GLSLProgram> m_fullProgram;
 
     template <typename T>
     static constexpr T snapUp(T v, T snapValue) noexcept {

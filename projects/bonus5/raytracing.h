@@ -22,41 +22,41 @@ public:
     ~RayTracing();
 
 private:
-    std::unique_ptr<Model> _lucy;
+    std::unique_ptr<Model> m_lucy;
 
-    std::vector<Sphere> _balls;
-    std::vector<Material> _ballMaterials;
+    std::vector<Sphere> m_balls;
+    std::vector<Material> m_ballMaterials;
 
-    std::unique_ptr<TextureCubemap> _skybox;
+    std::unique_ptr<TextureCubemap> m_skybox;
 
-    std::unique_ptr<FullscreenQuad> _screenQuad;
+    std::unique_ptr<FullscreenQuad> m_screenQuad;
 
-    std::unique_ptr<Camera> _camera;
+    std::unique_ptr<Camera> m_camera;
 
-    std::unique_ptr<GLSLProgram> _raytracingShader;
-    std::unique_ptr<GLSLProgram> _drawScreenShader;
+    std::unique_ptr<GLSLProgram> m_raytracingShader;
+    std::unique_ptr<GLSLProgram> m_drawScreenShader;
 
-    std::unique_ptr<Framebuffer> _sampleFramebuffers[2];
-    uint32_t _currentReadBufferID = 0;
-    uint32_t _currentWriteBufferID = 1;
-    uint32_t _sampleCount = 0;
+    std::unique_ptr<Framebuffer> m_sampleFramebuffers[2];
+    uint32_t m_currentReadBufferID = 0;
+    uint32_t m_currentWriteBufferID = 1;
+    uint32_t m_sampleCount = 0;
 
-    std::unique_ptr<Texture2D> _outFrames[2];
-    std::unique_ptr<Texture2D> _rngStates[2];
+    std::unique_ptr<Texture2D> m_outFrames[2];
+    std::unique_ptr<Texture2D> m_rngStates[2];
 
-    std::unique_ptr<Texture2D> _vertexBuffer;
-    std::unique_ptr<Texture2D> _indexBuffer;
+    std::unique_ptr<Texture2D> m_vertexBuffer;
+    std::unique_ptr<Texture2D> m_indexBuffer;
 
-    std::unique_ptr<Texture2D> _sphereBuffer;
-    std::unique_ptr<Texture2D> _primitiveBuffer;
+    std::unique_ptr<Texture2D> m_sphereBuffer;
+    std::unique_ptr<Texture2D> m_primitiveBuffer;
 
-    std::unique_ptr<Texture2D> _materialBuffer;
-    std::unique_ptr<Texture2D> _bvhBuffer;
+    std::unique_ptr<Texture2D> m_materialBuffer;
+    std::unique_ptr<Texture2D> m_bvhBuffer;
 
-    bool _hasSphere = false;
-    bool _useBVH = false;
+    bool m_hasSphere = false;
+    bool m_useBVH = false;
 
-    int _renderSceneIndex = 0;
+    int m_renderSceneIndex = 0;
 
     void handleInput() override;
 

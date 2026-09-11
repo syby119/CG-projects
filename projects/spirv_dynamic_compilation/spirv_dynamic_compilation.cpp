@@ -7,33 +7,33 @@
 #include "program_manager.h"
 
 SpirvDynamicCompilation::SpirvDynamicCompilation(const Options& options) : Application(options) {
-    _dirLight.reset(new DirectionalLight);
-    _dirLight->intensity = 1.0f;
-    _dirLight->transform.rotation =
+    m_dirLight.reset(new DirectionalLight);
+    m_dirLight->intensity = 1.0f;
+    m_dirLight->transform.rotation =
         glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
-    _camera.reset(new PerspectiveCamera(
-        glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
-    _camera->transform.position.z = 4.0f;
+    m_camera.reset(new PerspectiveCamera(
+        glm::radians(50.0f), 1.0f * m_windowWidth / m_windowHeight, 0.1f, 1000.0f));
+    m_camera->transform.position.z = 4.0f;
 
-    _uboCamera = std::make_unique<UniformBuffer>(144, GL_DYNAMIC_DRAW);
-    _uboCamera->setOffset("projection", 0);
-    _uboCamera->setOffset("view", 64);
-    _uboCamera->setOffset("viewPos", 128);
-    _uboCamera->setBindingPoint(0);
+    m_uboCamera = std::make_unique<UniformBuffer>(144, GL_DYNAMIC_DRAW);
+    m_uboCamera->setOffset("projection", 0);
+    m_uboCamera->setOffset("view", 64);
+    m_uboCamera->setOffset("viewPos", 128);
+    m_uboCamera->setBindingPoint(0);
 
-    _uboLights = std::make_unique<UniformBuffer>(144, GL_DYNAMIC_DRAW);
-    _uboLights->setOffset("numDirLights", 0);
+    m_uboLights = std::make_unique<UniformBuffer>(144, GL_DYNAMIC_DRAW);
+    m_uboLights->setOffset("numDirLights", 0);
     for (size_t i = 0; i < 4; ++i) {
         std::string lightPrefix = "dirLights[" + std::to_string(i) + "]";
-        _uboLights->setOffset(lightPrefix + ".direction", 16 + 32 * i);
-        _uboLights->setOffset(lightPrefix + ".intensity", 28 + 32 * i);
-        _uboLights->setOffset(lightPrefix + ".color", 32 + 32 * i);
+        m_uboLights->setOffset(lightPrefix + ".direction", 16 + 32 * i);
+        m_uboLights->setOffset(lightPrefix + ".intensity", 28 + 32 * i);
+        m_uboLights->setOffset(lightPrefix + ".color", 32 + 32 * i);
     }
-    _uboLights->setBindingPoint(1);
+    m_uboLights->setBindingPoint(1);
 
-    _model.reset(new Model(getAssetFullPath("obj/sphere.obj")));
-    _texture.reset(new ImageTexture2D(getAssetFullPath("texture/miscellaneous/earthmap.jpg")));
+    m_model.reset(new Model(getAssetFullPath("obj/sphere.obj")));
+    m_texture.reset(new ImageTexture2D(getAssetFullPath("texture/miscellaneous/earthmap.jpg")));
 
     initMaterial();
 
@@ -44,14 +44,14 @@ SpirvDynamicCompilation::SpirvDynamicCompilation(const Options& options) : Appli
     (void)io;
 
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(_window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init();
 
     checkGLErrors();
 }
 
 void SpirvDynamicCompilation::initMaterial() {
-    _programManager.reset(new ProgramManager);
+    m_programManager.reset(new ProgramManager);
 
     std::vector<ProgramManager::MarcoDefinition> macros{
         { "OUTPUT_RED_CHANNAL", "0" },
@@ -69,17 +69,17 @@ void SpirvDynamicCompilation::initMaterial() {
         }
     };
 
-    _lambertProgram = _programManager->create(shaderSources);
-    _lambertMaterial = std::make_unique<Material>(_lambertProgram);
-    _lambertMaterial->set("albedo", glm::vec3(0.8f));
-    _lambertMaterial->set("albedoMap", _texture);
+    m_lambertProgram = m_programManager->create(shaderSources);
+    m_lambertMaterial = std::make_unique<Material>(m_lambertProgram);
+    m_lambertMaterial->set("albedo", glm::vec3(0.8f));
+    m_lambertMaterial->set("albedoMap", m_texture);
 
-    _lambertProgram->printResourceInfos();
+    m_lambertProgram->printResourceInfos();
 }
 
 void SpirvDynamicCompilation::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 }
@@ -87,25 +87,25 @@ void SpirvDynamicCompilation::handleInput() {
 void SpirvDynamicCompilation::renderFrame() {
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    _uboCamera->update("projection", _camera->getProjectionMatrix());
-    _uboCamera->update("view", _camera->getViewMatrix());
+    m_uboCamera->update("projection", m_camera->getProjectionMatrix());
+    m_uboCamera->update("view", m_camera->getViewMatrix());
 
-    _uboLights->update("numDirLights", 1);
-    _uboLights->update("dirLights[0].direction", _dirLight->transform.getFront());
-    _uboLights->update("dirLights[0].intensity", _dirLight->intensity);
-    _uboLights->update("dirLights[0].color", _dirLight->color);
+    m_uboLights->update("numDirLights", 1);
+    m_uboLights->update("dirLights[0].direction", m_dirLight->transform.getFront());
+    m_uboLights->update("dirLights[0].intensity", m_dirLight->intensity);
+    m_uboLights->update("dirLights[0].color", m_dirLight->color);
 
-    auto program{ _lambertMaterial->getProgram() };
+    auto program{ m_lambertMaterial->getProgram() };
     program->use();
-    _lambertMaterial->upload();
-    _lambertMaterial->getProgram()->setUniform(
-        program->getUniformVarLocation("model"), _model->transform.getLocalMatrix());
+    m_lambertMaterial->upload();
+    m_lambertMaterial->getProgram()->setUniform(
+        program->getUniformVarLocation("model"), m_model->transform.getLocalMatrix());
 
-    _model->draw();
+    m_model->draw();
 
     renderUI();
 }
@@ -137,15 +137,15 @@ void SpirvDynamicCompilation::renderUI() {
 void SpirvDynamicCompilation::renderLightUI() {
     ImGui::TextUnformatted("directional light");
     ImGui::Separator();
-    ImGui::SliderFloat("intensity", &_dirLight->intensity, 0.0f, 1.0f);
-    ImGui::ColorEdit3("color", (float*)&_dirLight->color);
+    ImGui::SliderFloat("intensity", &m_dirLight->intensity, 0.0f, 1.0f);
+    ImGui::ColorEdit3("color", (float*)&m_dirLight->color);
 }
 
 void SpirvDynamicCompilation::renderMaterialUI() {
     ImGui::TextUnformatted("material");
     ImGui::Separator();
 
-    for (auto& [name, attrInfo] : _lambertMaterial->getArributeInfos()) {
+    for (auto& [name, attrInfo] : m_lambertMaterial->getArributeInfos()) {
         ImGui::TextUnformatted(name.c_str());
 
         auto label{ "##" + name };
@@ -181,7 +181,7 @@ void SpirvDynamicCompilation::renderMaterialUI() {
         }
     }
 
-    for (auto const& [name, texInfo] : _lambertMaterial->getTextureInfos()) {
+    for (auto const& [name, texInfo] : m_lambertMaterial->getTextureInfos()) {
         ImGui::TextUnformatted(name.c_str());
         ImGui::Image((void*)(uint64_t)texInfo.texture->getHandle(),
             ImVec2(256, 256), ImVec2{ 0, 1 }, ImVec2{ 1, 0 });

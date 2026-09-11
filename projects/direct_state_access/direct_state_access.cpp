@@ -11,19 +11,19 @@ DirectStateAccess::DirectStateAccess(const Options& options)
 }
 
 DirectStateAccess::~DirectStateAccess() {
-    glDeleteVertexArrays(1, &_vao);
-    glDeleteBuffers(1, &_vertexVbo);
-    glDeleteBuffers(1, &_instanceVbo);
-    glDeleteBuffers(1, &_ibo);
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteBuffers(1, &m_vertexVbo);
+    glDeleteBuffers(1, &m_instanceVbo);
+    glDeleteBuffers(1, &m_ibo);
 
-    glDeleteTextures(1, &_texture);
+    glDeleteTextures(1, &m_texture);
 
-    glDeleteProgram(_program);
+    glDeleteProgram(m_program);
 }
 
 void DirectStateAccess::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 }
@@ -32,18 +32,18 @@ void DirectStateAccess::renderFrame() {
     showFpsInWindowTitle();
 
     // In render, we have to bind the OpenGL objects to state machine to make things work.
-    glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    glProgramUniform1i(_program, glGetUniformLocation(_program, "colorTexture"), 0);
-    glBindTextureUnit(0, _texture);
+    glProgramUniform1i(m_program, glGetUniformLocation(m_program, "colorTexture"), 0);
+    glBindTextureUnit(0, m_texture);
 
-    glUseProgram(_program);
+    glUseProgram(m_program);
 
-    glBindVertexArray(_vao);
+    glBindVertexArray(m_vao);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr, 4);
     glBindVertexArray(0);
 
@@ -52,30 +52,30 @@ void DirectStateAccess::renderFrame() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glBlitNamedFramebuffer(_fbo, 0, 0, 0, _windowWidth, _windowHeight,
-        0, 0, _windowWidth, _windowHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitNamedFramebuffer(m_fbo, 0, 0, 0, m_windowWidth, m_windowHeight,
+        0, 0, m_windowWidth, m_windowHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void DirectStateAccess::initFramebuffer() {
     // create framebuffer
-    glCreateFramebuffers(1, &_fbo);
+    glCreateFramebuffers(1, &m_fbo);
 
     // color attachment
-    glCreateTextures(GL_TEXTURE_2D, 1, &_colorAttachment);
-    glTextureStorage2D(_colorAttachment, 1, GL_RGBA8, _windowWidth, _windowHeight);
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_colorAttachment);
+    glTextureStorage2D(m_colorAttachment, 1, GL_RGBA8, m_windowWidth, m_windowHeight);
 
     // depth attachment
-    glCreateRenderbuffers(1, &_depthAttachment);
-    glNamedRenderbufferStorage(_depthAttachment, GL_DEPTH_COMPONENT24, _windowWidth, _windowHeight);
+    glCreateRenderbuffers(1, &m_depthAttachment);
+    glNamedRenderbufferStorage(m_depthAttachment, GL_DEPTH_COMPONENT24, m_windowWidth, m_windowHeight);
 
     // attach
-    glNamedFramebufferTexture(_fbo, GL_COLOR_ATTACHMENT0, _colorAttachment, 0);
-    glNamedFramebufferRenderbuffer(_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthAttachment);
+    glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_colorAttachment, 0);
+    glNamedFramebufferRenderbuffer(m_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthAttachment);
 
     // check
-    if (glCheckNamedFramebufferStatus(_fbo, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if (glCheckNamedFramebufferStatus(m_fbo, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error("framebuffer is not complete");
     }
 }
@@ -117,38 +117,38 @@ void DirectStateAccess::initGeometry() {
     GLbitfield constexpr flags{ 0 };
 
     // vbos
-    glCreateBuffers(1, &_vertexVbo);
-    glNamedBufferStorage(_vertexVbo,
+    glCreateBuffers(1, &m_vertexVbo);
+    glNamedBufferStorage(m_vertexVbo,
         static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data(), flags);
 
-    glCreateBuffers(1, &_instanceVbo);
-    glNamedBufferStorage(_instanceVbo,
+    glCreateBuffers(1, &m_instanceVbo);
+    glNamedBufferStorage(m_instanceVbo,
         static_cast<GLsizeiptr>(offsets.size() * sizeof(float)), offsets.data(), flags);
 
     // ibo
-    glCreateBuffers(1, &_ibo);
-    glNamedBufferStorage(_ibo,
+    glCreateBuffers(1, &m_ibo);
+    glNamedBufferStorage(m_ibo,
         static_cast<GLsizeiptr>(indices.size() * sizeof(uint8_t)), indices.data(), flags);
 
     // vao
-    glCreateVertexArrays(1, &_vao);
+    glCreateVertexArrays(1, &m_vao);
 
-    glVertexArrayVertexBuffer(_vao, 0, _vertexVbo, 0, 4 * sizeof(float));
-    glVertexArrayVertexBuffer(_vao, 1, _instanceVbo, 0, 2 * sizeof(float));
-    glVertexArrayElementBuffer(_vao, _ibo);
+    glVertexArrayVertexBuffer(m_vao, 0, m_vertexVbo, 0, 4 * sizeof(float));
+    glVertexArrayVertexBuffer(m_vao, 1, m_instanceVbo, 0, 2 * sizeof(float));
+    glVertexArrayElementBuffer(m_vao, m_ibo);
 
-    glEnableVertexArrayAttrib(_vao, positionLocatioin);
-    glVertexArrayAttribFormat(_vao, positionLocatioin, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, positionLocatioin, 0);
+    glEnableVertexArrayAttrib(m_vao, positionLocatioin);
+    glVertexArrayAttribFormat(m_vao, positionLocatioin, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(m_vao, positionLocatioin, 0);
 
-    glEnableVertexArrayAttrib(_vao, texCoordLocatioin);
-    glVertexArrayAttribFormat(_vao, texCoordLocatioin, 2, GL_FLOAT, GL_FALSE, uint32_t(2 * sizeof(float)));
-    glVertexArrayAttribBinding(_vao, texCoordLocatioin, 0);
+    glEnableVertexArrayAttrib(m_vao, texCoordLocatioin);
+    glVertexArrayAttribFormat(m_vao, texCoordLocatioin, 2, GL_FLOAT, GL_FALSE, uint32_t(2 * sizeof(float)));
+    glVertexArrayAttribBinding(m_vao, texCoordLocatioin, 0);
 
-    glEnableVertexArrayAttrib(_vao, offsetLocatioin);
-    glVertexArrayAttribFormat(_vao, offsetLocatioin, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(_vao, offsetLocatioin, 1);
-    glVertexArrayBindingDivisor(_vao, 1, 1);
+    glEnableVertexArrayAttrib(m_vao, offsetLocatioin);
+    glVertexArrayAttribFormat(m_vao, offsetLocatioin, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(m_vao, offsetLocatioin, 1);
+    glVertexArrayBindingDivisor(m_vao, 1, 1);
 }
 
 void DirectStateAccess::initTexture() {
@@ -185,20 +185,20 @@ void DirectStateAccess::initTexture() {
     }
 
     // texture
-    glCreateTextures(GL_TEXTURE_2D, 1, &_texture);
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_texture);
 
-    glTextureStorage2D(_texture, 1, internalFormat, width, height);
+    glTextureStorage2D(m_texture, 1, internalFormat, width, height);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    glTextureSubImage2D(_texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(m_texture, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-    glTextureParameteri(_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(_texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(m_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(m_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(m_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(m_texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     stbi_image_free(data);
 }
@@ -241,11 +241,11 @@ void DirectStateAccess::initProgram() {
     glShaderSource(fragShader, 1, &fsCode, nullptr);
     glCompileShader(fragShader);
 
-    _program = glCreateProgram();
-    glAttachShader(_program, vertShader);
-    glAttachShader(_program, fragShader);
+    m_program = glCreateProgram();
+    glAttachShader(m_program, vertShader);
+    glAttachShader(m_program, fragShader);
 
-    glLinkProgram(_program);
+    glLinkProgram(m_program);
 
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);

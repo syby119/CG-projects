@@ -39,25 +39,25 @@ public:
 
 protected:
     /* _assetPath */
-    std::string _assetRootDir;
+    std::string m_assetRootDir;
 
     /* window info */
-    GLFWwindow* _window = nullptr;
-    std::string _windowTitle;
-    int _windowWidth = 0;
-    int _windowHeight = 0;
-    bool _windowReized = false;
+    GLFWwindow* m_window = nullptr;
+    std::string m_windowTitle;
+    int m_windowWidth = 0;
+    int m_windowHeight = 0;
+    bool m_windowReized = false;
 
     /* timer for fps */
-    std::chrono::time_point<std::chrono::high_resolution_clock> _lastTimeStamp;
-    float _deltaTime = 0.0f;
-    FrameRateIndicator _fpsIndicator{64};
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_lastTimeStamp;
+    float m_deltaTime = 0.0f;
+    FrameRateIndicator m_fpsIndicator{64};
 
     /* input handler */
-    Input _input;
+    Input m_input;
 
     /* clear color */
-    glm::vec4 _clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::vec4 m_clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     std::string getAssetFullPath(const std::string& resourceRelPath) const;
 

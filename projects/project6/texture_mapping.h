@@ -39,22 +39,22 @@ public:
     ~TextureMapping();
 
 private:
-    std::unique_ptr<Model> _sphere;
+    std::unique_ptr<Model> m_sphere;
 
-    std::unique_ptr<SimpleMaterial> _simpleMaterial;
-    std::unique_ptr<BlendMaterial> _blendMaterial;
-    std::unique_ptr<CheckerMaterial> _checkerMaterial;
+    std::unique_ptr<SimpleMaterial> m_simpleMaterial;
+    std::unique_ptr<BlendMaterial> m_blendMaterial;
+    std::unique_ptr<CheckerMaterial> m_checkerMaterial;
 
-    std::unique_ptr<PerspectiveCamera> _camera;
-    std::unique_ptr<DirectionalLight> _light;
+    std::unique_ptr<PerspectiveCamera> m_camera;
+    std::unique_ptr<DirectionalLight> m_light;
 
-    std::unique_ptr<GLSLProgram> _simpleShader;
-    std::unique_ptr<GLSLProgram> _blendShader;
-    std::unique_ptr<GLSLProgram> _checkerShader;
+    std::unique_ptr<GLSLProgram> m_simpleShader;
+    std::unique_ptr<GLSLProgram> m_blendShader;
+    std::unique_ptr<GLSLProgram> m_checkerShader;
 
-    std::unique_ptr<SkyBox> _skybox;
+    std::unique_ptr<SkyBox> m_skybox;
 
-    enum RenderMode _renderMode = RenderMode::Simple;
+    enum RenderMode m_renderMode = RenderMode::Simple;
 
     void initSimpleShader();
 

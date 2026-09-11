@@ -31,6 +31,6 @@ public:
     GLuint getInstacenVbo() const;
 
 private:
-    std::vector<glm::mat4> _modelMatrices;
-    GLuint _instanceVbo = {};
+    std::vector<glm::mat4> m_modelMatrices;
+    GLuint m_instanceVbo = {};
 };

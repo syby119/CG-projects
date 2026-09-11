@@ -19,13 +19,13 @@ public:
     void renderFrame() override;
 
 private:
-    std::vector<std::unique_ptr<Camera>> _cameras;
-    int activeCameraIndex = 0;
+    std::vector<std::unique_ptr<Camera>> m_cameras;
+    int m_activeCameraIndex = 0;
 
-    std::unique_ptr<Model> _bunny;
-    std::unique_ptr<Model> _ground;
+    std::unique_ptr<Model> m_bunny;
+    std::unique_ptr<Model> m_ground;
 
-    std::unique_ptr<GLSLProgram> _shader;
+    std::unique_ptr<GLSLProgram> m_shader;
 
     void initShader();
 };

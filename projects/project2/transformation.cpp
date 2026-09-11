@@ -85,15 +85,15 @@ Transformation::Transformation(const Options& options) : Application(options) {
 
     // pass the data to the bunny
     for (int i = 0; i < 3; ++i) {
-        _bunnies.push_back(Bunny(vertices, indices));
+        m_bunnies.push_back(Bunny(vertices, indices));
     }
 
     initShader();
 }
 
 void Transformation::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 
@@ -105,16 +105,16 @@ void Transformation::handleInput() {
     // TODO: update transformation attributes
     // write your code here
     // --------------------------------------------------
-    // _positions[i] = ...
-    // _rotateAngles[i] = ...
-    // _scales[i] = ...
+    // m_positions[i] = ...
+    // m_rotateAngles[i] = ...
+    // m_scales[i] = ...
     // --------------------------------------------------
 }
 
 void Transformation::renderFrame() {
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
@@ -123,7 +123,7 @@ void Transformation::renderFrame() {
     // @field of view
     constexpr float fovy = glm::radians(60.0f);
     // @aspect of the window
-    const float aspect = 1.0f * _windowWidth / _windowHeight;
+    const float aspect = 1.0f * m_windowWidth / m_windowHeight;
     // @near plane for clipping
     constexpr float znear = 0.1f;
     // @far plane for clipping
@@ -142,10 +142,10 @@ void Transformation::renderFrame() {
 
     const glm::mat4 view = glm::lookAt(eye, target, up);
 
-    _shader->use();
-    for (std::size_t i = 0; i < _bunnies.size(); ++i) {
-        _shader->setUniformMat4("projection", projection);
-        _shader->setUniformMat4("view", view);
+    m_shader->use();
+    for (std::size_t i = 0; i < m_bunnies.size(); ++i) {
+        m_shader->setUniformMat4("projection", projection);
+        m_shader->setUniformMat4("view", view);
         // model matrix transform the homogenous coodinates from
         // model space (raw vertex data of the model) to world space, depending on following
         // parametes:
@@ -161,9 +161,9 @@ void Transformation::renderFrame() {
         // ------------------------------------------------
 
         glm::mat4 model = translation * rotation * scale;
-        _shader->setUniformMat4("model", model);
+        m_shader->setUniformMat4("model", model);
 
-        _bunnies[i].draw();
+        m_bunnies[i].draw();
     }
 }
 
@@ -206,8 +206,8 @@ void Transformation::initShader() {
         "    fragColor = vec4(ambient + diffuse, 1.0f);\n"
         "}\n";
 
-    _shader.reset(new GLSLProgram);
-    _shader->attachVertexShader(vsCode);
-    _shader->attachFragmentShader(fsCode);
-    _shader->link();
+    m_shader.reset(new GLSLProgram);
+    m_shader->attachVertexShader(vsCode);
+    m_shader->attachFragmentShader(fsCode);
+    m_shader->link();
 }

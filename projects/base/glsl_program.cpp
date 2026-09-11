@@ -9,87 +9,87 @@
 #include "glsl_program.h"
 
 GLSLProgram::GLSLProgram() {
-    _handle = glCreateProgram();
-    if (_handle == 0) {
+    m_handle = glCreateProgram();
+    if (m_handle == 0) {
         throw std::runtime_error("create glsl program failure");
     }
 }
 
 GLSLProgram::GLSLProgram(GLSLProgram&& rhs) noexcept
-    : _handle(rhs._handle), _vertexShaders(std::move(rhs._vertexShaders)),
-      _geometryShaders(std::move(rhs._geometryShaders)),
-      _fragmentShaders(std::move(rhs._fragmentShaders)),
-      _computeShaders(std::move(rhs._computeShaders)),
-      _taskShaders(std::move(rhs._taskShaders)),
-      _meshShaders(std::move(rhs._meshShaders)) {
-    rhs._handle = 0;
+    : m_handle(rhs.m_handle), m_vertexShaders(std::move(rhs.m_vertexShaders)),
+      m_geometryShaders(std::move(rhs.m_geometryShaders)),
+      m_fragmentShaders(std::move(rhs.m_fragmentShaders)),
+      m_computeShaders(std::move(rhs.m_computeShaders)),
+      m_taskShaders(std::move(rhs.m_taskShaders)),
+      m_meshShaders(std::move(rhs.m_meshShaders)) {
+    rhs.m_handle = 0;
 }
 
 GLSLProgram::~GLSLProgram() {
-    for (const auto vertexShader : _vertexShaders) {
+    for (const auto vertexShader : m_vertexShaders) {
         glDeleteShader(vertexShader);
     }
 
-    for (const auto geometryShader : _geometryShaders) {
+    for (const auto geometryShader : m_geometryShaders) {
         glDeleteShader(geometryShader);
     }
 
-    for (const auto fragmentShader : _fragmentShaders) {
+    for (const auto fragmentShader : m_fragmentShaders) {
         glDeleteShader(fragmentShader);
     }
 
-    for (const auto computeShader : _computeShaders) {
+    for (const auto computeShader : m_computeShaders) {
         glDeleteShader(computeShader);
     }
 
-    for (const auto taskShader : _taskShaders) {
+    for (const auto taskShader : m_taskShaders) {
         glDeleteShader(taskShader);
     }
 
-    for (const auto meshShader : _meshShaders) {
+    for (const auto meshShader : m_meshShaders) {
         glDeleteShader(meshShader);
     }
 
-    if (_handle) {
-        glDeleteProgram(_handle);
-        _handle = 0;
+    if (m_handle) {
+        glDeleteProgram(m_handle);
+        m_handle = 0;
     }
 }
 
 void GLSLProgram::attachVertexShader(const std::string& code) {
     GLuint vertexShader = createShader(code, GL_VERTEX_SHADER);
-    glAttachShader(_handle, vertexShader);
-    _vertexShaders.push_back(vertexShader);
+    glAttachShader(m_handle, vertexShader);
+    m_vertexShaders.push_back(vertexShader);
 }
 
 void GLSLProgram::attachGeometryShader(const std::string& code) {
     GLuint geometryShader = createShader(code, GL_GEOMETRY_SHADER);
-    glAttachShader(_handle, geometryShader);
-    _geometryShaders.push_back(geometryShader);
+    glAttachShader(m_handle, geometryShader);
+    m_geometryShaders.push_back(geometryShader);
 }
 
 void GLSLProgram::attachFragmentShader(const std::string& code) {
     GLuint fragmentShader = createShader(code, GL_FRAGMENT_SHADER);
-    glAttachShader(_handle, fragmentShader);
-    _fragmentShaders.push_back(fragmentShader);
+    glAttachShader(m_handle, fragmentShader);
+    m_fragmentShaders.push_back(fragmentShader);
 }
 
 void GLSLProgram::attachComputeShader(const std::string& code) {
     GLuint computeShader = createShader(code, GL_COMPUTE_SHADER);
-    glAttachShader(_handle, computeShader);
-    _computeShaders.push_back(computeShader);
+    glAttachShader(m_handle, computeShader);
+    m_computeShaders.push_back(computeShader);
 }
 
 void GLSLProgram::attachTaskShader(const std::string& code) {
     GLuint taskShader = createShader(code, GL_TASK_SHADER_NV);
-    glAttachShader(_handle, taskShader);
-    _taskShaders.push_back(taskShader);
+    glAttachShader(m_handle, taskShader);
+    m_taskShaders.push_back(taskShader);
 }
 
 void GLSLProgram::attachMeshShader(const std::string& code) {
     GLuint meshShader = createShader(code, GL_MESH_SHADER_NV);
-    glAttachShader(_handle, meshShader);
-    _meshShaders.push_back(meshShader);
+    glAttachShader(m_handle, meshShader);
+    m_meshShaders.push_back(meshShader);
 }
 
 void GLSLProgram::attachVertexShaderFromFile(const std::string& filePath) {
@@ -154,23 +154,23 @@ void GLSLProgram::attachMeshShaderFromFile(const std::string& filePath) {
 void GLSLProgram::setTransformFeedbackVaryings(
     const std::vector<const char*>& varyings, GLenum bufferMode) {
     glTransformFeedbackVaryings(
-        _handle, static_cast<GLsizei>(varyings.size()), varyings.data(), bufferMode);
+        m_handle, static_cast<GLsizei>(varyings.size()), varyings.data(), bufferMode);
 }
 
 void GLSLProgram::link() {
-    glLinkProgram(_handle);
+    glLinkProgram(m_handle);
 
     GLint success;
-    glGetProgramiv(_handle, GL_LINK_STATUS, &success);
+    glGetProgramiv(m_handle, GL_LINK_STATUS, &success);
     if (!success) {
         char buffer[1024];
-        glGetProgramInfoLog(_handle, sizeof(buffer), NULL, buffer);
+        glGetProgramInfoLog(m_handle, sizeof(buffer), NULL, buffer);
         throw std::runtime_error("link program error: " + std::string(buffer));
     }
 }
 
 void GLSLProgram::use() {
-    glUseProgram(_handle);
+    glUseProgram(m_handle);
 }
 
 void GLSLProgram::unuse() {
@@ -178,19 +178,19 @@ void GLSLProgram::unuse() {
 }
 
 int GLSLProgram::getUniformBlockSize(const std::string& name) const {
-    GLuint blockIndex = glGetUniformBlockIndex(_handle, name.c_str());
+    GLuint blockIndex = glGetUniformBlockIndex(m_handle, name.c_str());
     if (blockIndex == GL_INVALID_INDEX) {
         return -1;
     }
 
     GLint blockSize;
-    glGetActiveUniformBlockiv(_handle, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+    glGetActiveUniformBlockiv(m_handle, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 
     return blockSize;
 }
 
 int GLSLProgram::getUniformBlockIndex(const std::string& name) const {
-    GLuint index = glGetUniformBlockIndex(_handle, name.c_str());
+    GLuint index = glGetUniformBlockIndex(m_handle, name.c_str());
     if (index == GL_INVALID_INDEX) {
         return -1;
     }
@@ -201,19 +201,19 @@ int GLSLProgram::getUniformBlockIndex(const std::string& name) const {
 int GLSLProgram::getUniformBlockVariableOffset(const std::string& name) const {
     GLuint index;
     const char* queryNames[] = {name.c_str()};
-    glGetUniformIndices(_handle, 1, queryNames, &index);
+    glGetUniformIndices(m_handle, 1, queryNames, &index);
     if (index == GL_INVALID_INDEX) {
         return -1;
     }
 
     GLint offset;
-    glGetActiveUniformsiv(_handle, 1, &index, GL_UNIFORM_OFFSET, &offset);
+    glGetActiveUniformsiv(m_handle, 1, &index, GL_UNIFORM_OFFSET, &offset);
 
     return offset;
 }
 
 void GLSLProgram::setUniformBool(const std::string& name, bool value) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -222,7 +222,7 @@ void GLSLProgram::setUniformBool(const std::string& name, bool value) const {
 }
 
 void GLSLProgram::setUniformInt(const std::string& name, int value) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -231,7 +231,7 @@ void GLSLProgram::setUniformInt(const std::string& name, int value) const {
 }
 
 void GLSLProgram::setUniformUint(const std::string& name, uint32_t value) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -240,7 +240,7 @@ void GLSLProgram::setUniformUint(const std::string& name, uint32_t value) const 
 }
 
 void GLSLProgram::setUniformFloat(const std::string& name, float value) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -249,7 +249,7 @@ void GLSLProgram::setUniformFloat(const std::string& name, float value) const {
 }
 
 void GLSLProgram::setUniformVec2(const std::string& name, const glm::vec2& v2) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -258,7 +258,7 @@ void GLSLProgram::setUniformVec2(const std::string& name, const glm::vec2& v2) c
 }
 
 void GLSLProgram::setUniformVec3(const std::string& name, const glm::vec3& v3) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -267,7 +267,7 @@ void GLSLProgram::setUniformVec3(const std::string& name, const glm::vec3& v3) c
 }
 
 void GLSLProgram::setUniformVec4(const std::string& name, const glm::vec4& v4) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -276,7 +276,7 @@ void GLSLProgram::setUniformVec4(const std::string& name, const glm::vec4& v4) c
 }
 
 void GLSLProgram::setUniformMat2(const std::string& name, const glm::mat2& mat2) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -285,7 +285,7 @@ void GLSLProgram::setUniformMat2(const std::string& name, const glm::mat2& mat2)
 }
 
 void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -294,7 +294,7 @@ void GLSLProgram::setUniformMat3(const std::string& name, const glm::mat3& mat3)
 }
 
 void GLSLProgram::setUniformMat4(const std::string& name, const glm::mat4& mat4) const {
-    GLint location = glGetUniformLocation(_handle, name.c_str());
+    GLint location = glGetUniformLocation(m_handle, name.c_str());
     if (location == -1) {
         std::cerr << "find uniform " + name + " location failure" << std::endl;
     }
@@ -303,12 +303,12 @@ void GLSLProgram::setUniformMat4(const std::string& name, const glm::mat4& mat4)
 }
 
 void GLSLProgram::setUniformBlockBinding(const std::string& name, uint32_t binding) const {
-    GLuint blockIndex = glGetUniformBlockIndex(_handle, name.c_str());
+    GLuint blockIndex = glGetUniformBlockIndex(m_handle, name.c_str());
     if (blockIndex == GL_INVALID_INDEX) {
         std::cerr << "find uniform block " + name + " index failure" << std::endl;
     }
 
-    glUniformBlockBinding(_handle, blockIndex, binding);
+    glUniformBlockBinding(m_handle, blockIndex, binding);
 }
 
 std::string GLSLProgram::readFile(const std::string& filePath) {

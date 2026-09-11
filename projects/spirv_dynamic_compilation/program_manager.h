@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "shader_module.h"
 #include "gl_program.h"
+#include "shader_module.h"
 
 class ProgramManager {
 public:
@@ -17,22 +17,21 @@ public:
 
     struct ShaderSource {
         ShaderSource(ShaderModule::Stage stage, std::filesystem::path filepath)
-            : stage{ stage }, filepath{ filepath } {
-        }
+            : stage{stage}, filepath{filepath} {}
 
-        ShaderSource(ShaderModule::Stage stage, std::string filepath,
+        ShaderSource(
+            ShaderModule::Stage stage, std::string filepath,
             std::vector<MarcoDefinition> const& macros)
-            : stage{ stage }, filepath{ filepath }, macros{ macros } {
-        }
+            : stage{stage}, filepath{filepath}, macros{macros} {}
 
-        ShaderSource(ShaderModule::Stage stage, std::string filepath,
-            std::string const& entrypoint, std::vector<MarcoDefinition> const& macros)
-            : stage{ stage }, filepath{ filepath }, entrypoint{ entrypoint }, macros{ macros } {
-        }
+        ShaderSource(
+            ShaderModule::Stage stage, std::string filepath, std::string const& entrypoint,
+            std::vector<MarcoDefinition> const& macros)
+            : stage{stage}, filepath{filepath}, entrypoint{entrypoint}, macros{macros} {}
 
         ShaderModule::Stage stage;
         std::filesystem::path filepath;
-        std::string entrypoint{ "main" };
+        std::string entrypoint{"main"};
         std::vector<MarcoDefinition> macros;
     };
 

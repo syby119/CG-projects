@@ -12,15 +12,14 @@
 #include <glm/gtx/hash.hpp>
 
 namespace std {
-    template <>
-    struct hash<MeshletModel::Vertex> {
-        size_t operator()(const MeshletModel::Vertex& vertex) const noexcept {
-            return ((hash<glm::vec3>()(vertex.position)
-                ^ (hash<glm::vec3>()(vertex.normal) << 1)) >> 1)
-                ^ (hash<glm::vec2>()(glm::vec2(vertex.u, vertex.v)) << 1);
-        }
-    };
-}
+template <>
+struct hash<MeshletModel::Vertex> {
+    size_t operator()(const MeshletModel::Vertex& vertex) const noexcept {
+        return ((hash<glm::vec3>()(vertex.position) ^ (hash<glm::vec3>()(vertex.normal) << 1)) >> 1)
+               ^ (hash<glm::vec2>()(glm::vec2(vertex.u, vertex.v)) << 1);
+    }
+};
+} // namespace std
 
 MeshletModel::MeshletModel(std::string const& filepath) {
     tinyobj::attrib_t attrib;
@@ -33,7 +32,7 @@ MeshletModel::MeshletModel(std::string const& filepath) {
     std::string mtlBaseDir = filepath.substr(0, index + 1);
 
     if (!tinyobj::LoadObj(
-        &attrib, &shapes, &materials, &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
+            &attrib, &shapes, &materials, &warn, &err, filepath.c_str(), mtlBaseDir.c_str())) {
         throw std::runtime_error("load " + filepath + " failure: " + err);
     }
 
@@ -55,15 +54,13 @@ MeshletModel::MeshletModel(std::string const& filepath) {
             vertex.position = glm::vec3(
                 attrib.vertices[3 * index.vertex_index + 0],
                 attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2]
-            );
+                attrib.vertices[3 * index.vertex_index + 2]);
 
             if (index.normal_index >= 0) {
                 vertex.normal = glm::vec3(
                     attrib.normals[3 * index.normal_index + 0],
                     attrib.normals[3 * index.normal_index + 1],
-                    attrib.normals[3 * index.normal_index + 2]
-                );
+                    attrib.normals[3 * index.normal_index + 2]);
             }
 
             if (index.texcoord_index >= 0) {
@@ -90,19 +87,18 @@ MeshletModel::MeshletModel(std::string const& filepath) {
 
     std::vector<meshopt_Meshlet> meshlets;
     size_t const maxMeshlets{
-        meshopt_buildMeshletsBound(indices.size(), maxVertexCount, maxPrimitiveCount)
-    };
+        meshopt_buildMeshletsBound(indices.size(), maxVertexCount, maxPrimitiveCount)};
 
     meshlets.resize(maxMeshlets);
     m_vertexIndices.resize(maxMeshlets * maxVertexCount);
     m_primitiveIndices.resize(maxMeshlets * maxPrimitiveCount);
 
     size_t meshletCount = meshopt_buildMeshlets(
-        meshlets.data(),                             // [O] array of meshopt_Meshlet
-        m_vertexIndices.data(),                      // [O] array of uint32_t - meshlet to mesh index mappings
-        m_primitiveIndices.data(),                   // [O] array of uint8_t - triangle indices
-        indices.data(),                              // [I] pointer mesh vertex indices
-        indices.size(),                              // [I] number of vertex indices
+        meshlets.data(),           // [O] array of meshopt_Meshlet
+        m_vertexIndices.data(),    // [O] array of uint32_t - meshlet to mesh index mappings
+        m_primitiveIndices.data(), // [O] array of uint8_t - triangle indices
+        indices.data(),            // [I] pointer mesh vertex indices
+        indices.size(),            // [I] number of vertex indices
         reinterpret_cast<float*>(m_vertices.data()), // [I] pointer to vertex positions
         m_vertices.size(),                           // [I] number of vertex positions
         sizeof(Vertex),                              // [I] stride of vertex position elements
@@ -116,14 +112,11 @@ MeshletModel::MeshletModel(std::string const& filepath) {
     m_primitiveIndices.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
     meshlets.resize(meshletCount);
 
-    // adapt meshopt data to 
+    // adapt meshopt data to
     for (size_t i = 0; i < meshlets.size(); ++i) {
-        m_meshlets.push_back({
-            meshlets[i].vertex_count,
-            meshlets[i].vertex_offset,
-            meshlets[i].triangle_count,
-            meshlets[i].triangle_offset
-            });
+        m_meshlets.push_back(
+            {meshlets[i].vertex_count, meshlets[i].vertex_offset, meshlets[i].triangle_count,
+             meshlets[i].triangle_offset});
     }
 
     // generate AABBs for meshlets
@@ -135,7 +128,7 @@ MeshletModel::MeshletModel(std::string const& filepath) {
         };
 
         for (size_t i = 0; i < meshlet.vertexCount; ++i) {
-            auto const& position{ m_vertices[m_vertexIndices[meshlet.vertexOffset + i]].position };
+            auto const& position{m_vertices[m_vertexIndices[meshlet.vertexOffset + i]].position};
             aabb.min = glm::min(aabb.min, position);
             aabb.max = glm::max(aabb.max, position);
         }
@@ -147,26 +140,32 @@ MeshletModel::MeshletModel(std::string const& filepath) {
     std::cout << filepath << std::endl;
     printf("Attribute               Count           Memory(Bytes)\n");
     printf("-----------------------------------------------------\n");
-    printf("vertices           %10llu          %10llu \n",
-        m_vertices.size(), m_vertices.size() * sizeof(Vertex));
-    printf("indices            %10llu          %10llu \n",
-        indices.size(), indices.size() * sizeof(uint32_t));
-    printf("vertex indices     %10llu          %10llu \n",
-        m_vertexIndices.size(), m_vertexIndices.size() * sizeof(uint32_t));
-    printf("primitive indices  %10llu          %10llu \n",
-        m_primitiveIndices.size(), m_primitiveIndices.size() * sizeof(uint8_t));
-    printf("meshlets           %10llu          %10llu \n",
-        m_meshlets.size(), m_meshlets.size() * sizeof(Meshlet));
-    printf("meshletBVs         %10llu          %10llu \n",
-        m_meshletBVs.size(), m_meshletBVs.size() * sizeof(BV));
+    printf(
+        "vertices           %10llu          %10llu \n", m_vertices.size(),
+        m_vertices.size() * sizeof(Vertex));
+    printf(
+        "indices            %10llu          %10llu \n", indices.size(),
+        indices.size() * sizeof(uint32_t));
+    printf(
+        "vertex indices     %10llu          %10llu \n", m_vertexIndices.size(),
+        m_vertexIndices.size() * sizeof(uint32_t));
+    printf(
+        "primitive indices  %10llu          %10llu \n", m_primitiveIndices.size(),
+        m_primitiveIndices.size() * sizeof(uint8_t));
+    printf(
+        "meshlets           %10llu          %10llu \n", m_meshlets.size(),
+        m_meshlets.size() * sizeof(Meshlet));
+    printf(
+        "meshletBVs         %10llu          %10llu \n", m_meshletBVs.size(),
+        m_meshletBVs.size() * sizeof(BV));
     printf("-----------------------------------------------------\n");
 
     size_t meshletIndicesMemory{
-        m_vertexIndices.size() * sizeof(uint32_t) +
-        m_primitiveIndices.size() * sizeof(uint8_t) +
-        m_meshlets.size() * sizeof(Meshlet) };
-    size_t traditionalIndicesMemory{ indices.size() * sizeof(uint32_t) };
-    printf("memory percentage -- meshlet / traditional: %f\n",
+        m_vertexIndices.size() * sizeof(uint32_t) + m_primitiveIndices.size() * sizeof(uint8_t)
+        + m_meshlets.size() * sizeof(Meshlet)};
+    size_t traditionalIndicesMemory{indices.size() * sizeof(uint32_t)};
+    printf(
+        "memory percentage -- meshlet / traditional: %f\n",
         1.0f * meshletIndicesMemory / traditionalIndicesMemory);
     printf("-----------------------------------------------------\n");
 }

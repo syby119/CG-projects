@@ -200,7 +200,8 @@ void Transparency::renderWithAlphaTesting() {
     m_alphaTestingShader->setUniformMat4("view", m_camera->getViewMatrix());
     m_alphaTestingShader->setUniformMat4("model", m_knot->transform.getLocalMatrix());
     // 2 set light
-    m_alphaTestingShader->setUniformVec3("directionalLight.direction", m_light->transform.getFront());
+    m_alphaTestingShader->setUniformVec3(
+        "directionalLight.direction", m_light->transform.getFront());
     m_alphaTestingShader->setUniformFloat("directionalLight.intensity", m_light->intensity);
     m_alphaTestingShader->setUniformVec3("directionalLight.color", m_light->color);
     // 3 set material

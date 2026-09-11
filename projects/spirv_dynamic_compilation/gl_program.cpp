@@ -1,15 +1,15 @@
 #include "gl_program.h"
 
-#include <magic_enum/magic_enum.hpp>
 #include <glm/ext.hpp>
+#include <magic_enum/magic_enum.hpp>
 
-GLProgram::GLProgram() : m_handle{ glCreateProgram() } {
+GLProgram::GLProgram() : m_handle{glCreateProgram()} {
     if (!m_handle) {
         throw std::runtime_error("Create ...");
     }
 }
 
-GLProgram::GLProgram(GLProgram&& rhs) noexcept : m_handle{ rhs.m_handle } {
+GLProgram::GLProgram(GLProgram&& rhs) noexcept : m_handle{rhs.m_handle} {
     rhs.m_handle = 0;
 }
 
@@ -46,7 +46,7 @@ void GLProgram::link() {
     GLint result = GL_FALSE;
     glGetProgramiv(m_handle, GL_LINK_STATUS, &result);
     if (result == GL_FALSE) {
-        GLint infoLogLength{ 0 };
+        GLint infoLogLength{0};
         glGetProgramiv(m_handle, GL_INFO_LOG_LENGTH, &infoLogLength);
 
         std::vector<char> buffer(infoLogLength);
@@ -92,13 +92,14 @@ void GLProgram::setUniform(int location, glm::bvec2 const& value) const {
 }
 
 void GLProgram::setUniform(int location, glm::bvec3 const& value) const {
-    glUniform3i(location,
-        static_cast<int>(value.x), static_cast<int>(value.y), static_cast<int>(value.z));
+    glUniform3i(
+        location, static_cast<int>(value.x), static_cast<int>(value.y), static_cast<int>(value.z));
 }
 
 void GLProgram::setUniform(int location, glm::bvec4 const& value) const {
-    glUniform4i(location, static_cast<int>(value.x),
-        static_cast<int>(value.y), static_cast<int>(value.z), static_cast<int>(value.w));
+    glUniform4i(
+        location, static_cast<int>(value.x), static_cast<int>(value.y), static_cast<int>(value.z),
+        static_cast<int>(value.w));
 }
 
 void GLProgram::setUniform(int location, int const& value) const {

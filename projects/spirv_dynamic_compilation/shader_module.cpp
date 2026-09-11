@@ -24,9 +24,7 @@ static GLenum toNativeStage(ShaderModule::Stage stage) {
     return 0;
 }
 
-
-ShaderModule::ShaderModule(std::string const& code, Stage stage)
-    : m_stage{ stage } {
+ShaderModule::ShaderModule(std::string const& code, Stage stage) : m_stage{stage} {
     m_handle = glCreateShader(toNativeStage(stage));
     checkGLErrors();
 
@@ -44,7 +42,7 @@ ShaderModule::ShaderModule(std::string const& code, Stage stage)
         GLint length{};
         glGetShaderiv(m_handle, GL_INFO_LOG_LENGTH, &length);
 
-        std::string message{ "Compile error: \n" };
+        std::string message{"Compile error: \n"};
         if (length > 0) {
             std::vector<GLchar> buffer(length);
             glGetShaderInfoLog(m_handle, length, nullptr, buffer.data());
@@ -57,7 +55,7 @@ ShaderModule::ShaderModule(std::string const& code, Stage stage)
 }
 
 ShaderModule::ShaderModule(std::vector<uint32_t> const& spirv, Stage stage, char const* entrypoint)
-    : m_stage{ stage } {
+    : m_stage{stage} {
     m_handle = glCreateShader(toNativeStage(stage));
     checkGLErrors();
 
@@ -65,13 +63,14 @@ ShaderModule::ShaderModule(std::vector<uint32_t> const& spirv, Stage stage, char
         throw std::runtime_error("Create opengl shader failure");
     }
 
-    glShaderBinary(1, &m_handle, GL_SHADER_BINARY_FORMAT_SPIR_V,
-        spirv.data(), static_cast<GLsizei>(spirv.size() * sizeof(uint32_t)));
+    glShaderBinary(
+        1, &m_handle, GL_SHADER_BINARY_FORMAT_SPIR_V, spirv.data(),
+        static_cast<GLsizei>(spirv.size() * sizeof(uint32_t)));
     glSpecializeShader(m_handle, entrypoint, 0, nullptr, nullptr);
 }
 
 ShaderModule::ShaderModule(ShaderModule&& rhs) noexcept
-    : m_handle{ rhs.m_handle }, m_stage{ rhs.m_stage } {
+    : m_handle{rhs.m_handle}, m_stage{rhs.m_stage} {
     rhs.m_handle = 0;
 }
 

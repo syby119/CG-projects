@@ -42,10 +42,13 @@ std::vector<uint8_t> decodeBase64(const std::string& uri) {
     int bits = -8;
     for (size_t i = comma + 1; i < uri.size(); ++i) {
         const unsigned char c = static_cast<unsigned char>(uri[i]);
-        if (std::isspace(c)) continue;
-        if (c == '=') break;
+        if (std::isspace(c))
+            continue;
+        if (c == '=')
+            break;
         const size_t position = alphabet.find(c);
-        if (position == std::string::npos) throw std::runtime_error("invalid base64 image data URI");
+        if (position == std::string::npos)
+            throw std::runtime_error("invalid base64 image data URI");
         value = (value << 6) + static_cast<int>(position);
         bits += 6;
         if (bits >= 0) {
@@ -58,9 +61,11 @@ std::vector<uint8_t> decodeBase64(const std::string& uri) {
 
 std::vector<uint8_t> readFile(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary | std::ios::ate);
-    if (!input) throw std::runtime_error("read image file failure: " + path.string());
+    if (!input)
+        throw std::runtime_error("read image file failure: " + path.string());
     const std::streamsize size = input.tellg();
-    if (size < 0) throw std::runtime_error("read image file size failure: " + path.string());
+    if (size < 0)
+        throw std::runtime_error("read image file size failure: " + path.string());
     std::vector<uint8_t> bytes(static_cast<size_t>(size));
     input.seekg(0);
     if (!input.read(reinterpret_cast<char*>(bytes.data()), size)) {
@@ -75,12 +80,15 @@ std::vector<uint8_t> imageBytes(
         const tg3_buffer_view& view = model.buffer_views[image.buffer_view];
         const tg3_buffer& buffer = model.buffers[view.buffer];
         return std::vector<uint8_t>(
-            buffer.data.data + view.byte_offset, buffer.data.data + view.byte_offset + view.byte_length);
+            buffer.data.data + view.byte_offset,
+            buffer.data.data + view.byte_offset + view.byte_length);
     }
 
     const std::string uri = toString(image.uri);
-    if (uri.rfind("data:", 0) == 0) return decodeBase64(uri);
-    if (uri.empty()) throw std::runtime_error("image has neither URI nor buffer view");
+    if (uri.rfind("data:", 0) == 0)
+        return decodeBase64(uri);
+    if (uri.empty())
+        throw std::runtime_error("image has neither URI nor buffer view");
     return readFile(basePath / std::filesystem::path(uri));
 }
 
@@ -90,11 +98,12 @@ std::string imageDescription(const tg3_image& image) {
     }
 
     const std::string uri = toString(image.uri);
-    if (uri.rfind("data:", 0) == 0) return "<embedded data URI>";
+    if (uri.rfind("data:", 0) == 0)
+        return "<embedded data URI>";
     return uri;
 }
 
-}  // namespace
+} // namespace
 
 Model::Model(const std::string& filepath) {
     load(filepath);
@@ -124,12 +133,14 @@ void Model::load(const std::string& filepath) {
         std::cerr << "[TinyGLTF v3] " << (error->message ? error->message : "unknown error")
                   << std::endl;
     }
-    if (result != TG3_OK) throw std::runtime_error("load " + filepath + " failure");
+    if (result != TG3_OK)
+        throw std::runtime_error("load " + filepath + " failure");
     const tg3_model& gltfModel = *model.get();
     std::cout << "load " << filepath << " success" << std::endl;
 
     /* load the default scene if it exists, or scene index 0 */
-    if (gltfModel.scenes_count == 0) throw std::runtime_error("model contains no scenes");
+    if (gltfModel.scenes_count == 0)
+        throw std::runtime_error("model contains no scenes");
     const int sceneIndex = gltfModel.default_scene >= 0 ? gltfModel.default_scene : 0;
     const tg3_scene& scene = gltfModel.scenes[sceneIndex];
     std::cout << "+ sceneIndex: " << sceneIndex << std::endl;
@@ -218,16 +229,15 @@ void Model::loadTextures(const tg3_model& gltfModel, const std::string& filepath
         int width = 0, height = 0, channels = 0;
         stbi_uc* pixels = stbi_load_from_memory(
             bytes.data(), static_cast<int>(bytes.size()), &width, &height, &channels, 0);
-        if (!pixels) throw std::runtime_error("decode image failure: " + toString(gltfImage.uri));
+        if (!pixels)
+            throw std::runtime_error("decode image failure: " + toString(gltfImage.uri));
         GLenum format = GL_RGBA;
         switch (channels) {
         case 1: format = GL_RED; break;
         case 2: format = GL_RG; break;
         case 3: format = GL_RGB; break;
         case 4: format = GL_RGBA; break;
-        default:
-            stbi_image_free(pixels);
-            throw std::runtime_error("unsupported image format");
+        default: stbi_image_free(pixels); throw std::runtime_error("unsupported image format");
         }
         std::unique_ptr<Texture2D> texture{new ImageTexture2D(
             pixels, width, height, channels, static_cast<GLint>(format), format, GL_UNSIGNED_BYTE,
@@ -275,7 +285,8 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
         } else if (tg3_str_equals_cstr(gltfMaterial.alpha_mode, "OPAQUE")) {
             material->alphaMode = PbrMaterial::AlphaMode::Opaque;
         } else {
-            throw std::runtime_error("unsupported material alpha mode: " + toString(gltfMaterial.alpha_mode));
+            throw std::runtime_error(
+                "unsupported material alpha mode: " + toString(gltfMaterial.alpha_mode));
         }
 
         int textureIndex = -1;
@@ -284,14 +295,15 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
         // albedo
         const tg3_pbr_metallic_roughness& pbr = gltfMaterial.pbr_metallic_roughness;
         material->albedoFactor = glm::vec4(
-            static_cast<float>(pbr.base_color_factor[0]), static_cast<float>(pbr.base_color_factor[1]),
-            static_cast<float>(pbr.base_color_factor[2]), static_cast<float>(pbr.base_color_factor[3]));
+            static_cast<float>(pbr.base_color_factor[0]),
+            static_cast<float>(pbr.base_color_factor[1]),
+            static_cast<float>(pbr.base_color_factor[2]),
+            static_cast<float>(pbr.base_color_factor[3]));
 
         textureIndex = pbr.base_color_texture.index;
         if (textureIndex >= 0) {
             material->albedoMap = m_textures[textureIndex].get();
-            material->texCoordSets.albedo =
-                pbr.base_color_texture.tex_coord;
+            material->texCoordSets.albedo = pbr.base_color_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -302,14 +314,12 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
         }
 
         // metallic
-        material->metallicFactor =
-            static_cast<float>(pbr.metallic_factor);
+        material->metallicFactor = static_cast<float>(pbr.metallic_factor);
 
         textureIndex = pbr.metallic_roughness_texture.index;
         if (textureIndex >= 0) {
             material->metallicMap = m_textures[textureIndex].get();
-            material->texCoordSets.metallic =
-                pbr.metallic_roughness_texture.tex_coord;
+            material->texCoordSets.metallic = pbr.metallic_roughness_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -320,14 +330,12 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
         }
 
         // roughness
-        material->roughnessFactor =
-            static_cast<float>(pbr.roughness_factor);
+        material->roughnessFactor = static_cast<float>(pbr.roughness_factor);
 
         textureIndex = pbr.metallic_roughness_texture.index;
         if (textureIndex >= 0) {
             material->roughnessMap = m_textures[textureIndex].get();
-            material->texCoordSets.roughness =
-                pbr.metallic_roughness_texture.tex_coord;
+            material->texCoordSets.roughness = pbr.metallic_roughness_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
@@ -421,14 +429,16 @@ void Model::loadNode(
         static_cast<float>(gltfNode.scale[2]));
     if (gltfNode.has_matrix) {
         glm::mat4 matrix(1.0f);
-        for (int i = 0; i < 16; ++i) matrix[i / 4][i % 4] = static_cast<float>(gltfNode.matrix[i]);
+        for (int i = 0; i < 16; ++i)
+            matrix[i / 4][i % 4] = static_cast<float>(gltfNode.matrix[i]);
         node->transform.setFromTRS(matrix);
     }
 
     // process mesh
     if (gltfNode.mesh >= 0) {
         const tg3_mesh& gltfMesh = gltfModel.meshes[gltfNode.mesh];
-        for (uint32_t primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; ++primitiveIndex) {
+        for (uint32_t primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count;
+             ++primitiveIndex) {
             const tg3_primitive& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
             size_t count = 0;
             const uint32_t vertexStart = static_cast<uint32_t>(m_vertices.size());
@@ -478,8 +488,7 @@ void Model::loadNode(
                 if (texCoord1ByteStride == -1) {
                     throw std::runtime_error("illegal texCoord1 byte stride");
                 } else if (texCoord1ByteStride == 0) {
-                    texCoord1ByteStride =
-                        tg3_num_components(TG3_TYPE_VEC2) * sizeof(float);
+                    texCoord1ByteStride = tg3_num_components(TG3_TYPE_VEC2) * sizeof(float);
                 }
             }
 
@@ -643,8 +652,7 @@ void Model::cleanup() {
     }
 }
 
-std::pair<size_t, size_t> Model::getNodeProps(
-    const tg3_node& node, const tg3_model& model) {
+std::pair<size_t, size_t> Model::getNodeProps(const tg3_node& node, const tg3_model& model) {
 
     size_t vertexCount = 0;
     size_t indexCount = 0;
@@ -654,7 +662,8 @@ std::pair<size_t, size_t> Model::getNodeProps(
         for (uint32_t i = 0; i < mesh.primitives_count; ++i) {
             const tg3_primitive& primitive = mesh.primitives[i];
             const tg3_str_int_pair* position = findAttribute(primitive, "POSITION");
-            if (!position) throw std::runtime_error("find position data failure");
+            if (!position)
+                throw std::runtime_error("find position data failure");
             vertexCount += model.accessors[position->value].count;
             if (primitive.indices >= 0) {
                 indexCount += model.accessors[primitive.indices].count;
@@ -673,17 +682,20 @@ std::pair<size_t, size_t> Model::getNodeProps(
 
 template <typename T>
 bool Model::getAttributeBufferInfo(
-    const tg3_model& gltfModel, const tg3_primitive& gltfPrimitive,
-    const std::string& name, const T*& data, int& byteStride, size_t& count) {
+    const tg3_model& gltfModel, const tg3_primitive& gltfPrimitive, const std::string& name,
+    const T*& data, int& byteStride, size_t& count) {
     const tg3_str_int_pair* attribute = findAttribute(gltfPrimitive, name);
-    if (!attribute) return false;
+    if (!attribute)
+        return false;
 
     const tg3_accessor& accessor = gltfModel.accessors[attribute->value];
-    if (accessor.buffer_view < 0) return false;
+    if (accessor.buffer_view < 0)
+        return false;
     const tg3_buffer_view& bufferView = gltfModel.buffer_views[accessor.buffer_view];
 
     data = reinterpret_cast<const T*>(
-        gltfModel.buffers[bufferView.buffer].data.data + accessor.byte_offset + bufferView.byte_offset);
+        gltfModel.buffers[bufferView.buffer].data.data + accessor.byte_offset
+        + bufferView.byte_offset);
 
     count = accessor.count;
 
@@ -766,48 +778,43 @@ void Model::printMaterials() const {
         case PbrMaterial::AlphaMode::Opaque: alphaMode = "Opaque"; break;
         }
 
-        std::cout << "  + material[" << i << "]"
-                  << "\n";
+        std::cout << "  + material[" << i << "]" << "\n";
         std::cout << "    + name:        " << m_materials[i]->name << "\n";
         std::cout << "    + doubleSided: " << m_materials[i]->doubleSided << "\n";
         std::cout << "    + alphaMode:   " << alphaMode << "\n";
         std::cout << "    + alphaCutoff: " << m_materials[i]->alphaCutoff << "\n";
-        std::cout << "    + albedo: "
-                  << "\n";
+        std::cout << "    + albedo: " << "\n";
         std::cout << "      + factor: " << m_materials[i]->albedoFactor << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->albedoMap) << "\n";
         std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->albeodoSampler) << "\n";
         std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.albedo << "\n";
-        std::cout << "    + metallic: "
-                  << "\n";
+        std::cout << "    + metallic: " << "\n";
         std::cout << "      + factor: " << m_materials[i]->metallicFactor << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->metallicMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->metallicSampler) << "\n";
-        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.metallic << "\n";
-        std::cout << "    + roughness: "
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->metallicSampler)
                   << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.metallic << "\n";
+        std::cout << "    + roughness: " << "\n";
         std::cout << "      + factor: " << m_materials[i]->metallicFactor << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->roughnessMap) << "\n";
         std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->roughnessSampler)
                   << "\n";
         std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.roughness << "\n";
-        std::cout << "    + normal: "
-                  << "\n";
+        std::cout << "    + normal: " << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->normalMap) << "\n";
         std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->normalSampler) << "\n";
         std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.normal << "\n";
-        std::cout << "    + occlusion: "
-                  << "\n";
+        std::cout << "    + occlusion: " << "\n";
         std::cout << "      + strength:" << m_materials[i]->occlusionStrength << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->occlusionMap) << "\n";
         std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->occlusionSampler)
                   << "\n";
         std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.metallic << "\n";
-        std::cout << "    + emissive: "
-                  << "\n";
+        std::cout << "    + emissive: " << "\n";
         std::cout << "      + factor: " << m_materials[i]->emissiveFactor << "\n";
         std::cout << "      + texture: " << getTextureIndex(m_materials[i]->emissiveMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->emissiveSampler) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->emissiveSampler)
+                  << "\n";
         std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.emissive << "\n";
     }
 }

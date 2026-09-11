@@ -148,7 +148,8 @@ void PostProcessing::initSSAOPassResources() {
     m_ssaoFBO->bind();
     m_ssaoFBO->drawBuffer(GL_COLOR_ATTACHMENT0);
     for (int i = 0; i < 2; ++i) {
-        m_ssaoResult[i].reset(new Texture2D(GL_R32F, m_windowWidth, m_windowHeight, GL_RED, GL_FLOAT));
+        m_ssaoResult[i].reset(
+            new Texture2D(GL_R32F, m_windowWidth, m_windowHeight, GL_RED, GL_FLOAT));
         m_ssaoResult[i]->bind();
         m_ssaoResult[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         m_ssaoResult[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);

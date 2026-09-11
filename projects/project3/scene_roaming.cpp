@@ -30,12 +30,12 @@ SceneRoaming::SceneRoaming(const Options& options) : Application(options) {
 
     std::vector<Vertex> vertices{
         //         position         |        normal        |   texcoord
-        { { -5.0f, 0.0f, -5.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } },
-        { {  5.0f, 0.0f, -5.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-        { {  5.0f, 0.0f,  5.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f } },
-        { { -5.0f, 0.0f,  5.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }
+        {{-5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+        { {5.0f, 0.0f, -5.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {  {5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+        { {-5.0f, 0.0f, 5.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}}
     };
-    std::vector<uint32_t> indices{ 0, 2, 1, 0, 3, 2 };
+    std::vector<uint32_t> indices{0, 2, 1, 0, 3, 2};
 
     m_ground.reset(new Model(vertices, indices));
 

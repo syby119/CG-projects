@@ -20,8 +20,7 @@ GLSLProgram::GLSLProgram(GLSLProgram&& rhs) noexcept
       m_geometryShaders(std::move(rhs.m_geometryShaders)),
       m_fragmentShaders(std::move(rhs.m_fragmentShaders)),
       m_computeShaders(std::move(rhs.m_computeShaders)),
-      m_taskShaders(std::move(rhs.m_taskShaders)),
-      m_meshShaders(std::move(rhs.m_meshShaders)) {
+      m_taskShaders(std::move(rhs.m_taskShaders)), m_meshShaders(std::move(rhs.m_meshShaders)) {
     rhs.m_handle = 0;
 }
 
@@ -105,8 +104,7 @@ void GLSLProgram::attachGeometryShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachGeometryShader(code);
-    }
-    catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
@@ -115,8 +113,7 @@ void GLSLProgram::attachFragmentShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachFragmentShader(code);
-    }
-    catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
@@ -125,8 +122,7 @@ void GLSLProgram::attachComputeShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachComputeShader(code);
-    }
-    catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
@@ -135,8 +131,7 @@ void GLSLProgram::attachTaskShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachTaskShader(code);
-    }
-    catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }
@@ -145,8 +140,7 @@ void GLSLProgram::attachMeshShaderFromFile(const std::string& filePath) {
     const std::string& code = readFile(filePath);
     try {
         attachMeshShader(code);
-    }
-    catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw std::runtime_error("Compile " + filePath + " error\n" + e.what());
     }
 }

@@ -6,11 +6,11 @@
 #include "../base/camera.h"
 #include "../base/light.h"
 #include "../base/model.h"
-#include "../base/uniform_buffer.h"
 #include "../base/texture2d.h"
+#include "../base/uniform_buffer.h"
 
-#include "program_manager.h"
 #include "material.h"
+#include "program_manager.h"
 
 class SpirvDynamicCompilation : public Application {
 public:

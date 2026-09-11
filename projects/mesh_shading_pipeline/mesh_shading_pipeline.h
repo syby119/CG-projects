@@ -34,25 +34,25 @@ public:
     MeshShadingPipeline(const Options& options);
 
 private:
-    RenderCase m_renderCase{ RenderCase::Traditional };
+    RenderCase m_renderCase{RenderCase::Traditional};
 
     std::unique_ptr<DirectionalLight> m_dirLight;
 
     std::unique_ptr<Camera> m_camera;
-    float m_cameraMoveSpeed{ 1.0f };
+    float m_cameraMoveSpeed{1.0f};
 
-    LambertMaterial m_material{ glm::vec3(0.8f) };
+    LambertMaterial m_material{glm::vec3(0.8f)};
 
     std::unique_ptr<Model> m_model;
 
-    static constexpr uint32_t m_vertexBinding{ 0 };
-    static constexpr uint32_t m_vertexIndicesBinding{ 1 };
-    static constexpr uint32_t m_primitiveIndicesBinding{ 2 };
-    static constexpr uint32_t m_meshletBinding{ 3 };
-    static constexpr uint32_t m_instanceMatricesBinding{ 4 };
-    static constexpr uint32_t m_bvBinding{ 5 };
-    static constexpr uint32_t m_lodInfoBinding{ 6 };
-    static constexpr uint32_t m_statisticsBinding{ 7 };
+    static constexpr uint32_t m_vertexBinding{0};
+    static constexpr uint32_t m_vertexIndicesBinding{1};
+    static constexpr uint32_t m_primitiveIndicesBinding{2};
+    static constexpr uint32_t m_meshletBinding{3};
+    static constexpr uint32_t m_instanceMatricesBinding{4};
+    static constexpr uint32_t m_bvBinding{5};
+    static constexpr uint32_t m_lodInfoBinding{6};
+    static constexpr uint32_t m_statisticsBinding{7};
 
     std::unique_ptr<MeshletModel> m_meshletModel;
     std::unique_ptr<ShaderStorageBuffer> m_ssboVerticesBuffer;
@@ -68,12 +68,12 @@ private:
     std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodBuffer;
     std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodInfoBuffer;
     std::unique_ptr<ShaderStorageBuffer> m_ssboMeshletLodBVBuffer;
-    float m_maxLodDistance{ 10.0f };
+    float m_maxLodDistance{10.0f};
 
     std::unique_ptr<ShaderStorageBuffer> m_ssboStatistics;
 
-    uint32_t m_instanceSpanXCount{ 100 };
-    uint32_t m_instanceSpanZCount{ 100 };
+    uint32_t m_instanceSpanXCount{100};
+    uint32_t m_instanceSpanZCount{100};
     std::unique_ptr<ShaderStorageBuffer> m_ssboInstanceMatricesBuffer;
 
     std::unique_ptr<GLSLProgram> m_traditionalProgram;

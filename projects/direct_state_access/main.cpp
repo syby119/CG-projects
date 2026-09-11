@@ -8,7 +8,7 @@ Options getOptions(int argc, char* argv[]) {
     options.windowHeight = 720;
     options.windowResizable = false;
     options.vSync = true;
-    options.glVersion = { 4, 5 };
+    options.glVersion = {4, 5};
     options.backgroundColor = glm::vec4(0.051f, 0.142f, 0.191f, 1.0f);
     options.assetRootDir = "../../media/";
 
@@ -21,12 +21,10 @@ int main(int argc, char* argv[]) {
     try {
         DirectStateAccess app(options);
         app.run();
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
-    }
-    catch (...) {
+    } catch (...) {
         std::cerr << "Unknown exception" << std::endl;
         exit(EXIT_FAILURE);
     }

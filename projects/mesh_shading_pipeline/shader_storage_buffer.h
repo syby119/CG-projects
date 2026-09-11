@@ -8,8 +8,7 @@ public:
         glGenBuffers(1, &m_handle);
     }
 
-    ShaderStorageBuffer(ShaderStorageBuffer&& rhs) noexcept
-        : m_handle{ std::move(rhs.m_handle) } {
+    ShaderStorageBuffer(ShaderStorageBuffer&& rhs) noexcept : m_handle{std::move(rhs.m_handle)} {
         rhs.m_handle = 0;
     }
 
@@ -61,5 +60,5 @@ public:
     }
 
 private:
-    GLuint m_handle{ 0 };
+    GLuint m_handle{0};
 };

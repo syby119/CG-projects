@@ -54,19 +54,16 @@ void SpirvDynamicCompilation::initMaterial() {
     m_programManager.reset(new ProgramManager);
 
     std::vector<ProgramManager::MarcoDefinition> macros{
-        { "OUTPUT_RED_CHANNAL", "0" },
+        {"OUTPUT_RED_CHANNAL", "0"},
     };
 
     std::vector<ProgramManager::ShaderSource> shaderSources{
         {
-            ShaderModule::Stage::Vertex,
-            getAssetFullPath("shader/spirv_dynamic_compilation/lambert.vert"),
-        },
-        {
-            ShaderModule::Stage::Fragment,
-            getAssetFullPath("shader/spirv_dynamic_compilation/lambert.frag"),
-            macros
-        }
+         ShaderModule::Stage::Vertex,
+         getAssetFullPath("shader/spirv_dynamic_compilation/lambert.vert"),
+         },
+        {ShaderModule::Stage::Fragment,
+         getAssetFullPath("shader/spirv_dynamic_compilation/lambert.frag"), macros}
     };
 
     m_lambertProgram = m_programManager->create(shaderSources);
@@ -99,7 +96,7 @@ void SpirvDynamicCompilation::renderFrame() {
     m_uboLights->update("dirLights[0].intensity", m_dirLight->intensity);
     m_uboLights->update("dirLights[0].color", m_dirLight->color);
 
-    auto program{ m_lambertMaterial->getProgram() };
+    auto program{m_lambertMaterial->getProgram()};
     program->use();
     m_lambertMaterial->upload();
     m_lambertMaterial->getProgram()->setUniform(
@@ -120,8 +117,7 @@ void SpirvDynamicCompilation::renderUI() {
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
-    }
-    else {
+    } else {
         renderLightUI();
         ImGui::NewLine();
 
@@ -148,34 +144,36 @@ void SpirvDynamicCompilation::renderMaterialUI() {
     for (auto& [name, attrInfo] : m_lambertMaterial->getArributeInfos()) {
         ImGui::TextUnformatted(name.c_str());
 
-        auto label{ "##" + name };
+        auto label{"##" + name};
         switch (attrInfo.type) {
         case GLProgram::VarType::Bool:
             ImGui::Checkbox(label.c_str(), const_cast<bool*>(std::get_if<bool>(&attrInfo.value)));
             break;
         case GLProgram::VarType::Int:
-            ImGui::DragInt(label.c_str(), const_cast<int*>(std::get_if<int>(&attrInfo.value)), 0.01f);
+            ImGui::DragInt(
+                label.c_str(), const_cast<int*>(std::get_if<int>(&attrInfo.value)), 0.01f);
             break;
         case GLProgram::VarType::Float:
             ImGui::DragFloat(label.c_str(), (float*)(std::get_if<float>(&attrInfo.value)), 0.01f);
             break;
         case GLProgram::VarType::Vec2:
-            ImGui::DragFloat2(label.c_str(), (float*)(std::get_if<glm::vec2>(&attrInfo.value)), 0.01f);
+            ImGui::DragFloat2(
+                label.c_str(), (float*)(std::get_if<glm::vec2>(&attrInfo.value)), 0.01f);
             break;
         case GLProgram::VarType::Vec3:
             if (attrInfo.isColor) {
                 ImGui::ColorEdit3(label.c_str(), (float*)(std::get_if<glm::vec3>(&attrInfo.value)));
-            }
-            else {
-                ImGui::DragFloat3(label.c_str(), (float*)(std::get_if<glm::vec3>(&attrInfo.value)), 0.01f);
+            } else {
+                ImGui::DragFloat3(
+                    label.c_str(), (float*)(std::get_if<glm::vec3>(&attrInfo.value)), 0.01f);
             }
             break;
         case GLProgram::VarType::Vec4:
             if (attrInfo.isColor) {
                 ImGui::ColorEdit4(label.c_str(), (float*)(std::get_if<glm::vec4>(&attrInfo.value)));
-            }
-            else {
-                ImGui::DragFloat4(label.c_str(), (float*)(std::get_if<glm::vec4>(&attrInfo.value)), 0.01f);
+            } else {
+                ImGui::DragFloat4(
+                    label.c_str(), (float*)(std::get_if<glm::vec4>(&attrInfo.value)), 0.01f);
             }
             break;
         }
@@ -183,7 +181,8 @@ void SpirvDynamicCompilation::renderMaterialUI() {
 
     for (auto const& [name, texInfo] : m_lambertMaterial->getTextureInfos()) {
         ImGui::TextUnformatted(name.c_str());
-        ImGui::Image((void*)(uint64_t)texInfo.texture->getHandle(),
-            ImVec2(256, 256), ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+        ImGui::Image(
+            (void*)(uint64_t)texInfo.texture->getHandle(), ImVec2(256, 256), ImVec2{0, 1},
+            ImVec2{1, 0});
     }
 }

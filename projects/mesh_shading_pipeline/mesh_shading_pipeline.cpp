@@ -17,7 +17,6 @@ MeshShadingPipeline::MeshShadingPipeline(const Options& options) : Application(o
     m_camera->transform.position = glm::vec3(0.000000f, 0.177955f, 0.367840f);
     m_camera->transform.rotation = glm::quat(0.995212f, -0.097740f, -0.0f, -0.0f);
 
-
     initPrograms();
 
     initInstanceMatrices();
@@ -30,12 +29,10 @@ MeshShadingPipeline::MeshShadingPipeline(const Options& options) : Application(o
 
     loadMeshletModel("obj/lod/horse.obj");
 
-    loadMeshletModelLod({
-        getAssetFullPath("obj/lod/horse.obj"),
-        getAssetFullPath("obj/lod/horse_lod1.obj"),
-        getAssetFullPath("obj/lod/horse_lod2.obj"),
-        getAssetFullPath("obj/lod/horse_lod3.obj"),
-        getAssetFullPath("obj/lod/horse_lod4.obj") });
+    loadMeshletModelLod(
+        {getAssetFullPath("obj/lod/horse.obj"), getAssetFullPath("obj/lod/horse_lod1.obj"),
+         getAssetFullPath("obj/lod/horse_lod2.obj"), getAssetFullPath("obj/lod/horse_lod3.obj"),
+         getAssetFullPath("obj/lod/horse_lod4.obj")});
 
     // init imGUI
     IMGUI_CHECKVERSION();
@@ -48,7 +45,7 @@ MeshShadingPipeline::MeshShadingPipeline(const Options& options) : Application(o
     ImGui_ImplOpenGL3_Init();
 
     checkGLErrors();
-    
+
     updateInstanceMatrices();
 }
 
@@ -88,7 +85,7 @@ void MeshShadingPipeline::handleInput() {
             m_camera->transform.getUp() * m_cameraMoveSpeed * m_deltaTime;
     }
 
-    //updateInstanceMatrices();
+    // updateInstanceMatrices();
 #if ENABLE_STATISTICS
     updateStatictics();
 #endif
@@ -102,30 +99,14 @@ void MeshShadingPipeline::renderFrame() {
     glEnable(GL_DEPTH_TEST);
 
     switch (m_renderCase) {
-    case RenderCase::Traditional:
-        renderTraditional();
-        break;
-    case RenderCase::Triangle:
-        renderTriangle();
-        break;
-    case RenderCase::Meshlet:
-        renderMeshlet(true);
-        break;
-    case RenderCase::Meshlet2:
-        renderMeshlet2();
-        break;
-    case RenderCase::Instance:
-        renderInstance();
-        break;
-    case RenderCase::Cull:
-        renderCull();
-        break;
-    case RenderCase::Lod:
-        renderLod();
-        break;
-    case RenderCase::Full:
-        renderFull();
-        break;
+    case RenderCase::Traditional: renderTraditional(); break;
+    case RenderCase::Triangle: renderTriangle(); break;
+    case RenderCase::Meshlet: renderMeshlet(true); break;
+    case RenderCase::Meshlet2: renderMeshlet2(); break;
+    case RenderCase::Instance: renderInstance(); break;
+    case RenderCase::Cull: renderCull(); break;
+    case RenderCase::Lod: renderLod(); break;
+    case RenderCase::Full: renderFull(); break;
     }
 
     renderUI();
@@ -246,40 +227,40 @@ void MeshShadingPipeline::loadMeshletModel(const std::string& filepath) {
     // + vertex data
     m_ssboVerticesBuffer.reset(new ShaderStorageBuffer);
     m_ssboVerticesBuffer->bind();
-    m_ssboVerticesBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModel->getVertices().size() * sizeof(MeshletModel::Vertex),
+    m_ssboVerticesBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModel->getVertices().size() * sizeof(MeshletModel::Vertex),
         m_meshletModel->getVertices().data());
     m_ssboVerticesBuffer->unbind();
 
     // + vertex indices
     m_ssboVertexIndicesBuffer.reset(new ShaderStorageBuffer);
     m_ssboVertexIndicesBuffer->bind();
-    m_ssboVertexIndicesBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModel->getVertexIndices().size() * sizeof(uint32_t),
+    m_ssboVertexIndicesBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModel->getVertexIndices().size() * sizeof(uint32_t),
         m_meshletModel->getVertexIndices().data());
     m_ssboVertexIndicesBuffer->unbind();
 
     // + primitive indices
     m_ssboPrimitiveIndicesBuffer.reset(new ShaderStorageBuffer);
     m_ssboPrimitiveIndicesBuffer->bind();
-    m_ssboPrimitiveIndicesBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModel->getPrimitiveIndices().size() * sizeof(uint8_t),
+    m_ssboPrimitiveIndicesBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModel->getPrimitiveIndices().size() * sizeof(uint8_t),
         m_meshletModel->getPrimitiveIndices().data());
     m_ssboPrimitiveIndicesBuffer->unbind();
 
     // + meshlet
     m_ssboMeshletBuffer.reset(new ShaderStorageBuffer);
     m_ssboMeshletBuffer->bind();
-    m_ssboMeshletBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModel->getMeshlets().size() * sizeof(MeshletModel::Meshlet),
+    m_ssboMeshletBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModel->getMeshlets().size() * sizeof(MeshletModel::Meshlet),
         m_meshletModel->getMeshlets().data());
     m_ssboMeshletBuffer->unbind();
 
     // + meshlet BV
     m_ssboMeshletBVBuffer.reset(new ShaderStorageBuffer);
     m_ssboMeshletBVBuffer->bind();
-    m_ssboMeshletBVBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModel->getMeshletBVs().size() * sizeof(MeshletModel::BV),
+    m_ssboMeshletBVBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModel->getMeshletBVs().size() * sizeof(MeshletModel::BV),
         m_meshletModel->getMeshletBVs().data());
     m_ssboMeshletBVBuffer->unbind();
 }
@@ -290,47 +271,48 @@ void MeshShadingPipeline::loadMeshletModelLod(const std::vector<std::string>& fi
     // + vertex data
     m_ssboVerticesLodBuffer.reset(new ShaderStorageBuffer);
     m_ssboVerticesLodBuffer->bind();
-    m_ssboVerticesLodBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModelLod->getVertices().size() * sizeof(MeshletModelLod::Vertex),
+    m_ssboVerticesLodBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModelLod->getVertices().size() * sizeof(MeshletModelLod::Vertex),
         m_meshletModelLod->getVertices().data());
     m_ssboVerticesLodBuffer->unbind();
 
     // + vertex indices
     m_ssboVertexIndicesLodBuffer.reset(new ShaderStorageBuffer);
     m_ssboVertexIndicesLodBuffer->bind();
-    m_ssboVertexIndicesLodBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModelLod->getVertexIndices().size() * sizeof(uint32_t),
+    m_ssboVertexIndicesLodBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModelLod->getVertexIndices().size() * sizeof(uint32_t),
         m_meshletModelLod->getVertexIndices().data());
     m_ssboVertexIndicesLodBuffer->unbind();
 
     // + primitive indices
     m_ssboPrimitiveIndicesLodBuffer.reset(new ShaderStorageBuffer);
     m_ssboPrimitiveIndicesLodBuffer->bind();
-    m_ssboPrimitiveIndicesLodBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModelLod->getPrimitiveIndices().size() * sizeof(uint8_t),
+    m_ssboPrimitiveIndicesLodBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModelLod->getPrimitiveIndices().size() * sizeof(uint8_t),
         m_meshletModelLod->getPrimitiveIndices().data());
     m_ssboPrimitiveIndicesLodBuffer->unbind();
 
     // + meshlet
     m_ssboMeshletLodBuffer.reset(new ShaderStorageBuffer);
     m_ssboMeshletLodBuffer->bind();
-    m_ssboMeshletLodBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModelLod->getMeshlets().size() * sizeof(MeshletModelLod::Meshlet),
+    m_ssboMeshletLodBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModelLod->getMeshlets().size() * sizeof(MeshletModelLod::Meshlet),
         m_meshletModelLod->getMeshlets().data());
     m_ssboMeshletLodBuffer->unbind();
 
     // + meshlet BV
     m_ssboMeshletLodBVBuffer.reset(new ShaderStorageBuffer);
     m_ssboMeshletLodBVBuffer->bind();
-    m_ssboMeshletLodBVBuffer->upload(GL_STATIC_DRAW,
-        m_meshletModelLod->getMeshletBVs().size() * sizeof(MeshletModelLod::BV),
+    m_ssboMeshletLodBVBuffer->upload(
+        GL_STATIC_DRAW, m_meshletModelLod->getMeshletBVs().size() * sizeof(MeshletModelLod::BV),
         m_meshletModelLod->getMeshletBVs().data());
     m_ssboMeshletLodBVBuffer->unbind();
 
     // + meshlet lod info
     m_ssboMeshletLodInfoBuffer.reset(new ShaderStorageBuffer);
     m_ssboMeshletLodInfoBuffer->bind();
-    m_ssboMeshletLodInfoBuffer->upload(GL_STATIC_DRAW,
+    m_ssboMeshletLodInfoBuffer->upload(
+        GL_STATIC_DRAW,
         m_meshletModelLod->getMeshletLodInfos().size() * sizeof(MeshletModelLod::LodInfo),
         m_meshletModelLod->getMeshletLodInfos().data());
     m_ssboMeshletLodInfoBuffer->unbind();
@@ -353,25 +335,25 @@ void MeshShadingPipeline::initStatistics() {
 }
 
 void MeshShadingPipeline::updateInstanceMatrices() {
-    const auto aabb{ m_meshletModel->getAABB() };
-    float maxSpan{ std::max<float>(aabb.max.x - aabb.min.x, aabb.max.z - aabb.min.z) };
-    float instanceSpanX{ 2.0f * maxSpan };
-    float instanceSpanZ{ 4.5f * maxSpan };
-    float totalSpanX{ instanceSpanX * m_instanceSpanXCount };
-    float totalSpanZ{ instanceSpanZ * m_instanceSpanZCount };
+    const auto aabb{m_meshletModel->getAABB()};
+    float maxSpan{std::max<float>(aabb.max.x - aabb.min.x, aabb.max.z - aabb.min.z)};
+    float instanceSpanX{2.0f * maxSpan};
+    float instanceSpanZ{4.5f * maxSpan};
+    float totalSpanX{instanceSpanX * m_instanceSpanXCount};
+    float totalSpanZ{instanceSpanZ * m_instanceSpanZCount};
 
     m_ssboInstanceMatricesBuffer->bind();
-    auto ptr{ reinterpret_cast<glm::mat4*>(m_ssboInstanceMatricesBuffer->map(GL_WRITE_ONLY)) };
+    auto ptr{reinterpret_cast<glm::mat4*>(m_ssboInstanceMatricesBuffer->map(GL_WRITE_ONLY))};
 
     for (size_t j = 0; j < m_instanceSpanZCount; ++j) {
         for (size_t i = 0; i < m_instanceSpanXCount; ++i) {
-            float x{ i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f };
-            float y{ 0 };
-            float z{ j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ };
+            float x{i * instanceSpanX - (totalSpanX / 2.0f) + instanceSpanX / 2.0f};
+            float y{0};
+            float z{j * instanceSpanZ - (totalSpanZ / 2.0f) - 2.15f * instanceSpanZ};
             float theta = static_cast<float>(glfwGetTime());
-            //float theta = 0.0f;
+            // float theta = 0.0f;
 
-            glm::mat4 model{ 1.0f };
+            glm::mat4 model{1.0f};
             model = glm::translate(model, glm::vec3(x, y, z));
             model = glm::rotate(model, theta, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -385,7 +367,7 @@ void MeshShadingPipeline::updateInstanceMatrices() {
 
 void MeshShadingPipeline::updateStatictics() {
     m_ssboStatistics->bind();
-    auto ptr{ reinterpret_cast<uint32_t*>(m_ssboStatistics->map(GL_WRITE_ONLY)) };
+    auto ptr{reinterpret_cast<uint32_t*>(m_ssboStatistics->map(GL_WRITE_ONLY))};
     *ptr = 0;
     m_ssboStatistics->unmap();
     m_ssboStatistics->unbind();
@@ -393,8 +375,8 @@ void MeshShadingPipeline::updateStatictics() {
 
 void MeshShadingPipeline::renderTraditional() {
     m_traditionalProgram->use();
-    m_traditionalProgram->setUniformMat4("viewProjection",
-        m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
+    m_traditionalProgram->setUniformMat4(
+        "viewProjection", m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
 
     m_traditionalProgram->setUniformVec3("material.kd", m_material.kd);
     m_traditionalProgram->setUniformVec3(
@@ -403,9 +385,9 @@ void MeshShadingPipeline::renderTraditional() {
     m_traditionalProgram->setUniformVec3("directionalLight.color", m_dirLight->color);
 
     glBindVertexArray(m_model->getVao());
-    glDrawElementsInstanced(GL_TRIANGLES, 
-        static_cast<GLsizei>(m_model->getIndices().size()),
-        GL_UNSIGNED_INT, nullptr, m_instanceSpanXCount * m_instanceSpanZCount);
+    glDrawElementsInstanced(
+        GL_TRIANGLES, static_cast<GLsizei>(m_model->getIndices().size()), GL_UNSIGNED_INT, nullptr,
+        m_instanceSpanXCount * m_instanceSpanZCount);
     glBindVertexArray(0);
 }
 
@@ -415,9 +397,9 @@ void MeshShadingPipeline::renderTriangle() {
 }
 
 void MeshShadingPipeline::renderMeshlet(bool showBV) {
-    glm::mat4 viewProjection{ m_camera->getProjectionMatrix() * m_camera->getViewMatrix() };
-    float theta{ (float)glfwGetTime() };
-    glm::mat4 model{ glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f)) };
+    glm::mat4 viewProjection{m_camera->getProjectionMatrix() * m_camera->getViewMatrix()};
+    float theta{(float)glfwGetTime()};
+    glm::mat4 model{glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f))};
 
     m_meshletProgram->use();
     m_meshletProgram->setUniformMat4("viewProjection", viewProjection);
@@ -435,7 +417,7 @@ void MeshShadingPipeline::renderMeshlet(bool showBV) {
     m_ssboMeshletBuffer->bind();
     m_ssboMeshletBuffer->setBindingPoint(m_meshletBinding);
 
-    // each block handles a meshlet, 
+    // each block handles a meshlet,
     // all threads of the block assemble the vertices and indices of the meshlet
     glDrawMeshTasksNV(0, static_cast<uint32_t>(m_meshletModel->getMeshlets().size()));
 
@@ -445,30 +427,30 @@ void MeshShadingPipeline::renderMeshlet(bool showBV) {
         m_meshletBVProgram->use();
         m_meshletBVProgram->setUniformMat4("viewProjection", viewProjection);
         m_meshletBVProgram->setUniformMat4("model", model);
-        m_meshletBVProgram->setUniformUint("meshletBVCount",
-            static_cast<uint32_t>(m_meshletModel->getMeshletBVs().size()));
+        m_meshletBVProgram->setUniformUint(
+            "meshletBVCount", static_cast<uint32_t>(m_meshletModel->getMeshletBVs().size()));
         m_meshletBVProgram->setUniformVec3("lineColor", glm::vec3(0.0f, 1.0f, 0.0f));
 
         m_ssboMeshletBVBuffer->bind();
         m_ssboMeshletBVBuffer->setBindingPoint(m_bvBinding);
 
-        constexpr uint32_t bvPerMesh{ 8 };
+        constexpr uint32_t bvPerMesh{8};
         const uint32_t count{
-            snapUp(static_cast<uint32_t>(m_meshletModel->getMeshletBVs().size()), bvPerMesh) };
+            snapUp(static_cast<uint32_t>(m_meshletModel->getMeshletBVs().size()), bvPerMesh)};
         glDrawMeshTasksNV(0, count);
     }
 }
 
 void MeshShadingPipeline::renderMeshlet2() {
-    glm::mat4 viewProjection{ m_camera->getProjectionMatrix() * m_camera->getViewMatrix() };
-    float theta{ (float)glfwGetTime() };
-    glm::mat4 model{ glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f)) };
+    glm::mat4 viewProjection{m_camera->getProjectionMatrix() * m_camera->getViewMatrix()};
+    float theta{(float)glfwGetTime()};
+    glm::mat4 model{glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f))};
 
     m_meshlet2Program->use();
     m_meshlet2Program->setUniformMat4("viewProjection", viewProjection);
     m_meshlet2Program->setUniformMat4("model", model);
 
-    const uint32_t meshletCount{ static_cast<uint32_t>(m_meshletModel->getMeshlets().size()) };
+    const uint32_t meshletCount{static_cast<uint32_t>(m_meshletModel->getMeshlets().size())};
     m_meshlet2Program->setUniformUint("meshletCount", meshletCount);
 
     m_ssboVerticesBuffer->bind();
@@ -484,22 +466,22 @@ void MeshShadingPipeline::renderMeshlet2() {
     m_ssboMeshletBuffer->setBindingPoint(m_meshletBinding);
 
     // each task shader block handles at most 32 meshlets, and dispatch #meshlets mesh shaders
-    // each mesh shader block handles a meshlet, 
+    // each mesh shader block handles a meshlet,
     // all threads of the mesh shader block assemble the vertices and indices of the meshlet
-    constexpr uint32_t meshDispatchPerTask{ 32 };
-    const uint32_t taskCount{ snapUp(meshletCount, meshDispatchPerTask) };
+    constexpr uint32_t meshDispatchPerTask{32};
+    const uint32_t taskCount{snapUp(meshletCount, meshDispatchPerTask)};
     glDrawMeshTasksNV(0, taskCount);
 
     ShaderStorageBuffer::unbind();
 }
 
 void MeshShadingPipeline::renderInstance() {
-    const uint32_t instanceCount{ m_instanceSpanXCount * m_instanceSpanZCount };
-    const uint32_t meshletCount{ static_cast<uint32_t>(m_meshletModel->getMeshlets().size()) };
+    const uint32_t instanceCount{m_instanceSpanXCount * m_instanceSpanZCount};
+    const uint32_t meshletCount{static_cast<uint32_t>(m_meshletModel->getMeshlets().size())};
 
     m_instanceProgram->use();
-    m_instanceProgram->setUniformMat4("viewProjection",
-        m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
+    m_instanceProgram->setUniformMat4(
+        "viewProjection", m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
     m_instanceProgram->setUniformUint("meshletCount", meshletCount);
 
     m_ssboVerticesBuffer->bind();
@@ -522,20 +504,20 @@ void MeshShadingPipeline::renderInstance() {
     m_ssboStatistics->setBindingPoint(m_statisticsBinding);
 #endif
 
-    constexpr uint32_t meshDispatchPerTask{ 32 };
-    const uint32_t taskCount{ instanceCount * snapUp(meshletCount, meshDispatchPerTask) };
+    constexpr uint32_t meshDispatchPerTask{32};
+    const uint32_t taskCount{instanceCount * snapUp(meshletCount, meshDispatchPerTask)};
     glDrawMeshTasksNV(0, taskCount);
 
     ShaderStorageBuffer::unbind();
 }
 
 void MeshShadingPipeline::renderCull() {
-    const uint32_t instanceCount{ m_instanceSpanXCount * m_instanceSpanZCount };
-    const uint32_t meshletCount{ static_cast<uint32_t>(m_meshletModel->getMeshlets().size()) };
-    
+    const uint32_t instanceCount{m_instanceSpanXCount * m_instanceSpanZCount};
+    const uint32_t meshletCount{static_cast<uint32_t>(m_meshletModel->getMeshlets().size())};
+
     m_cullProgram->use();
-    m_cullProgram->setUniformMat4("viewProjection",
-        m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
+    m_cullProgram->setUniformMat4(
+        "viewProjection", m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
 
     m_cullProgram->setUniformUint("meshletCount", meshletCount);
 
@@ -562,20 +544,20 @@ void MeshShadingPipeline::renderCull() {
     m_ssboStatistics->setBindingPoint(m_statisticsBinding);
 #endif
 
-    constexpr uint32_t meshDispatchPerTask{ 32 };
-    const uint32_t taskCount{ instanceCount * snapUp(meshletCount, meshDispatchPerTask) };
+    constexpr uint32_t meshDispatchPerTask{32};
+    const uint32_t taskCount{instanceCount * snapUp(meshletCount, meshDispatchPerTask)};
     glDrawMeshTasksNV(0, taskCount);
 
     ShaderStorageBuffer::unbind();
 }
 
 void MeshShadingPipeline::renderLod() {
-    const uint32_t instanceCount{ m_instanceSpanXCount * m_instanceSpanZCount };
-    const uint32_t meshletCount{ static_cast<uint32_t>(m_meshletModel->getMeshlets().size()) };
+    const uint32_t instanceCount{m_instanceSpanXCount * m_instanceSpanZCount};
+    const uint32_t meshletCount{static_cast<uint32_t>(m_meshletModel->getMeshlets().size())};
 
     m_lodProgram->use();
-    m_lodProgram->setUniformMat4("viewProjection",
-        m_camera->getProjectionMatrix()* m_camera->getViewMatrix());
+    m_lodProgram->setUniformMat4(
+        "viewProjection", m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
     m_lodProgram->setUniformVec3("viewPositionWS", m_camera->transform.position);
     m_lodProgram->setUniformVec3("centerMS", m_meshletModelLod->getCenter());
     m_lodProgram->setUniformUint("lodCount", m_meshletModelLod->getLodCount());
@@ -604,30 +586,31 @@ void MeshShadingPipeline::renderLod() {
     m_ssboStatistics->setBindingPoint(m_statisticsBinding);
 #endif
 
-    constexpr uint32_t meshDispatchPerTask{ 32 };
-    const uint32_t taskCount{ instanceCount * snapUp(
-        static_cast<uint32_t>(m_meshletModelLod->getMeshletLodInfos()[0].meshletCount),
-        meshDispatchPerTask)};
+    constexpr uint32_t meshDispatchPerTask{32};
+    const uint32_t taskCount{
+        instanceCount
+        * snapUp(
+            static_cast<uint32_t>(m_meshletModelLod->getMeshletLodInfos()[0].meshletCount),
+            meshDispatchPerTask)};
     glDrawMeshTasksNV(0, taskCount);
 
     ShaderStorageBuffer::unbind();
 }
 
 void MeshShadingPipeline::renderFull() {
-    const uint32_t instanceCount{ m_instanceSpanXCount * m_instanceSpanZCount };
-    const uint32_t meshletCount{ static_cast<uint32_t>(m_meshletModel->getMeshlets().size()) };
+    const uint32_t instanceCount{m_instanceSpanXCount * m_instanceSpanZCount};
+    const uint32_t meshletCount{static_cast<uint32_t>(m_meshletModel->getMeshlets().size())};
 
     m_fullProgram->use();
 
-    m_fullProgram->setUniformMat4("viewProjection",
-        m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
+    m_fullProgram->setUniformMat4(
+        "viewProjection", m_camera->getProjectionMatrix() * m_camera->getViewMatrix());
     m_fullProgram->setUniformVec3("viewPositionWS", m_camera->transform.position);
     m_fullProgram->setUniformVec3("centerMS", m_meshletModelLod->getCenter());
     m_fullProgram->setUniformUint("lodCount", m_meshletModelLod->getLodCount());
     m_fullProgram->setUniformFloat("maxLodDistance", m_maxLodDistance);
     m_fullProgram->setUniformVec3("material.kd", m_material.kd);
-    m_fullProgram->setUniformVec3(
-        "directionalLight.direction", m_dirLight->transform.getFront());
+    m_fullProgram->setUniformVec3("directionalLight.direction", m_dirLight->transform.getFront());
     m_fullProgram->setUniformFloat("directionalLight.intensity", m_dirLight->intensity);
     m_fullProgram->setUniformVec3("directionalLight.color", m_dirLight->color);
 
@@ -657,10 +640,12 @@ void MeshShadingPipeline::renderFull() {
     m_ssboStatistics->setBindingPoint(m_statisticsBinding);
 #endif
 
-    constexpr uint32_t meshDispatchPerTask{ 32 };
-    const uint32_t taskCount{ instanceCount * snapUp(
-        static_cast<uint32_t>(m_meshletModelLod->getMeshletLodInfos()[0].meshletCount),
-        meshDispatchPerTask) };
+    constexpr uint32_t meshDispatchPerTask{32};
+    const uint32_t taskCount{
+        instanceCount
+        * snapUp(
+            static_cast<uint32_t>(m_meshletModelLod->getMeshletLodInfos()[0].meshletCount),
+            meshDispatchPerTask)};
     glDrawMeshTasksNV(0, taskCount);
 
     ShaderStorageBuffer::unbind();
@@ -672,29 +657,20 @@ void MeshShadingPipeline::renderUI() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    //ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 
     const auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
 
     if (!ImGui::Begin("Control Panel", nullptr, flags)) {
         ImGui::End();
-    }
-    else {
-        const char* items[] = {
-            "Traditional",
-            "Triangle",
-            "Meshlet",
-            "Meshlet2",
-            "Instance",
-            "Cull",
-            "Lod",
-            "Full"
-        };
+    } else {
+        const char* items[] = {"Traditional", "Triangle", "Meshlet", "Meshlet2",
+                               "Instance",    "Cull",     "Lod",     "Full"};
 
         ImGui::Text("Render Mode");
         if (ImGui::BeginCombo("##Render Mode", items[m_renderCase])) {
             for (int i = 0; i < IM_ARRAYSIZE(items); ++i) {
-                bool selected{ static_cast<RenderCase>(i) == m_renderCase };
+                bool selected{static_cast<RenderCase>(i) == m_renderCase};
                 if (ImGui::Selectable(items[i], &selected)) {
                     m_renderCase = static_cast<RenderCase>(i);
                 }
@@ -711,13 +687,11 @@ void MeshShadingPipeline::renderUI() {
         ImGui::SliderFloat("##Camera Speed", &m_cameraMoveSpeed, 0.1f, 10.0f);
 
 #if ENABLE_STATISTICS
-        if (m_renderCase == RenderCase::Instance ||
-            m_renderCase == RenderCase::Cull ||
-            m_renderCase == RenderCase::Lod ||
-            m_renderCase == RenderCase::Full) {
+        if (m_renderCase == RenderCase::Instance || m_renderCase == RenderCase::Cull
+            || m_renderCase == RenderCase::Lod || m_renderCase == RenderCase::Full) {
             glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
             m_ssboStatistics->bind();
-            uint32_t* ptr{ (uint32_t*)m_ssboStatistics->map(GL_READ_ONLY) };
+            uint32_t* ptr{(uint32_t*)m_ssboStatistics->map(GL_READ_ONLY)};
             ImGui::Text("Primitive Count %d", *ptr);
             m_ssboStatistics->unmap();
             m_ssboStatistics->unbind();

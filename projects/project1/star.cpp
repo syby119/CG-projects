@@ -26,8 +26,8 @@ Star::Star(const glm::vec2& position, float rotation, float radius, float aspect
 }
 
 Star::Star(Star&& rhs) noexcept
-    : m_position(rhs.m_position), m_rotation(rhs.m_rotation), m_radius(rhs.m_radius), m_vao(rhs.m_vao),
-      m_vbo(rhs.m_vbo) {
+    : m_position(rhs.m_position), m_rotation(rhs.m_rotation), m_radius(rhs.m_radius),
+      m_vao(rhs.m_vao), m_vbo(rhs.m_vbo) {
     rhs.m_vao = 0;
     rhs.m_vbo = 0;
 }

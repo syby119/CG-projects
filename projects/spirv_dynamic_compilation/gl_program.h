@@ -80,8 +80,8 @@ public:
         StorageBuffer,
         AtomicCounter,
         // Not in OpenGL
-        //AccelerationStructure,
-        //RayQuery
+        // AccelerationStructure,
+        // RayQuery
     };
 
     struct UniformVarInfo {
@@ -157,7 +157,7 @@ public:
     void setUniform(int location, glm::ivec3 const& value) const;
 
     void setUniform(int location, glm::ivec4 const& value) const;
-    
+
     void setUniform(int location, uint32_t const& value) const;
 
     void setUniform(int location, glm::uvec2 const& value) const;
@@ -232,20 +232,32 @@ public:
 
     void printAtomicCounterInfos() const;
 
-    UniformVarInfoMap const& getUniformVarInfos() const noexcept { return m_uniformVarInfos; }
+    UniformVarInfoMap const& getUniformVarInfos() const noexcept {
+        return m_uniformVarInfos;
+    }
 
-    TextureInfoMap  const& getTextureInfos() const noexcept { return m_textureInfos; }
-    
-    UniformBlockInfoMap const& getUniformBlockInfos() const noexcept { return m_uniformBlockInfos; }
-    
-    StorageBufferInfoMap const& getStorageBufferInfos() const noexcept { return m_storageBufferInfos; }
-    
-    StorageImageInfoMap const& getStorageImageInfos() const noexcept { return m_storageImageInfos; }
-    
-    AtomicCounterInfoMap const& getAtomicCounterInfos() const noexcept { return m_atomicCounterInfos; }
+    TextureInfoMap const& getTextureInfos() const noexcept {
+        return m_textureInfos;
+    }
+
+    UniformBlockInfoMap const& getUniformBlockInfos() const noexcept {
+        return m_uniformBlockInfos;
+    }
+
+    StorageBufferInfoMap const& getStorageBufferInfos() const noexcept {
+        return m_storageBufferInfos;
+    }
+
+    StorageImageInfoMap const& getStorageImageInfos() const noexcept {
+        return m_storageImageInfos;
+    }
+
+    AtomicCounterInfoMap const& getAtomicCounterInfos() const noexcept {
+        return m_atomicCounterInfos;
+    }
 
 private:
-    GLuint m_handle{ 0 };
+    GLuint m_handle{0};
 
     UniformVarInfoMap m_uniformVarInfos;
     TextureInfoMap m_textureInfos;

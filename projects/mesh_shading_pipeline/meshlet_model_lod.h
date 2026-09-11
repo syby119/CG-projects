@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../base/glsl_program.h"
 #include "../base/bounding_box.h"
+#include "../base/glsl_program.h"
 
 class MeshletModelLod {
 public:
@@ -46,23 +46,23 @@ public:
 
     MeshletModelLod& operator=(MeshletModelLod&& rhs) = default;
 
-    std::vector<Vertex> const& getVertices() const noexcept { 
-        return m_combinedVertices; 
+    std::vector<Vertex> const& getVertices() const noexcept {
+        return m_combinedVertices;
     }
 
     std::vector<uint32_t> const& getVertexIndices() const noexcept {
-        return m_combinedVertexIndices; 
+        return m_combinedVertexIndices;
     }
 
-    std::vector<uint8_t> const& getPrimitiveIndices() const noexcept { 
-        return m_combinedPrimitiveIndices; 
+    std::vector<uint8_t> const& getPrimitiveIndices() const noexcept {
+        return m_combinedPrimitiveIndices;
     }
 
-    std::vector<Meshlet> const& getMeshlets() const noexcept { 
-        return m_combinedMeshlets; 
+    std::vector<Meshlet> const& getMeshlets() const noexcept {
+        return m_combinedMeshlets;
     }
 
-    std::vector<LodInfo> const& getMeshletLodInfos() const noexcept { 
+    std::vector<LodInfo> const& getMeshletLodInfos() const noexcept {
         return m_meshletLodInfos;
     }
 
@@ -70,16 +70,16 @@ public:
         return m_meshletLodInfos.size();
     }
 
-    BoundingBox getBoundingBox() const noexcept { 
-        return m_aabb; 
+    BoundingBox getBoundingBox() const noexcept {
+        return m_aabb;
     }
 
     glm::vec3 getCenter() const noexcept {
         return 0.5f * (m_aabb.min + m_aabb.max);
     }
 
-    std::vector<BV> const& getMeshletBVs() const noexcept { 
-        return m_combinedMeshletBVs; 
+    std::vector<BV> const& getMeshletBVs() const noexcept {
+        return m_combinedMeshletBVs;
     }
 
 private:
@@ -89,6 +89,6 @@ private:
     std::vector<Meshlet> m_combinedMeshlets;
     std::vector<BV> m_combinedMeshletBVs;
     std::vector<LodInfo> m_meshletLodInfos;
-    
+
     BoundingBox m_aabb;
 };

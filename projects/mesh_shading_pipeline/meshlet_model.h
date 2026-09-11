@@ -1,12 +1,12 @@
 #pragma once
 
+#include "../base/bounding_box.h"
 #include "../base/gl_utility.h"
 #include "../base/transform.h"
-#include "../base/bounding_box.h"
 
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
 
 class MeshletModel {
 public:
@@ -50,11 +50,11 @@ public:
     ~MeshletModel() = default;
 
     MeshletModel& operator=(const MeshletModel& rhs) = default;
-    
+
     MeshletModel& operator=(MeshletModel&& rhs) = default;
 
     std::vector<Vertex> const& getVertices() const noexcept {
-        return m_vertices; 
+        return m_vertices;
     }
 
     std::vector<uint32_t> const& getVertexIndices() const noexcept {
@@ -78,10 +78,10 @@ public:
     }
 
 protected:
-    std::vector<Vertex>   m_vertices;
+    std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_vertexIndices;
-    std::vector<uint8_t>  m_primitiveIndices;
-    std::vector<Meshlet>  m_meshlets;
+    std::vector<uint8_t> m_primitiveIndices;
+    std::vector<Meshlet> m_meshlets;
     std::vector<BV> m_meshletBVs;
 
     BoundingBox m_aabb;

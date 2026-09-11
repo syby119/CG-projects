@@ -2,8 +2,7 @@
 #include <array>
 #include <stb_image.h>
 
-DirectStateAccess::DirectStateAccess(const Options& options)
-    : Application(options) {
+DirectStateAccess::DirectStateAccess(const Options& options) : Application(options) {
     initFramebuffer();
     initGeometry();
     initTexture();
@@ -52,8 +51,9 @@ void DirectStateAccess::renderFrame() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glBlitNamedFramebuffer(m_fbo, 0, 0, 0, m_windowWidth, m_windowHeight,
-        0, 0, m_windowWidth, m_windowHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitNamedFramebuffer(
+        m_fbo, 0, 0, 0, m_windowWidth, m_windowHeight, 0, 0, m_windowWidth, m_windowHeight,
+        GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -68,7 +68,8 @@ void DirectStateAccess::initFramebuffer() {
 
     // depth attachment
     glCreateRenderbuffers(1, &m_depthAttachment);
-    glNamedRenderbufferStorage(m_depthAttachment, GL_DEPTH_COMPONENT24, m_windowWidth, m_windowHeight);
+    glNamedRenderbufferStorage(
+        m_depthAttachment, GL_DEPTH_COMPONENT24, m_windowWidth, m_windowHeight);
 
     // attach
     glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_colorAttachment, 0);
@@ -82,53 +83,48 @@ void DirectStateAccess::initFramebuffer() {
 
 void DirectStateAccess::initGeometry() {
     std::array vertices{
-    //      position            uv
-        -0.35f, -0.35f,     0.0f, 0.0f,
-        -0.35f, +0.35f,     0.0f, 1.0f,
-        +0.35f, -0.35f,     1.0f, 0.0f,
-        +0.35f, +0.35f,     1.0f, 1.0f,
+        //      position            uv
+        -0.35f, -0.35f, 0.0f, 0.0f, -0.35f, +0.35f, 0.0f, 1.0f,
+        +0.35f, -0.35f, 1.0f, 0.0f, +0.35f, +0.35f, 1.0f, 1.0f,
     };
 
     std::array offsets{
-    //    x     y
-        -0.38f, -0.4f,
-        -0.38f, +0.4f,
-        +0.38f, -0.4f,
-        +0.38f, +0.4f,
+        //    x     y
+        -0.38f, -0.4f, -0.38f, +0.4f, +0.38f, -0.4f, +0.38f, +0.4f,
     };
 
-    std::array<uint8_t, 6> indices{
-        0, 1, 2, 1, 2, 3
-    };
+    std::array<uint8_t, 6> indices{0, 1, 2, 1, 2, 3};
 
     // layout(location = xxx)
-    constexpr uint32_t positionLocatioin{ 0 };
-    constexpr uint32_t texCoordLocatioin{ 1 };
-    constexpr uint32_t offsetLocatioin{ 2 };
+    constexpr uint32_t positionLocatioin{0};
+    constexpr uint32_t texCoordLocatioin{1};
+    constexpr uint32_t offsetLocatioin{2};
 
     // as we only upload the data once, and will not read/write it later,
     // the flags can be set to 0. Possible values can be the combination of
-    // + GL_MAP_READ_BIT 
-    // + GL_MAP_WRITE_BIT 
-    // + GL_MAP_PERSISTENT_BIT 
+    // + GL_MAP_READ_BIT
+    // + GL_MAP_WRITE_BIT
+    // + GL_MAP_PERSISTENT_BIT
     // + GL_MAP_COHERENT_BIT
     // +_GL_DYNAMIC_STORAGE_BIT
     // + GL_CLIENT_STORAGE_BIT
-    GLbitfield constexpr flags{ 0 };
+    GLbitfield constexpr flags{0};
 
     // vbos
     glCreateBuffers(1, &m_vertexVbo);
-    glNamedBufferStorage(m_vertexVbo,
-        static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data(), flags);
+    glNamedBufferStorage(
+        m_vertexVbo, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data(),
+        flags);
 
     glCreateBuffers(1, &m_instanceVbo);
-    glNamedBufferStorage(m_instanceVbo,
-        static_cast<GLsizeiptr>(offsets.size() * sizeof(float)), offsets.data(), flags);
+    glNamedBufferStorage(
+        m_instanceVbo, static_cast<GLsizeiptr>(offsets.size() * sizeof(float)), offsets.data(),
+        flags);
 
     // ibo
     glCreateBuffers(1, &m_ibo);
-    glNamedBufferStorage(m_ibo,
-        static_cast<GLsizeiptr>(indices.size() * sizeof(uint8_t)), indices.data(), flags);
+    glNamedBufferStorage(
+        m_ibo, static_cast<GLsizeiptr>(indices.size() * sizeof(uint8_t)), indices.data(), flags);
 
     // vao
     glCreateVertexArrays(1, &m_vao);
@@ -142,7 +138,8 @@ void DirectStateAccess::initGeometry() {
     glVertexArrayAttribBinding(m_vao, positionLocatioin, 0);
 
     glEnableVertexArrayAttrib(m_vao, texCoordLocatioin);
-    glVertexArrayAttribFormat(m_vao, texCoordLocatioin, 2, GL_FLOAT, GL_FALSE, uint32_t(2 * sizeof(float)));
+    glVertexArrayAttribFormat(
+        m_vao, texCoordLocatioin, 2, GL_FLOAT, GL_FALSE, uint32_t(2 * sizeof(float)));
     glVertexArrayAttribBinding(m_vao, texCoordLocatioin, 0);
 
     glEnableVertexArrayAttrib(m_vao, offsetLocatioin);
@@ -167,9 +164,7 @@ void DirectStateAccess::initTexture() {
     case 1: format = GL_RED; break;
     case 3: format = GL_RGB; break;
     case 4: format = GL_RGBA; break;
-    default:
-        stbi_image_free(data);
-        throw std::runtime_error("unsupported format");
+    default: stbi_image_free(data); throw std::runtime_error("unsupported format");
     }
 
     // internal format must be sized format rather than general format
@@ -179,9 +174,7 @@ void DirectStateAccess::initTexture() {
     case 1: internalFormat = GL_R8; break;
     case 3: internalFormat = GL_RGB8; break;
     case 4: internalFormat = GL_RGBA8; break;
-    default:
-        stbi_image_free(data);
-        throw std::runtime_error("unsupported internal format");
+    default: stbi_image_free(data); throw std::runtime_error("unsupported internal format");
     }
 
     // texture

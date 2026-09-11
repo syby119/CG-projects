@@ -40,5 +40,5 @@ public:
     GLuint getHandle() const;
 
 private:
-    GLuint _handle;
+    GLuint m_handle;
 };

@@ -24,27 +24,27 @@ public:
     ~PbrViewer();
 
 private:
-    std::unique_ptr<Model> _model;
-    std::unique_ptr<GLSLProgram> _pbrShader;
+    std::unique_ptr<Model> m_model;
+    std::unique_ptr<GLSLProgram> m_pbrShader;
 
-    std::unique_ptr<PerspectiveCamera> _camera;
-    std::unique_ptr<CameraController> _cameraController;
+    std::unique_ptr<PerspectiveCamera> m_camera;
+    std::unique_ptr<CameraController> m_cameraController;
 
-    std::unique_ptr<DirectionalLight> _directionalLight;
+    std::unique_ptr<DirectionalLight> m_directionalLight;
 
-    std::unique_ptr<Skybox> _skybox;
-    std::unique_ptr<GLSLProgram> _skyboxShader;
+    std::unique_ptr<Skybox> m_skybox;
+    std::unique_ptr<GLSLProgram> m_skyboxShader;
 
-    std::unique_ptr<FullscreenQuad> _quad;
-    std::unique_ptr<GLSLProgram> _quadShader;
+    std::unique_ptr<FullscreenQuad> m_quad;
+    std::unique_ptr<GLSLProgram> m_quadShader;
 
-    std::unique_ptr<UniformBuffer> _uboCamera;
-    std::unique_ptr<UniformBuffer> _uboLights;
-    std::unique_ptr<UniformBuffer> _uboEnvironment;
+    std::unique_ptr<UniformBuffer> m_uboCamera;
+    std::unique_ptr<UniformBuffer> m_uboLights;
+    std::unique_ptr<UniformBuffer> m_uboEnvironment;
 
-    std::vector<RenderObject> _opaqueQueue;
-    std::vector<RenderObject> _alphaQueue;
-    std::vector<RenderObject> _transparentQueue;
+    std::vector<RenderObject> m_opaqueQueue;
+    std::vector<RenderObject> m_alphaQueue;
+    std::vector<RenderObject> m_transparentQueue;
 
     enum class DebugInput : int {
         All = 0,
@@ -55,7 +55,7 @@ private:
         Occlusion,
         Emissive,
     };
-    enum DebugInput _debugInput = {DebugInput::All};
+    enum DebugInput m_debugInput = {DebugInput::All};
 
     enum class SkyboxRenderMode : int {
         Raw = 0,
@@ -63,7 +63,7 @@ private:
         Prefilter,
         BrdfLut
     };
-    enum SkyboxRenderMode _skyboxRenderMode = {SkyboxRenderMode::Raw};
+    enum SkyboxRenderMode m_skyboxRenderMode = {SkyboxRenderMode::Raw};
 
 private:
     void handleInput() override;

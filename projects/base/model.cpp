@@ -73,8 +73,8 @@ Model::Model(const std::string& filepath) {
         }
     }
 
-    _vertices = vertices;
-    _indices = indices;
+    m_vertices = vertices;
+    m_indices = indices;
 
     computeBoundingBox();
 
@@ -90,7 +90,7 @@ Model::Model(const std::string& filepath) {
 }
 
 Model::Model(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-    : _vertices(vertices), _indices(indices) {
+    : m_vertices(vertices), m_indices(indices) {
 
     computeBoundingBox();
 
@@ -106,15 +106,15 @@ Model::Model(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& i
 }
 
 Model::Model(Model&& rhs) noexcept
-    : _vertices(std::move(rhs._vertices)), _indices(std::move(rhs._indices)),
-      _boundingBox(std::move(rhs._boundingBox)), _vao(rhs._vao), _vbo(rhs._vbo), _ebo(rhs._ebo),
-      _boxVao(rhs._boxVao), _boxVbo(rhs._boxVbo), _boxEbo(rhs._boxEbo) {
-    _vao = 0;
-    _vbo = 0;
-    _ebo = 0;
-    _boxVao = 0;
-    _boxVbo = 0;
-    _boxEbo = 0;
+    : m_vertices(std::move(rhs.m_vertices)), m_indices(std::move(rhs.m_indices)),
+      m_boundingBox(std::move(rhs.m_boundingBox)), m_vao(rhs.m_vao), m_vbo(rhs.m_vbo), m_ebo(rhs.m_ebo),
+      m_boxVao(rhs.m_boxVao), m_boxVbo(rhs.m_boxVbo), m_boxEbo(rhs.m_boxEbo) {
+    m_vao = 0;
+    m_vbo = 0;
+    m_ebo = 0;
+    m_boxVao = 0;
+    m_boxVbo = 0;
+    m_boxEbo = 0;
 }
 
 Model::~Model() {
@@ -123,67 +123,67 @@ Model::~Model() {
 
 Model& Model::operator=(Model&& rhs) noexcept {
     if (this != &rhs) {
-        _vertices = std::move(rhs._vertices);
-        _indices = std::move(rhs._indices);
-        std::swap(_vao, rhs._vao);
-        std::swap(_vbo, rhs._vbo);
-        std::swap(_ebo, rhs._ebo);
-        std::swap(_boxVao, rhs._boxVao);
-        std::swap(_boxVbo, rhs._boxVbo);
-        std::swap(_boxEbo, rhs._boxEbo);
+        m_vertices = std::move(rhs.m_vertices);
+        m_indices = std::move(rhs.m_indices);
+        std::swap(m_vao, rhs.m_vao);
+        std::swap(m_vbo, rhs.m_vbo);
+        std::swap(m_ebo, rhs.m_ebo);
+        std::swap(m_boxVao, rhs.m_boxVao);
+        std::swap(m_boxVbo, rhs.m_boxVbo);
+        std::swap(m_boxEbo, rhs.m_boxEbo);
     }
 
     return *this;
 }
 
 BoundingBox Model::getBoundingBox() const {
-    return _boundingBox;
+    return m_boundingBox;
 }
 
 void Model::draw() const {
-    glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_indices.size()), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(m_vao);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
 void Model::drawBoundingBox() const {
-    glBindVertexArray(_boxVao);
+    glBindVertexArray(m_boxVao);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
 GLuint Model::getVao() const {
-    return _vao;
+    return m_vao;
 }
 
 GLuint Model::getBoundingBoxVao() const {
-    return _boxVao;
+    return m_boxVao;
 }
 
 size_t Model::getVertexCount() const {
-    return _vertices.size();
+    return m_vertices.size();
 }
 
 size_t Model::getFaceCount() const {
-    return _indices.size() / 3;
+    return m_indices.size() / 3;
 }
 
 void Model::initGLResources() {
     // create a vertex array object
-    glGenVertexArrays(1, &_vao);
+    glGenVertexArrays(1, &m_vao);
     // create a vertex buffer object
-    glGenBuffers(1, &_vbo);
+    glGenBuffers(1, &m_vbo);
     // create a element array buffer
-    glGenBuffers(1, &_ebo);
+    glGenBuffers(1, &m_ebo);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(
-        GL_ARRAY_BUFFER, sizeof(Vertex) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
+        GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(uint32_t), _indices.data(),
+        GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(uint32_t), m_indices.data(),
         GL_STATIC_DRAW);
 
     // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the
@@ -209,7 +209,7 @@ void Model::computeBoundingBox() {
     float maxY = -std::numeric_limits<float>::max();
     float maxZ = -std::numeric_limits<float>::max();
 
-    for (const auto& v : _vertices) {
+    for (const auto& v : m_vertices) {
         minX = std::min(v.position.x, minX);
         minY = std::min(v.position.y, minY);
         minZ = std::min(v.position.z, minZ);
@@ -218,36 +218,36 @@ void Model::computeBoundingBox() {
         maxZ = std::max(v.position.z, maxZ);
     }
 
-    _boundingBox.min = glm::vec3(minX, minY, minZ);
-    _boundingBox.max = glm::vec3(maxX, maxY, maxZ);
+    m_boundingBox.min = glm::vec3(minX, minY, minZ);
+    m_boundingBox.max = glm::vec3(maxX, maxY, maxZ);
 }
 
 void Model::initBoxGLResources() {
     std::vector<glm::vec3> boxVertices = {
-        glm::vec3(_boundingBox.min.x, _boundingBox.min.y, _boundingBox.min.z),
-        glm::vec3(_boundingBox.max.x, _boundingBox.min.y, _boundingBox.min.z),
-        glm::vec3(_boundingBox.min.x, _boundingBox.max.y, _boundingBox.min.z),
-        glm::vec3(_boundingBox.max.x, _boundingBox.max.y, _boundingBox.min.z),
-        glm::vec3(_boundingBox.min.x, _boundingBox.min.y, _boundingBox.max.z),
-        glm::vec3(_boundingBox.max.x, _boundingBox.min.y, _boundingBox.max.z),
-        glm::vec3(_boundingBox.min.x, _boundingBox.max.y, _boundingBox.max.z),
-        glm::vec3(_boundingBox.max.x, _boundingBox.max.y, _boundingBox.max.z),
+        glm::vec3(m_boundingBox.min.x, m_boundingBox.min.y, m_boundingBox.min.z),
+        glm::vec3(m_boundingBox.max.x, m_boundingBox.min.y, m_boundingBox.min.z),
+        glm::vec3(m_boundingBox.min.x, m_boundingBox.max.y, m_boundingBox.min.z),
+        glm::vec3(m_boundingBox.max.x, m_boundingBox.max.y, m_boundingBox.min.z),
+        glm::vec3(m_boundingBox.min.x, m_boundingBox.min.y, m_boundingBox.max.z),
+        glm::vec3(m_boundingBox.max.x, m_boundingBox.min.y, m_boundingBox.max.z),
+        glm::vec3(m_boundingBox.min.x, m_boundingBox.max.y, m_boundingBox.max.z),
+        glm::vec3(m_boundingBox.max.x, m_boundingBox.max.y, m_boundingBox.max.z),
     };
 
     std::vector<uint32_t> boxIndices = {0, 1, 0, 2, 0, 4, 3, 1, 3, 2, 3, 7,
                                         5, 4, 5, 1, 5, 7, 6, 4, 6, 7, 6, 2};
 
-    glGenVertexArrays(1, &_boxVao);
-    glGenBuffers(1, &_boxVbo);
-    glGenBuffers(1, &_boxEbo);
+    glGenVertexArrays(1, &m_boxVao);
+    glGenBuffers(1, &m_boxVbo);
+    glGenBuffers(1, &m_boxEbo);
 
-    glBindVertexArray(_boxVao);
-    glBindBuffer(GL_ARRAY_BUFFER, _boxVbo);
+    glBindVertexArray(m_boxVao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_boxVbo);
     glBufferData(
         GL_ARRAY_BUFFER, boxVertices.size() * sizeof(glm::vec3), boxVertices.data(),
         GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _boxEbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_boxEbo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER, boxIndices.size() * sizeof(uint32_t), boxIndices.data(),
         GL_STATIC_DRAW);
@@ -259,33 +259,33 @@ void Model::initBoxGLResources() {
 }
 
 void Model::cleanup() {
-    if (_boxEbo) {
-        glDeleteBuffers(1, &_boxEbo);
-        _boxEbo = 0;
+    if (m_boxEbo) {
+        glDeleteBuffers(1, &m_boxEbo);
+        m_boxEbo = 0;
     }
 
-    if (_boxVbo) {
-        glDeleteBuffers(1, &_boxVbo);
-        _boxVbo = 0;
+    if (m_boxVbo) {
+        glDeleteBuffers(1, &m_boxVbo);
+        m_boxVbo = 0;
     }
 
-    if (_boxVao) {
-        glDeleteVertexArrays(1, &_boxVao);
-        _boxVao = 0;
+    if (m_boxVao) {
+        glDeleteVertexArrays(1, &m_boxVao);
+        m_boxVao = 0;
     }
 
-    if (_ebo != 0) {
-        glDeleteBuffers(1, &_ebo);
-        _ebo = 0;
+    if (m_ebo != 0) {
+        glDeleteBuffers(1, &m_ebo);
+        m_ebo = 0;
     }
 
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo != 0) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 
-    if (_vao != 0) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao != 0) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 }

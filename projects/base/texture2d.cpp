@@ -6,7 +6,7 @@
 
 Texture2D::Texture2D(
     GLint internalFormat, int width, int height, GLenum format, GLenum dataType, void* data) {
-    glBindTexture(GL_TEXTURE_2D, _handle);
+    glBindTexture(GL_TEXTURE_2D, m_handle);
     setDefaultParameters();
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, data);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -16,7 +16,7 @@ Texture2D::Texture2D(Texture2D&& rhs) noexcept : Texture(std::move(rhs)) {}
 
 void Texture2D::bind(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, _handle);
+    glBindTexture(GL_TEXTURE_2D, m_handle);
 }
 
 void Texture2D::unbind() const {
@@ -42,7 +42,7 @@ void Texture2D::setDefaultParameters() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
-ImageTexture2D::ImageTexture2D(const std::string& path) : _uri(path) {
+ImageTexture2D::ImageTexture2D(const std::string& path) : m_uri(path) {
     // load image to the memory
     stbi_set_flip_vertically_on_load(true);
     int width = 0, height = 0, channels = 0;
@@ -65,7 +65,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path) : _uri(path) {
     }
     GLint internalFormat = static_cast<GLint>(format);
 
-    glBindTexture(GL_TEXTURE_2D, _handle);
+    glBindTexture(GL_TEXTURE_2D, m_handle);
 
     // set texture parameters
     setDefaultParameters();
@@ -85,8 +85,8 @@ ImageTexture2D::ImageTexture2D(const std::string& path) : _uri(path) {
 ImageTexture2D::ImageTexture2D(
     const void* data, int width, int height, int channels, GLint internalformat, GLenum format,
     GLenum type, const std::string& uri)
-    : _uri(uri) {
-    glBindTexture(GL_TEXTURE_2D, _handle);
+    : m_uri(uri) {
+    glBindTexture(GL_TEXTURE_2D, m_handle);
 
     // set texture parameters
     setDefaultParameters();
@@ -101,12 +101,12 @@ ImageTexture2D::ImageTexture2D(
 }
 
 ImageTexture2D::ImageTexture2D(ImageTexture2D&& rhs) noexcept
-    : Texture2D(std::move(rhs)), _uri(std::move(rhs._uri)) {
-    rhs._uri = "";
+    : Texture2D(std::move(rhs)), m_uri(std::move(rhs.m_uri)) {
+    rhs.m_uri = "";
 }
 
 const std::string& ImageTexture2D::getUri() const {
-    return _uri;
+    return m_uri;
 }
 
 void ImageTexture2D::setDefaultParameters() {
@@ -142,7 +142,7 @@ void ImageTexture2D::upload(
 
 Texture2DArray::Texture2DArray(
     GLint internalFormat, int width, int height, int layers, GLenum format, GLenum dataType) {
-    glBindTexture(GL_TEXTURE_2D_ARRAY, _handle);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle);
     glTexImage3D(
         GL_TEXTURE_2D_ARRAY, 0, internalFormat, width, height, layers, 0, format, dataType,
         nullptr);
@@ -154,7 +154,7 @@ Texture2DArray::Texture2DArray(Texture2DArray&& rhs) noexcept : Texture(std::mov
 
 void Texture2DArray::bind(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, _handle);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, m_handle);
 }
 
 void Texture2DArray::unbind() const {

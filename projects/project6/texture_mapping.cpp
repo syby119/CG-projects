@@ -15,8 +15,8 @@ const std::vector<std::string> skyboxTextureRelPaths = {
 
 TextureMapping::TextureMapping(const Options& options) : Application(options) {
     // init model
-    _sphere.reset(new Model(getAssetFullPath(modelRelPath)));
-    _sphere->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
+    m_sphere.reset(new Model(getAssetFullPath(modelRelPath)));
+    m_sphere->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 
     // init textures
     std::shared_ptr<Texture2D> earthTexture =
@@ -25,36 +25,36 @@ TextureMapping::TextureMapping(const Options& options) : Application(options) {
         std::make_shared<ImageTexture2D>(getAssetFullPath(planetTextureRelPath));
 
     // init materials
-    _simpleMaterial.reset(new SimpleMaterial);
-    _simpleMaterial->mapKd = planetTexture;
+    m_simpleMaterial.reset(new SimpleMaterial);
+    m_simpleMaterial->mapKd = planetTexture;
 
-    _blendMaterial.reset(new BlendMaterial);
-    _blendMaterial->kds[0] = glm::vec3(1.0f, 1.0f, 1.0f);
-    _blendMaterial->kds[1] = glm::vec3(1.0f, 1.0f, 1.0f);
-    _blendMaterial->mapKds[0] = planetTexture;
-    _blendMaterial->mapKds[1] = earthTexture;
-    _blendMaterial->blend = 0.0f;
+    m_blendMaterial.reset(new BlendMaterial);
+    m_blendMaterial->kds[0] = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_blendMaterial->kds[1] = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_blendMaterial->mapKds[0] = planetTexture;
+    m_blendMaterial->mapKds[1] = earthTexture;
+    m_blendMaterial->blend = 0.0f;
 
-    _checkerMaterial.reset(new CheckerMaterial);
-    _checkerMaterial->repeat = 10;
-    _checkerMaterial->colors[0] = glm::vec3(1.0f, 1.0f, 1.0f);
-    _checkerMaterial->colors[1] = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_checkerMaterial.reset(new CheckerMaterial);
+    m_checkerMaterial->repeat = 10;
+    m_checkerMaterial->colors[0] = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_checkerMaterial->colors[1] = glm::vec3(0.0f, 0.0f, 0.0f);
 
     // init skybox
     std::vector<std::string> skyboxTextureFullPaths;
     for (size_t i = 0; i < skyboxTextureRelPaths.size(); ++i) {
         skyboxTextureFullPaths.push_back(getAssetFullPath(skyboxTextureRelPaths[i]));
     }
-    _skybox.reset(new SkyBox(skyboxTextureFullPaths));
+    m_skybox.reset(new SkyBox(skyboxTextureFullPaths));
 
     // init camera
-    _camera.reset(new PerspectiveCamera(
-        glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 10000.0f));
-    _camera->transform.position.z = 10.0f;
+    m_camera.reset(new PerspectiveCamera(
+        glm::radians(50.0f), 1.0f * m_windowWidth / m_windowHeight, 0.1f, 10000.0f));
+    m_camera->transform.position.z = 10.0f;
 
     // init light
-    _light.reset(new DirectionalLight());
-    _light->transform.rotation =
+    m_light.reset(new DirectionalLight());
+    m_light->transform.rotation =
         glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f)));
 
     // init shaders
@@ -69,7 +69,7 @@ TextureMapping::TextureMapping(const Options& options) : Application(options) {
     (void)io;
 
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(_window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 #if defined(__EMSCRIPTEN__)
     ImGui_ImplOpenGL3_Init("#version 100");
 #elif defined(USE_GLES)
@@ -116,10 +116,10 @@ void TextureMapping::initSimpleShader() {
         "    color = texture(mapKd, fTexCoord);\n"
         "}\n";
 
-    _simpleShader.reset(new GLSLProgram);
-    _simpleShader->attachVertexShader(vsCode, version);
-    _simpleShader->attachFragmentShader(fsCode, version);
-    _simpleShader->link();
+    m_simpleShader.reset(new GLSLProgram);
+    m_simpleShader->attachVertexShader(vsCode, version);
+    m_simpleShader->attachFragmentShader(fsCode, version);
+    m_simpleShader->link();
 }
 
 void TextureMapping::initBlendShader() {
@@ -182,10 +182,10 @@ void TextureMapping::initBlendShader() {
         "}\n";
     //----------------------------------------------------------------
 
-    _blendShader.reset(new GLSLProgram);
-    _blendShader->attachVertexShader(vsCode, version);
-    _blendShader->attachFragmentShader(fsCode, version);
-    _blendShader->link();
+    m_blendShader.reset(new GLSLProgram);
+    m_blendShader->attachVertexShader(vsCode, version);
+    m_blendShader->attachFragmentShader(fsCode, version);
+    m_blendShader->link();
 }
 
 void TextureMapping::initCheckerShader() {
@@ -230,22 +230,22 @@ void TextureMapping::initCheckerShader() {
         "}\n";
     //----------------------------------------------------------------
 
-    _checkerShader.reset(new GLSLProgram);
-    _checkerShader->attachVertexShader(vsCode, version);
-    _checkerShader->attachFragmentShader(fsCode, version);
-    _checkerShader->link();
+    m_checkerShader.reset(new GLSLProgram);
+    m_checkerShader->attachVertexShader(vsCode, version);
+    m_checkerShader->attachFragmentShader(fsCode, version);
+    m_checkerShader->link();
 }
 
 void TextureMapping::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 
     const float angluarVelocity = 0.1f;
-    const float angle = angluarVelocity * static_cast<float>(_deltaTime);
+    const float angle = angluarVelocity * static_cast<float>(m_deltaTime);
     const glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
-    _sphere->transform.rotation = glm::angleAxis(angle, axis) * _sphere->transform.rotation;
+    m_sphere->transform.rotation = glm::angleAxis(angle, axis) * m_sphere->transform.rotation;
 }
 
 void TextureMapping::renderFrame() {
@@ -255,7 +255,7 @@ void TextureMapping::renderFrame() {
     // trivial things
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
@@ -267,38 +267,38 @@ void TextureMapping::renderFrame() {
     }
 #endif
 
-    const glm::mat4 projection = _camera->getProjectionMatrix();
-    const glm::mat4 view = _camera->getViewMatrix();
+    const glm::mat4 projection = m_camera->getProjectionMatrix();
+    const glm::mat4 view = m_camera->getViewMatrix();
 
     // draw planet
-    switch (_renderMode) {
+    switch (m_renderMode) {
     case RenderMode::Simple:
         // 1. use the shader
-        _simpleShader->use();
+        m_simpleShader->use();
         // 2. transfer mvp matrices to gpu
-        _simpleShader->setUniformMat4("projection", projection);
-        _simpleShader->setUniformMat4("view", view);
-        _simpleShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
+        m_simpleShader->setUniformMat4("projection", projection);
+        m_simpleShader->setUniformMat4("view", view);
+        m_simpleShader->setUniformMat4("model", m_sphere->transform.getLocalMatrix());
         // 3. enable textures and transform textures to gpu
-        _simpleMaterial->mapKd->bind();
+        m_simpleMaterial->mapKd->bind();
         break;
     case RenderMode::Blend:
         // 1. use the shader
-        _blendShader->use();
+        m_blendShader->use();
         // 2. transfer mvp matrices to gpu
-        _blendShader->setUniformMat4("projection", projection);
-        _blendShader->setUniformMat4("view", view);
-        _blendShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
+        m_blendShader->setUniformMat4("projection", projection);
+        m_blendShader->setUniformMat4("view", view);
+        m_blendShader->setUniformMat4("model", m_sphere->transform.getLocalMatrix());
         // 3. transfer light attributes to gpu
-        _blendShader->setUniformVec3("light.direction", _light->transform.getFront());
-        _blendShader->setUniformVec3("light.color", _light->color);
-        _blendShader->setUniformFloat("light.intensity", _light->intensity);
+        m_blendShader->setUniformVec3("light.direction", m_light->transform.getFront());
+        m_blendShader->setUniformVec3("light.color", m_light->color);
+        m_blendShader->setUniformFloat("light.intensity", m_light->intensity);
         // 4. transfer materials to gpu
         // 4.1 transfer simple material attributes
-        _blendShader->setUniformVec3("material.kds[0]", _blendMaterial->kds[0]);
-        _blendShader->setUniformVec3("material.kds[1]", _blendMaterial->kds[1]);
+        m_blendShader->setUniformVec3("material.kds[0]", m_blendMaterial->kds[0]);
+        m_blendShader->setUniformVec3("material.kds[1]", m_blendMaterial->kds[1]);
         // 4.2 transfer blend cofficient to gpu
-        _blendShader->setUniformFloat("material.blend", _blendMaterial->blend);
+        m_blendShader->setUniformFloat("material.blend", m_blendMaterial->blend);
         // 4.3 TODO: enable textures and transform textures to gpu
         // write your code here
         //----------------------------------------------------------------
@@ -308,22 +308,22 @@ void TextureMapping::renderFrame() {
         break;
     case RenderMode::Checker:
         // 1. use the shader
-        _checkerShader->use();
+        m_checkerShader->use();
         // 2. transfer mvp matrices to gpu
-        _checkerShader->setUniformMat4("projection", projection);
-        _checkerShader->setUniformMat4("view", view);
-        _checkerShader->setUniformMat4("model", _sphere->transform.getLocalMatrix());
+        m_checkerShader->setUniformMat4("projection", projection);
+        m_checkerShader->setUniformMat4("view", view);
+        m_checkerShader->setUniformMat4("model", m_sphere->transform.getLocalMatrix());
         // 3. transfer material attributes to gpu
-        _checkerShader->setUniformInt("material.repeat", _checkerMaterial->repeat);
-        _checkerShader->setUniformVec3("material.colors[0]", _checkerMaterial->colors[0]);
-        _checkerShader->setUniformVec3("material.colors[1]", _checkerMaterial->colors[1]);
+        m_checkerShader->setUniformInt("material.repeat", m_checkerMaterial->repeat);
+        m_checkerShader->setUniformVec3("material.colors[0]", m_checkerMaterial->colors[0]);
+        m_checkerShader->setUniformVec3("material.colors[1]", m_checkerMaterial->colors[1]);
         break;
     }
 
-    _sphere->draw();
+    m_sphere->draw();
 
     // draw skybox
-    _skybox->draw(projection, view);
+    m_skybox->draw(projection, view);
 
     // draw ui elements
     ImGui_ImplOpenGL3_NewFrame();
@@ -337,19 +337,19 @@ void TextureMapping::renderFrame() {
     } else {
         ImGui::Text("Render Mode");
         ImGui::Separator();
-        ImGui::RadioButton("Simple Texture Shading", (int*)&_renderMode, (int)(RenderMode::Simple));
+        ImGui::RadioButton("Simple Texture Shading", (int*)&m_renderMode, (int)(RenderMode::Simple));
         ImGui::NewLine();
 
-        ImGui::RadioButton("Blend Texture Shading", (int*)&_renderMode, (int)(RenderMode::Blend));
-        ImGui::ColorEdit3("kd1", (float*)&_blendMaterial->kds[0]);
-        ImGui::ColorEdit3("kd2", (float*)&_blendMaterial->kds[1]);
-        ImGui::SliderFloat("blend", &_blendMaterial->blend, 0.0f, 1.0f);
+        ImGui::RadioButton("Blend Texture Shading", (int*)&m_renderMode, (int)(RenderMode::Blend));
+        ImGui::ColorEdit3("kd1", (float*)&m_blendMaterial->kds[0]);
+        ImGui::ColorEdit3("kd2", (float*)&m_blendMaterial->kds[1]);
+        ImGui::SliderFloat("blend", &m_blendMaterial->blend, 0.0f, 1.0f);
         ImGui::NewLine();
 
-        ImGui::RadioButton("Checker Shading", (int*)&_renderMode, (int)(RenderMode::Checker));
-        ImGui::SliderInt("repeat", &_checkerMaterial->repeat, 2, 20);
-        ImGui::ColorEdit3("color1", (float*)&_checkerMaterial->colors[0]);
-        ImGui::ColorEdit3("color2", (float*)&_checkerMaterial->colors[1]);
+        ImGui::RadioButton("Checker Shading", (int*)&m_renderMode, (int)(RenderMode::Checker));
+        ImGui::SliderInt("repeat", &m_checkerMaterial->repeat, 2, 20);
+        ImGui::ColorEdit3("color1", (float*)&m_checkerMaterial->colors[0]);
+        ImGui::ColorEdit3("color2", (float*)&m_checkerMaterial->colors[1]);
 #ifndef __EMSCRIPTEN__
         ImGui::Checkbox("wireframe", &wireframe);
 #endif
@@ -357,8 +357,8 @@ void TextureMapping::renderFrame() {
 
         ImGui::Text("Directional light");
         ImGui::Separator();
-        ImGui::SliderFloat("intensity", &_light->intensity, 0.0f, 2.0f);
-        ImGui::ColorEdit3("color", (float*)&_light->color);
+        ImGui::SliderFloat("intensity", &m_light->intensity, 0.0f, 2.0f);
+        ImGui::ColorEdit3("color", (float*)&m_light->color);
         ImGui::NewLine();
 
         ImGui::End();

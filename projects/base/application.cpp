@@ -5,9 +5,9 @@
 #include "application.h"
 
 Application::Application(const Options& options)
-    : _assetRootDir(options.assetRootDir), _windowTitle(options.windowTitle),
-      _windowWidth(options.windowWidth), _windowHeight(options.windowHeight),
-      _clearColor(options.backgroundColor) {
+    : m_assetRootDir(options.assetRootDir), m_windowTitle(options.windowTitle),
+      m_windowWidth(options.windowWidth), m_windowHeight(options.windowHeight),
+      m_clearColor(options.backgroundColor) {
     // set error callback
     glfwSetErrorCallback(errorCallback);
 
@@ -41,15 +41,15 @@ Application::Application(const Options& options)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    _window = glfwCreateWindow(_windowWidth, _windowHeight, _windowTitle.c_str(), nullptr, nullptr);
+    m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_windowTitle.c_str(), nullptr, nullptr);
 
-    if (_window == nullptr) {
+    if (m_window == nullptr) {
         glfwTerminate();
         throw std::runtime_error("create glfw window failure");
     }
 
-    glfwMakeContextCurrent(_window);
-    glfwSetWindowUserPointer(_window, this);
+    glfwMakeContextCurrent(m_window);
+    glfwSetWindowUserPointer(m_window, this);
 
 #ifndef __EMSCRIPTEN__
     if (options.vSync) {
@@ -79,8 +79,8 @@ Application::Application(const Options& options)
     std::cout << std::endl;
 
     // framebuffer and viewport
-    glfwGetFramebufferSize(_window, &_windowWidth, &_windowHeight);
-    glViewport(0, 0, _windowWidth, _windowHeight);
+    glfwGetFramebufferSize(m_window, &m_windowWidth, &m_windowHeight);
+    glViewport(0, 0, m_windowWidth, m_windowHeight);
 
 #ifndef USE_GLES
     if (options.msaa) {
@@ -89,11 +89,11 @@ Application::Application(const Options& options)
 #endif
 
     // callback functions
-    glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
-    glfwSetKeyCallback(_window, keyCallback);
-    glfwSetMouseButtonCallback(_window, mouseButtonCallback);
-    glfwSetCursorPosCallback(_window, cursorPosCallback);
-    glfwSetScrollCallback(_window, scrollCallback);
+    glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
+    glfwSetKeyCallback(m_window, keyCallback);
+    glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
+    glfwSetCursorPosCallback(m_window, cursorPosCallback);
+    glfwSetScrollCallback(m_window, scrollCallback);
 
     // register mainloop for WebGL
 #ifdef __EMSCRIPTEN__
@@ -106,13 +106,13 @@ Application::Application(const Options& options)
 #endif
 
     // record time
-    _lastTimeStamp = std::chrono::high_resolution_clock::now();
+    m_lastTimeStamp = std::chrono::high_resolution_clock::now();
 }
 
 Application::~Application() {
-    if (_window != nullptr) {
-        glfwDestroyWindow(_window);
-        _window = nullptr;
+    if (m_window != nullptr) {
+        glfwDestroyWindow(m_window);
+        m_window = nullptr;
     }
 
     glfwTerminate();
@@ -122,14 +122,14 @@ void Application::run() {
 #if __EMSCRIPTEN__
     emscripten_set_main_loop(mainloopWrapper, 0, 1);
 #else
-    while (!glfwWindowShouldClose(_window)) {
+    while (!glfwWindowShouldClose(m_window)) {
         mainloop();
     }
 #endif
 }
 
 std::string Application::getAssetFullPath(const std::string& resourceRelPath) const {
-    return _assetRootDir + resourceRelPath;
+    return m_assetRootDir + resourceRelPath;
 }
 
 void Application::mainloop() {
@@ -137,7 +137,7 @@ void Application::mainloop() {
     handleInput();
     renderFrame();
 
-    glfwSwapBuffers(_window);
+    glfwSwapBuffers(m_window);
     glfwPollEvents();
 }
 
@@ -150,17 +150,17 @@ void Application::mainloopWrapper() {
 
 void Application::updateTime() {
     auto now = std::chrono::high_resolution_clock::now();
-    _deltaTime = 0.001f * std::chrono::duration<float, std::milli>(now - _lastTimeStamp).count();
-    _lastTimeStamp = now;
-    if (_deltaTime != 0.0f) {
-        _fpsIndicator.push(1.0f / _deltaTime);
+    m_deltaTime = 0.001f * std::chrono::duration<float, std::milli>(now - m_lastTimeStamp).count();
+    m_lastTimeStamp = now;
+    if (m_deltaTime != 0.0f) {
+        m_fpsIndicator.push(1.0f / m_deltaTime);
     }
 }
 
 void Application::showFpsInWindowTitle() {
-    float fps = _fpsIndicator.getAverageFrameRate();
-    std::string detailTitle = _windowTitle + ": " + std::to_string(fps) + " fps";
-    glfwSetWindowTitle(_window, detailTitle.c_str());
+    float fps = m_fpsIndicator.getAverageFrameRate();
+    std::string detailTitle = m_windowTitle + ": " + std::to_string(fps) + " fps";
+    glfwSetWindowTitle(m_window, detailTitle.c_str());
 }
 
 void Application::errorCallback(int error, const char* description) {
@@ -169,44 +169,44 @@ void Application::errorCallback(int error, const char* description) {
 
 void Application::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-    app->_windowWidth = width;
-    app->_windowHeight = height;
-    app->_windowReized = true;
+    app->m_windowWidth = width;
+    app->m_windowHeight = height;
+    app->m_windowReized = true;
     glViewport(0, 0, width, height);
 }
 
 void Application::cursorPosCallback(GLFWwindow* window, double xPos, double yPos) {
     Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-    app->_input.mouse.move.xNow = static_cast<float>(xPos);
-    app->_input.mouse.move.yNow = static_cast<float>(yPos);
+    app->m_input.mouse.move.xNow = static_cast<float>(xPos);
+    app->m_input.mouse.move.yNow = static_cast<float>(yPos);
 }
 
 void Application::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     if (action == GLFW_PRESS) {
         switch (button) {
-        case GLFW_MOUSE_BUTTON_LEFT: app->_input.mouse.press.left = true; break;
-        case GLFW_MOUSE_BUTTON_MIDDLE: app->_input.mouse.press.middle = true; break;
-        case GLFW_MOUSE_BUTTON_RIGHT: app->_input.mouse.press.right = true; break;
+        case GLFW_MOUSE_BUTTON_LEFT: app->m_input.mouse.press.left = true; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: app->m_input.mouse.press.middle = true; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: app->m_input.mouse.press.right = true; break;
         }
     } else if (action == GLFW_RELEASE) {
         switch (button) {
-        case GLFW_MOUSE_BUTTON_LEFT: app->_input.mouse.press.left = false; break;
-        case GLFW_MOUSE_BUTTON_MIDDLE: app->_input.mouse.press.middle = false; break;
-        case GLFW_MOUSE_BUTTON_RIGHT: app->_input.mouse.press.right = false; break;
+        case GLFW_MOUSE_BUTTON_LEFT: app->m_input.mouse.press.left = false; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: app->m_input.mouse.press.middle = false; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: app->m_input.mouse.press.right = false; break;
         }
     }
 }
 
 void Application::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
     Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-    app->_input.mouse.scroll.xOffset = static_cast<float>(xOffset);
-    app->_input.mouse.scroll.yOffset = static_cast<float>(yOffset);
+    app->m_input.mouse.scroll.xOffset = static_cast<float>(xOffset);
+    app->m_input.mouse.scroll.yOffset = static_cast<float>(yOffset);
 }
 
 void Application::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key != GLFW_KEY_UNKNOWN) {
         Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-        app->_input.keyboard.keyStates[key] = action;
+        app->m_input.keyboard.keyStates[key] = action;
     }
 }

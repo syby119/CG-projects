@@ -4,29 +4,29 @@ const std::string modelRelPath = "obj/bunny.obj";
 
 SceneRoaming::SceneRoaming(const Options& options) : Application(options) {
     // set input mode
-    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    _input.mouse.move.xNow = _input.mouse.move.xOld = 0.5f * _windowWidth;
-    _input.mouse.move.yNow = _input.mouse.move.yOld = 0.5f * _windowHeight;
-    glfwSetCursorPos(_window, _input.mouse.move.xNow, _input.mouse.move.yNow);
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    m_input.mouse.move.xNow = m_input.mouse.move.xOld = 0.5f * m_windowWidth;
+    m_input.mouse.move.yNow = m_input.mouse.move.yOld = 0.5f * m_windowHeight;
+    glfwSetCursorPos(m_window, m_input.mouse.move.xNow, m_input.mouse.move.yNow);
 
     // init cameras
-    _cameras.resize(2);
+    m_cameras.resize(2);
 
-    const float aspect = 1.0f * _windowWidth / _windowHeight;
+    const float aspect = 1.0f * m_windowWidth / m_windowHeight;
     constexpr float znear = 0.1f;
     constexpr float zfar = 10000.0f;
 
     // perspective camera
-    _cameras[0].reset(new PerspectiveCamera(glm::radians(60.0f), aspect, 0.1f, 10000.0f));
-    _cameras[0]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
+    m_cameras[0].reset(new PerspectiveCamera(glm::radians(60.0f), aspect, 0.1f, 10000.0f));
+    m_cameras[0]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
     // orthographic camera
-    _cameras[1].reset(
+    m_cameras[1].reset(
         new OrthographicCamera(-4.0f * aspect, 4.0f * aspect, -4.0f, 4.0f, znear, zfar));
-    _cameras[1]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
+    m_cameras[1]->transform.position = glm::vec3(0.0f, 0.0f, 15.0f);
 
     // init model
-    _bunny.reset(new Model(getAssetFullPath(modelRelPath)));
+    m_bunny.reset(new Model(getAssetFullPath(modelRelPath)));
 
     std::vector<Vertex> vertices{
         //         position         |        normal        |   texcoord
@@ -37,7 +37,7 @@ SceneRoaming::SceneRoaming(const Options& options) : Application(options) {
     };
     std::vector<uint32_t> indices{ 0, 2, 1, 0, 3, 2 };
 
-    _ground.reset(new Model(vertices, indices));
+    m_ground.reset(new Model(vertices, indices));
 
     // init shader
     initShader();
@@ -47,22 +47,22 @@ void SceneRoaming::handleInput() {
     constexpr float cameraMoveSpeed = 5.0f;
     constexpr float cameraRotateSpeed = 0.02f;
 
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 
-    if (_input.keyboard.keyStates[GLFW_KEY_SPACE] == GLFW_PRESS) {
+    if (m_input.keyboard.keyStates[GLFW_KEY_SPACE] == GLFW_PRESS) {
         std::cout << "switch camera" << std::endl;
         // switch camera
-        activeCameraIndex = (activeCameraIndex + 1) % _cameras.size();
-        _input.keyboard.keyStates[GLFW_KEY_SPACE] = GLFW_RELEASE;
+        m_activeCameraIndex = (m_activeCameraIndex + 1) % m_cameras.size();
+        m_input.keyboard.keyStates[GLFW_KEY_SPACE] = GLFW_RELEASE;
         return;
     }
 
-    Camera* camera = _cameras[activeCameraIndex].get();
+    Camera* camera = m_cameras[m_activeCameraIndex].get();
 
-    if (_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
+    if (m_input.keyboard.keyStates[GLFW_KEY_W] != GLFW_RELEASE) {
         std::cout << "W" << std::endl;
         // TODO: move the camera in its front direction
         // write your code here
@@ -71,7 +71,7 @@ void SceneRoaming::handleInput() {
         // -------------------------------------------------
     }
 
-    if (_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
+    if (m_input.keyboard.keyStates[GLFW_KEY_A] != GLFW_RELEASE) {
         std::cout << "A" << std::endl;
         // TODO: move the camera in its left direction
         // write your code here
@@ -80,7 +80,7 @@ void SceneRoaming::handleInput() {
         // -------------------------------------------------
     }
 
-    if (_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
+    if (m_input.keyboard.keyStates[GLFW_KEY_S] != GLFW_RELEASE) {
         std::cout << "S" << std::endl;
         // TODO: move the camera in its back direction
         // write your code here
@@ -89,7 +89,7 @@ void SceneRoaming::handleInput() {
         // -------------------------------------------------
     }
 
-    if (_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
+    if (m_input.keyboard.keyStates[GLFW_KEY_D] != GLFW_RELEASE) {
         std::cout << "D" << std::endl;
         // TODO: move the camera in its right direction
         // write your code here
@@ -98,50 +98,50 @@ void SceneRoaming::handleInput() {
         // -------------------------------------------------
     }
 
-    if (_input.mouse.move.xNow != _input.mouse.move.xOld) {
+    if (m_input.mouse.move.xNow != m_input.mouse.move.xOld) {
         std::cout << "mouse move in x direction" << std::endl;
         // TODO: rotate the camera around world up: glm::vec3(0.0f, 1.0f, 0.0f)
         // hint1: you should know how do quaternion work to represent rotation
-        // hint2: mouse_movement_in_x_direction = _input.mouse.move.xNow - _input.mouse.move.xOld
+        // hint2: mouse_movement_in_x_direction = m_input.mouse.move.xNow - m_input.mouse.move.xOld
         // write your code here
         // -----------------------------------------------------------------------------
         // camera->transform.rotation = ...
         // -----------------------------------------------------------------------------
     }
 
-    if (_input.mouse.move.yNow != _input.mouse.move.yOld) {
+    if (m_input.mouse.move.yNow != m_input.mouse.move.yOld) {
         std::cout << "mouse move in y direction" << std::endl;
         // TODO: rotate the camera around its local right
         // hint1: you should know how do quaternion work to represent rotation
-        // hint2: mouse_movement_in_y_direction = _input.mouse.move.yNow - _input.mouse.move.yOld
+        // hint2: mouse_movement_in_y_direction = m_input.mouse.move.yNow - m_input.mouse.move.yOld
         // write your code here
         // -----------------------------------------------------------------------------
         // camera->transform.rotation = ...
         // -----------------------------------------------------------------------------
     }
 
-    _input.forwardState();
+    m_input.forwardState();
 }
 
 void SceneRoaming::renderFrame() {
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    glm::mat4 projection = _cameras[activeCameraIndex]->getProjectionMatrix();
-    glm::mat4 view = _cameras[activeCameraIndex]->getViewMatrix();
+    glm::mat4 projection = m_cameras[m_activeCameraIndex]->getProjectionMatrix();
+    glm::mat4 view = m_cameras[m_activeCameraIndex]->getViewMatrix();
 
-    _shader->use();
-    _shader->setUniformMat4("projection", projection);
-    _shader->setUniformMat4("view", view);
-    _shader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
+    m_shader->use();
+    m_shader->setUniformMat4("projection", projection);
+    m_shader->setUniformMat4("view", view);
+    m_shader->setUniformMat4("model", m_bunny->transform.getLocalMatrix());
 
-    _bunny->draw();
+    m_bunny->draw();
 
-    _shader->setUniformMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0, -2.25, 0)));
-    _ground->draw();
+    m_shader->setUniformMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0, -2.25, 0)));
+    m_ground->draw();
 }
 
 void SceneRoaming::initShader() {
@@ -189,8 +189,8 @@ void SceneRoaming::initShader() {
         "    fragColor = vec4(ambient + diffuse, 1.0f);\n"
         "}\n";
 
-    _shader.reset(new GLSLProgram);
-    _shader->attachVertexShader(vsCode, version);
-    _shader->attachFragmentShader(fsCode, version);
-    _shader->link();
+    m_shader.reset(new GLSLProgram);
+    m_shader->attachVertexShader(vsCode, version);
+    m_shader->attachFragmentShader(fsCode, version);
+    m_shader->link();
 }

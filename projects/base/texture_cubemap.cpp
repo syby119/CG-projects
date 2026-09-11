@@ -5,7 +5,7 @@
 
 TextureCubemap::TextureCubemap(
     GLint internalFormat, int width, int height, GLenum format, GLenum dataType) {
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _handle);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -25,7 +25,7 @@ TextureCubemap::TextureCubemap(TextureCubemap&& rhs) noexcept : Texture(std::mov
 
 void TextureCubemap::bind(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _handle);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
 }
 
 void TextureCubemap::unbind() const {
@@ -41,7 +41,7 @@ void TextureCubemap::setParamterInt(GLenum name, int value) const {
 }
 
 ImageTextureCubemap::ImageTextureCubemap(const std::vector<std::string>& filepaths)
-    : _uris(filepaths) {
+    : m_uris(filepaths) {
     assert(filepaths.size() == 6);
     // TODO: load six images and generate the texture cubemap
     // hint: you can refer to Texture2D(const std::string&) for image loading
@@ -52,10 +52,10 @@ ImageTextureCubemap::ImageTextureCubemap(const std::vector<std::string>& filepat
 }
 
 ImageTextureCubemap::ImageTextureCubemap(ImageTextureCubemap&& rhs) noexcept
-    : TextureCubemap(std::move(rhs)), _uris(std::move(rhs._uris)) {
-    rhs._uris.clear();
+    : TextureCubemap(std::move(rhs)), m_uris(std::move(rhs.m_uris)) {
+    rhs.m_uris.clear();
 }
 
 const std::vector<std::string>& ImageTextureCubemap::getUris() const {
-    return _uris;
+    return m_uris;
 }

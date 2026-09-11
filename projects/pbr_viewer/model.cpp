@@ -110,7 +110,7 @@ void Model::reload(const std::string& filepath) {
 }
 
 std::vector<Node*> Model::getRootNodes() {
-    return _rootNodes;
+    return m_rootNodes;
 }
 
 void Model::load(const std::string& filepath) {
@@ -146,8 +146,8 @@ void Model::load(const std::string& filepath) {
     std::cout << "+ vertexCount: " << vertexCount << std::endl;
     std::cout << "+ indexCount: " << indexCount << std::endl;
 
-    _vertices.reserve(vertexCount);
-    _indices.reserve(indexCount);
+    m_vertices.reserve(vertexCount);
+    m_indices.reserve(indexCount);
 
     createGraphicResources(vertexCount, indexCount);
 
@@ -180,13 +180,13 @@ void Model::load(const std::string& filepath) {
 }
 
 void Model::loadSamplers(const tg3_model& gltfModel) {
-    // always set _samplers[0] as a default sampler
+    // always set m_samplers[0] as a default sampler
     std::unique_ptr<Sampler> defaultSampler{new Sampler};
     defaultSampler->setInt(GL_TEXTURE_MIN_FILTER, getFilterMode(-1));
     defaultSampler->setInt(GL_TEXTURE_MAG_FILTER, getFilterMode(-1));
     defaultSampler->setInt(GL_TEXTURE_WRAP_S, getWrapMode(-1));
     defaultSampler->setInt(GL_TEXTURE_WRAP_T, getWrapMode(-1));
-    _samplers.push_back(std::move(defaultSampler));
+    m_samplers.push_back(std::move(defaultSampler));
 
     // get samplers from the gltfModel specification
     for (uint32_t i = 0; i < gltfModel.samplers_count; ++i) {
@@ -201,7 +201,7 @@ void Model::loadSamplers(const tg3_model& gltfModel) {
         sampler->setInt(GL_TEXTURE_WRAP_S, getWrapMode(gltfSampler.wrap_s));
         sampler->setInt(GL_TEXTURE_WRAP_T, getWrapMode(gltfSampler.wrap_t));
 
-        _samplers.push_back(std::move(sampler));
+        m_samplers.push_back(std::move(sampler));
     }
 }
 
@@ -245,14 +245,14 @@ void Model::loadTextures(const tg3_model& gltfModel, const std::string& filepath
             }
         }
 
-        _textures.emplace_back(std::move(texture));
+        m_textures.emplace_back(std::move(texture));
     }
 }
 
 void Model::loadMaterials(const tg3_model& gltfModel) {
-    // always set the _materials[0] as a default material
-    _materials.emplace_back(new PbrMaterial());
-    _materials[0]->name = "defaultMaterial";
+    // always set the m_materials[0] as a default material
+    m_materials.emplace_back(new PbrMaterial());
+    m_materials[0]->name = "defaultMaterial";
 
     for (uint32_t i = 0; i < gltfModel.materials_count; ++i) {
         const tg3_material& gltfMaterial = gltfModel.materials[i];
@@ -289,15 +289,15 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
 
         textureIndex = pbr.base_color_texture.index;
         if (textureIndex >= 0) {
-            material->albedoMap = _textures[textureIndex].get();
+            material->albedoMap = m_textures[textureIndex].get();
             material->texCoordSets.albedo =
                 pbr.base_color_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->albeodoSampler = _samplers[samplerIndex + 1].get();
+                material->albeodoSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->albeodoSampler = _samplers[0].get();
+                material->albeodoSampler = m_samplers[0].get();
             }
         }
 
@@ -307,15 +307,15 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
 
         textureIndex = pbr.metallic_roughness_texture.index;
         if (textureIndex >= 0) {
-            material->metallicMap = _textures[textureIndex].get();
+            material->metallicMap = m_textures[textureIndex].get();
             material->texCoordSets.metallic =
                 pbr.metallic_roughness_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->metallicSampler = _samplers[samplerIndex + 1].get();
+                material->metallicSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->metallicSampler = _samplers[0].get();
+                material->metallicSampler = m_samplers[0].get();
             }
         }
 
@@ -325,29 +325,29 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
 
         textureIndex = pbr.metallic_roughness_texture.index;
         if (textureIndex >= 0) {
-            material->roughnessMap = _textures[textureIndex].get();
+            material->roughnessMap = m_textures[textureIndex].get();
             material->texCoordSets.roughness =
                 pbr.metallic_roughness_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->roughnessSampler = _samplers[samplerIndex + 1].get();
+                material->roughnessSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->roughnessSampler = _samplers[0].get();
+                material->roughnessSampler = m_samplers[0].get();
             }
         }
 
         // normal
         textureIndex = gltfMaterial.normal_texture.index;
         if (textureIndex >= 0) {
-            material->normalMap = _textures[textureIndex].get();
+            material->normalMap = m_textures[textureIndex].get();
             material->texCoordSets.normal = gltfMaterial.normal_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->normalSampler = _samplers[samplerIndex + 1].get();
+                material->normalSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->normalSampler = _samplers[0].get();
+                material->normalSampler = m_samplers[0].get();
             }
         }
 
@@ -356,14 +356,14 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
 
         textureIndex = gltfMaterial.occlusion_texture.index;
         if (textureIndex >= 0) {
-            material->occlusionMap = _textures[textureIndex].get();
+            material->occlusionMap = m_textures[textureIndex].get();
             material->texCoordSets.occlusion = gltfMaterial.occlusion_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->occlusionSampler = _samplers[samplerIndex + 1].get();
+                material->occlusionSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->occlusionSampler = _samplers[0].get();
+                material->occlusionSampler = m_samplers[0].get();
             }
         }
 
@@ -375,18 +375,18 @@ void Model::loadMaterials(const tg3_model& gltfModel) {
 
         textureIndex = gltfMaterial.emissive_texture.index;
         if (textureIndex >= 0) {
-            material->emissiveMap = _textures[textureIndex].get();
+            material->emissiveMap = m_textures[textureIndex].get();
             material->texCoordSets.emissive = gltfMaterial.emissive_texture.tex_coord;
 
             samplerIndex = gltfModel.textures[textureIndex].sampler;
             if (samplerIndex >= 0) {
-                material->emissiveSampler = _samplers[samplerIndex + 1].get();
+                material->emissiveSampler = m_samplers[samplerIndex + 1].get();
             } else {
-                material->emissiveSampler = _samplers[0].get();
+                material->emissiveSampler = m_samplers[0].get();
             }
         }
 
-        _materials.push_back(std::move(material));
+        m_materials.push_back(std::move(material));
     }
 }
 
@@ -431,8 +431,8 @@ void Model::loadNode(
         for (uint32_t primitiveIndex = 0; primitiveIndex < gltfMesh.primitives_count; ++primitiveIndex) {
             const tg3_primitive& gltfPrimitive = gltfMesh.primitives[primitiveIndex];
             size_t count = 0;
-            const uint32_t vertexStart = static_cast<uint32_t>(_vertices.size());
-            const uint32_t indexStart = static_cast<uint32_t>(_indices.size());
+            const uint32_t vertexStart = static_cast<uint32_t>(m_vertices.size());
+            const uint32_t indexStart = static_cast<uint32_t>(m_indices.size());
 
             // parse vertices position
             size_t vertexCount = 0;
@@ -504,7 +504,7 @@ void Model::loadNode(
                         ? glm::make_vec2(texCoord1Buffer + i * texCoord1ByteStride / sizeof(float))
                         : glm::vec2(0.0f, 0.0f);
 
-                _vertices.emplace_back(v);
+                m_vertices.emplace_back(v);
             }
 
             // indices
@@ -521,21 +521,21 @@ void Model::loadNode(
                 case TG3_COMPONENT_TYPE_UNSIGNED_INT: {
                     const uint32_t* buf = static_cast<const uint32_t*>(data);
                     for (size_t i = 0; i < indexCount; ++i) {
-                        _indices.push_back(buf[i] + vertexStart);
+                        m_indices.push_back(buf[i] + vertexStart);
                     }
                     break;
                 }
                 case TG3_COMPONENT_TYPE_UNSIGNED_SHORT: {
                     const uint16_t* buf = static_cast<const uint16_t*>(data);
                     for (size_t i = 0; i < indexCount; ++i) {
-                        _indices.push_back(buf[i] + vertexStart);
+                        m_indices.push_back(buf[i] + vertexStart);
                     }
                     break;
                 }
                 case TG3_COMPONENT_TYPE_UNSIGNED_BYTE: {
                     const uint8_t* buf = static_cast<const uint8_t*>(data);
                     for (size_t i = 0; i < indexCount; ++i) {
-                        _indices.push_back(buf[i] + vertexStart);
+                        m_indices.push_back(buf[i] + vertexStart);
                     }
                     break;
                 }
@@ -544,13 +544,13 @@ void Model::loadNode(
             }
 
             Primitive primitive = {
-                _vao,
+                m_vao,
                 vertexStart,
                 static_cast<uint32_t>(vertexCount),
                 indexStart,
                 static_cast<uint32_t>(indexCount),
-                gltfPrimitive.material >= 0 ? _materials[gltfPrimitive.material + 1].get()
-                                            : _materials[0].get()};
+                gltfPrimitive.material >= 0 ? m_materials[gltfPrimitive.material + 1].get()
+                                            : m_materials[0].get()};
             node->primitives.push_back(primitive);
         }
     }
@@ -558,7 +558,7 @@ void Model::loadNode(
     if (parent) {
         parent->children.push_back(node.get());
     } else {
-        _rootNodes.push_back(node.get());
+        m_rootNodes.push_back(node.get());
     }
 
     // process child nodes
@@ -567,23 +567,23 @@ void Model::loadNode(
         loadNode(node.get(), gltfModel.nodes[childIndex], childIndex, gltfModel);
     }
 
-    _nodes.push_back(std::move(node));
+    m_nodes.push_back(std::move(node));
 }
 
 void Model::createGraphicResources(size_t vertexCount, size_t indexCount) {
     // create a vertex array object
-    glGenVertexArrays(1, &_vao);
+    glGenVertexArrays(1, &m_vao);
     // create a vertex buffer object
-    glGenBuffers(1, &_vbo);
+    glGenBuffers(1, &m_vbo);
     // create a element array buffer
-    glGenBuffers(1, &_ibo);
+    glGenBuffers(1, &m_ibo);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertexCount, NULL, GL_STATIC_DRAW);
 
     if (indexCount > 0) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint32_t), NULL, GL_STATIC_DRAW);
     }
 
@@ -606,40 +606,40 @@ void Model::createGraphicResources(size_t vertexCount, size_t indexCount) {
 }
 
 void Model::updateGraphicResources() {
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * _vertices.size(), _vertices.data());
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     glBufferSubData(
-        GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * _indices.size(), _indices.data());
+        GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * m_indices.size(), m_indices.data());
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Model::cleanup() {
-    _nodes.clear();
-    _rootNodes.clear();
+    m_nodes.clear();
+    m_rootNodes.clear();
 
-    _materials.clear();
-    _samplers.clear();
-    _textures.clear();
+    m_materials.clear();
+    m_samplers.clear();
+    m_textures.clear();
 
-    _vertices.clear();
-    _indices.clear();
+    m_vertices.clear();
+    m_indices.clear();
 
-    if (_vao != 0) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao != 0) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo != 0) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 
-    if (_ibo != 0) {
-        glDeleteBuffers(1, &_ibo);
-        _ibo = 0;
+    if (m_ibo != 0) {
+        glDeleteBuffers(1, &m_ibo);
+        m_ibo = 0;
     }
 }
 
@@ -693,7 +693,7 @@ bool Model::getAttributeBufferInfo(
 }
 
 Node* Model::getNodeByIndex(int index) const {
-    for (const auto& node : _nodes) {
+    for (const auto& node : m_nodes) {
         if (node->index == index) {
             return node.get();
         }
@@ -703,8 +703,8 @@ Node* Model::getNodeByIndex(int index) const {
 }
 
 int Model::getSamplerIndex(const Sampler* sampler) const {
-    for (size_t i = 0; i < _samplers.size(); ++i) {
-        if (sampler == _samplers[i].get()) {
+    for (size_t i = 0; i < m_samplers.size(); ++i) {
+        if (sampler == m_samplers[i].get()) {
             return static_cast<int>(i);
         }
     }
@@ -713,8 +713,8 @@ int Model::getSamplerIndex(const Sampler* sampler) const {
 }
 
 int Model::getTextureIndex(const Texture* texture) const {
-    for (size_t i = 0; i < _textures.size(); ++i) {
-        if (texture == _textures[i].get()) {
+    for (size_t i = 0; i < m_textures.size(); ++i) {
+        if (texture == m_textures[i].get()) {
             return static_cast<int>(i);
         }
     }
@@ -745,9 +745,9 @@ GLenum Model::getWrapMode(int gltfWrapMode) {
 
 void Model::printTextures() const {
     std::cout << "+ Textures:" << std::endl;
-    for (size_t i = 0; i < _textures.size(); ++i) {
+    for (size_t i = 0; i < m_textures.size(); ++i) {
         std::cout << "  + texture[" << i << "]: ";
-        ImageTexture2D* tex2D = dynamic_cast<ImageTexture2D*>(_textures[i].get());
+        ImageTexture2D* tex2D = dynamic_cast<ImageTexture2D*>(m_textures[i].get());
         if (tex2D) {
             std::cout << tex2D->getUri() << std::endl;
         } else {
@@ -758,9 +758,9 @@ void Model::printTextures() const {
 
 void Model::printMaterials() const {
     std::cout << "+ Materials" << std::endl;
-    for (size_t i = 0; i < _materials.size(); ++i) {
+    for (size_t i = 0; i < m_materials.size(); ++i) {
         std::string alphaMode;
-        switch (_materials[i]->alphaMode) {
+        switch (m_materials[i]->alphaMode) {
         case PbrMaterial::AlphaMode::Mask: alphaMode = "Mask"; break;
         case PbrMaterial::AlphaMode::Blend: alphaMode = "Blend"; break;
         case PbrMaterial::AlphaMode::Opaque: alphaMode = "Opaque"; break;
@@ -768,53 +768,53 @@ void Model::printMaterials() const {
 
         std::cout << "  + material[" << i << "]"
                   << "\n";
-        std::cout << "    + name:        " << _materials[i]->name << "\n";
-        std::cout << "    + doubleSided: " << _materials[i]->doubleSided << "\n";
+        std::cout << "    + name:        " << m_materials[i]->name << "\n";
+        std::cout << "    + doubleSided: " << m_materials[i]->doubleSided << "\n";
         std::cout << "    + alphaMode:   " << alphaMode << "\n";
-        std::cout << "    + alphaCutoff: " << _materials[i]->alphaCutoff << "\n";
+        std::cout << "    + alphaCutoff: " << m_materials[i]->alphaCutoff << "\n";
         std::cout << "    + albedo: "
                   << "\n";
-        std::cout << "      + factor: " << _materials[i]->albedoFactor << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->albedoMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->albeodoSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.albedo << "\n";
+        std::cout << "      + factor: " << m_materials[i]->albedoFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->albedoMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->albeodoSampler) << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.albedo << "\n";
         std::cout << "    + metallic: "
                   << "\n";
-        std::cout << "      + factor: " << _materials[i]->metallicFactor << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->metallicMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->metallicSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic << "\n";
+        std::cout << "      + factor: " << m_materials[i]->metallicFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->metallicMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->metallicSampler) << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.metallic << "\n";
         std::cout << "    + roughness: "
                   << "\n";
-        std::cout << "      + factor: " << _materials[i]->metallicFactor << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->roughnessMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->roughnessSampler)
+        std::cout << "      + factor: " << m_materials[i]->metallicFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->roughnessMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->roughnessSampler)
                   << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.roughness << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.roughness << "\n";
         std::cout << "    + normal: "
                   << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->normalMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->normalSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.normal << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->normalMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->normalSampler) << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.normal << "\n";
         std::cout << "    + occlusion: "
                   << "\n";
-        std::cout << "      + strength:" << _materials[i]->occlusionStrength << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->occlusionMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->occlusionSampler)
+        std::cout << "      + strength:" << m_materials[i]->occlusionStrength << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->occlusionMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->occlusionSampler)
                   << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.metallic << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.metallic << "\n";
         std::cout << "    + emissive: "
                   << "\n";
-        std::cout << "      + factor: " << _materials[i]->emissiveFactor << "\n";
-        std::cout << "      + texture: " << getTextureIndex(_materials[i]->emissiveMap) << "\n";
-        std::cout << "      + sampler: " << getSamplerIndex(_materials[i]->emissiveSampler) << "\n";
-        std::cout << "      + texCoordSet: " << _materials[i]->texCoordSets.emissive << "\n";
+        std::cout << "      + factor: " << m_materials[i]->emissiveFactor << "\n";
+        std::cout << "      + texture: " << getTextureIndex(m_materials[i]->emissiveMap) << "\n";
+        std::cout << "      + sampler: " << getSamplerIndex(m_materials[i]->emissiveSampler) << "\n";
+        std::cout << "      + texCoordSet: " << m_materials[i]->texCoordSets.emissive << "\n";
     }
 }
 
 void Model::printNodeHierachy() const {
     std::cout << "+ Node Hierachy" << std::endl;
-    for (const Node* node : _rootNodes) {
+    for (const Node* node : m_rootNodes) {
         printNode(node, 1);
     }
 }

@@ -27,19 +27,19 @@ public:
     void reload(const std::string& filepath);
 
 private:
-    std::vector<std::unique_ptr<Node>> _nodes;
-    std::vector<Node*> _rootNodes;
+    std::vector<std::unique_ptr<Node>> m_nodes;
+    std::vector<Node*> m_rootNodes;
 
-    std::vector<std::unique_ptr<PbrMaterial>> _materials;
-    std::vector<std::unique_ptr<Sampler>> _samplers;
-    std::vector<std::unique_ptr<Texture>> _textures;
+    std::vector<std::unique_ptr<PbrMaterial>> m_materials;
+    std::vector<std::unique_ptr<Sampler>> m_samplers;
+    std::vector<std::unique_ptr<Texture>> m_textures;
 
-    std::vector<Vertex> _vertices;
-    std::vector<uint32_t> _indices;
+    std::vector<Vertex> m_vertices;
+    std::vector<uint32_t> m_indices;
 
-    GLuint _vao = 0;
-    GLuint _vbo = 0;
-    GLuint _ibo = 0;
+    GLuint m_vao = 0;
+    GLuint m_vbo = 0;
+    GLuint m_ibo = 0;
 
     void load(const std::string& filepath);
 

@@ -4,23 +4,23 @@
 
 Texture::Texture() {
     // create texture object
-    glGenTextures(1, &_handle);
+    glGenTextures(1, &m_handle);
 }
 
-Texture::Texture(Texture&& rhs) noexcept : _handle(rhs._handle) {
-    rhs._handle = 0;
+Texture::Texture(Texture&& rhs) noexcept : m_handle(rhs.m_handle) {
+    rhs.m_handle = 0;
 }
 
 Texture::~Texture() {
     // destroy texture object
-    if (_handle != 0) {
-        glDeleteTextures(1, &_handle);
-        _handle = 0;
+    if (m_handle != 0) {
+        glDeleteTextures(1, &m_handle);
+        m_handle = 0;
     }
 }
 
 GLuint Texture::getHandle() const {
-    return _handle;
+    return m_handle;
 }
 
 void Texture::check() {
@@ -34,8 +34,8 @@ void Texture::check() {
 }
 
 void Texture::cleanup() {
-    if (_handle != 0) {
-        glDeleteTextures(1, &_handle);
-        _handle = 0;
+    if (m_handle != 0) {
+        glDeleteTextures(1, &m_handle);
+        m_handle = 0;
     }
 }

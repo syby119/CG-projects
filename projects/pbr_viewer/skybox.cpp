@@ -23,12 +23,12 @@ Skybox::Skybox(
 }
 
 Skybox::Skybox(Skybox&& rhs) noexcept
-    : _vao(rhs._vao), _vbo(rhs._vbo), _texture(rhs._texture),
+    : m_vao(rhs.m_vao), m_vbo(rhs.m_vbo), m_texture(rhs.m_texture),
       irradianceMap(std::move(rhs.irradianceMap)), prefilterMap(std::move(rhs.prefilterMap)),
       brdfLutMap(std::move(rhs.brdfLutMap)) {
-    rhs._vao = 0;
-    rhs._vbo = 0;
-    rhs._texture = 0;
+    rhs.m_vao = 0;
+    rhs.m_vbo = 0;
+    rhs.m_texture = 0;
 }
 
 Skybox::~Skybox() {
@@ -37,15 +37,15 @@ Skybox::~Skybox() {
 
 void Skybox::bindEnvironmentMap(int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
 }
 
 uint32_t Skybox::getMaxPrefilterMipLevel() const {
-    return _maxPrefilteredMipLevel;
+    return m_maxPrefilteredMipLevel;
 }
 
 void Skybox::draw() const {
-    glBindVertexArray(_vao);
+    glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
@@ -96,11 +96,11 @@ void Skybox::createVertexResources() {
         -1.0f, 1.0f, 1.0f   // bottom-left
     };
 
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
 
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glGenBuffers(1, &m_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -115,8 +115,8 @@ void Skybox::equirectangulerToCubemap(
     resolution = nextPow2(resolution);
 
     // create cubemap texture
-    glGenTextures(1, &_texture);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glGenTextures(1, &m_texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
     for (uint32_t i = 0; i < 6; ++i) {
 #ifdef __EMSCRIPTEN__
         glTexImage2D(
@@ -185,12 +185,12 @@ void Skybox::equirectangulerToCubemap(
 
     glViewport(0, 0, resolution, resolution);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
 
     for (uint32_t i = 0; i < 6; ++i) {
         shader.setUniformMat4("view", views[i]);
         glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, _texture, 0);
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_texture, 0);
 
         GLenum status = framebuffer.checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -212,25 +212,25 @@ void Skybox::equirectangulerToCubemap(
     hdrSampler.unbind(0);
 
     // generate mipmap
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void Skybox::cleanup() {
-    if (_vao != 0) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao != 0) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo != 0) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 
-    if (_texture != 0) {
-        glDeleteTextures(1, &_texture);
-        _texture = 0;
+    if (m_texture != 0) {
+        glDeleteTextures(1, &m_texture);
+        m_texture = 0;
     }
 }
 
@@ -273,7 +273,7 @@ void Skybox::generateIrradianceMap(
     shader.setUniformFloat("deltaPhi", deltaPhi);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
 
     // remember previous viewport
     glm::ivec4 viewport;
@@ -355,7 +355,7 @@ void Skybox::generatePrefilterMap(
     framebuffer.bind();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
 
     uint32_t mipResolution = resolution;
     for (uint32_t mipLevel = 0; mipLevel < maxMipLevels; ++mipLevel) {
@@ -392,7 +392,7 @@ void Skybox::generatePrefilterMap(
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
     // set prefilteredMipLevels;
-    _maxPrefilteredMipLevel = maxMipLevels - 1;
+    m_maxPrefilteredMipLevel = maxMipLevels - 1;
 }
 
 void Skybox::generateBrdfLutMap(

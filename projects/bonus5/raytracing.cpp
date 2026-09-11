@@ -29,27 +29,27 @@ const std::vector<std::string> skyboxTextureRelPaths = {
 };
 
 RayTracing::RayTracing(const Options& options) : Application(options) {
-    _lucy.reset(new Model(getAssetFullPath(lucyRelPath)));
+    m_lucy.reset(new Model(getAssetFullPath(lucyRelPath)));
 
     std::vector<std::string> skyBoxTexturePaths;
     for (size_t i = 0; i < skyboxTextureRelPaths.size(); ++i) {
         skyBoxTexturePaths.push_back(getAssetFullPath(skyboxTextureRelPaths[i]));
     }
-    _skybox.reset(new ImageTextureCubemap(skyBoxTexturePaths));
+    m_skybox.reset(new ImageTextureCubemap(skyBoxTexturePaths));
 
-    _camera.reset(new PerspectiveCamera(
-        glm::radians(60.0f), static_cast<float>(_windowWidth) / _windowHeight, 0.1f, 1000.0f));
-    _camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
-    _camera->transform.lookAt(glm::vec3(0.0f));
+    m_camera.reset(new PerspectiveCamera(
+        glm::radians(60.0f), static_cast<float>(m_windowWidth) / m_windowHeight, 0.1f, 1000.0f));
+    m_camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
+    m_camera->transform.lookAt(glm::vec3(0.0f));
 
     createBalls();
 
     initShaders();
 
-    _screenQuad.reset(new FullscreenQuad);
+    m_screenQuad.reset(new FullscreenQuad);
 
     // rngInitState
-    const int pixelCount = _windowWidth * _windowHeight;
+    const int pixelCount = m_windowWidth * m_windowHeight;
     std::vector<unsigned int> rngStateInitVals;
     rngStateInitVals.reserve(pixelCount);
     for (int i = 0; i < pixelCount; ++i) {
@@ -57,37 +57,37 @@ RayTracing::RayTracing(const Options& options) : Application(options) {
     }
 
     for (int i = 0; i < 2; ++i) {
-        _sampleFramebuffers[i].reset(new Framebuffer);
-        _sampleFramebuffers[i]->bind();
-        _sampleFramebuffers[i]->drawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+        m_sampleFramebuffers[i].reset(new Framebuffer);
+        m_sampleFramebuffers[i]->bind();
+        m_sampleFramebuffers[i]->drawBuffers({GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
 
-        _outFrames[i].reset(
-            new Texture2D(GL_RGBA32F, _windowWidth, _windowHeight, GL_RGBA, GL_FLOAT));
-        _outFrames[i]->bind();
-        _outFrames[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _outFrames[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _outFrames[i]->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _outFrames[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_outFrames[i].reset(
+            new Texture2D(GL_RGBA32F, m_windowWidth, m_windowHeight, GL_RGBA, GL_FLOAT));
+        m_outFrames[i]->bind();
+        m_outFrames[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_outFrames[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_outFrames[i]->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_outFrames[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        _sampleFramebuffers[i]->attachTexture2D(
-            *_outFrames[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+        m_sampleFramebuffers[i]->attachTexture2D(
+            *m_outFrames[i], GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
 
-        _rngStates[i].reset(new Texture2D(
-            GL_R32UI, _windowWidth, _windowHeight, GL_RED_INTEGER, GL_UNSIGNED_INT,
+        m_rngStates[i].reset(new Texture2D(
+            GL_R32UI, m_windowWidth, m_windowHeight, GL_RED_INTEGER, GL_UNSIGNED_INT,
             rngStateInitVals.data()));
-        _rngStates[i]->bind();
-        _rngStates[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _rngStates[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _rngStates[i]->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _rngStates[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_rngStates[i]->bind();
+        m_rngStates[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_rngStates[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_rngStates[i]->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_rngStates[i]->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        _sampleFramebuffers[i]->attachTexture2D(
-            *_rngStates[i], GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);
+        m_sampleFramebuffers[i]->attachTexture2D(
+            *m_rngStates[i], GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);
 
-        _sampleFramebuffers[i]->unbind();
+        m_sampleFramebuffers[i]->unbind();
     }
 
-    createRenderScene(_renderSceneIndex);
+    createRenderScene(m_renderSceneIndex);
 
     // init imGUI
     IMGUI_CHECKVERSION();
@@ -96,7 +96,7 @@ RayTracing::RayTracing(const Options& options) : Application(options) {
     (void)io;
 
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(_window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 #if defined(__EMSCRIPTEN__)
     ImGui_ImplOpenGL3_Init("#version 100");
 #elif defined(USE_GLES)
@@ -113,16 +113,16 @@ RayTracing::~RayTracing() {
 }
 
 void RayTracing::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 
-    static int lastSceneIndex = _renderSceneIndex;
-    if (lastSceneIndex != _renderSceneIndex) {
-        createRenderScene(_renderSceneIndex);
-        lastSceneIndex = _renderSceneIndex;
-        _sampleCount = 0;
+    static int lastSceneIndex = m_renderSceneIndex;
+    if (lastSceneIndex != m_renderSceneIndex) {
+        createRenderScene(m_renderSceneIndex);
+        lastSceneIndex = m_renderSceneIndex;
+        m_sampleCount = 0;
     }
 }
 
@@ -131,63 +131,63 @@ void RayTracing::renderFrame() {
 
     glDisable(GL_DEPTH_TEST);
 
-    glm::mat4 cameraToWorld = glm::inverse(_camera->getViewMatrix());
-    glm::mat4 cameraToScreen = _camera->getProjectionMatrix();
+    glm::mat4 cameraToWorld = glm::inverse(m_camera->getViewMatrix());
+    glm::mat4 cameraToScreen = m_camera->getProjectionMatrix();
     glm::mat4 screenToRaster =
         glm::scale(
             glm::mat4(1.0f),
-            glm::vec3(float(_windowWidth) / 2.0f, float(_windowHeight) / 2.0f, 1.0f))
+            glm::vec3(float(m_windowWidth) / 2.0f, float(m_windowHeight) / 2.0f, 1.0f))
         * glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
 
     glm::mat4 rasterToScreen = glm::inverse(screenToRaster);
     glm::mat4 rasterToCamera = glm::inverse(cameraToScreen) * rasterToScreen;
 
-    _sampleFramebuffers[_currentWriteBufferID]->bind();
-    _raytracingShader->use();
-    _raytracingShader->setUniformUint("totalSamples", _sampleCount);
-    _raytracingShader->setUniformMat4("camera.cameraToWorld", cameraToWorld);
-    _raytracingShader->setUniformMat4("camera.rasterToCamera", rasterToCamera);
+    m_sampleFramebuffers[m_currentWriteBufferID]->bind();
+    m_raytracingShader->use();
+    m_raytracingShader->setUniformUint("totalSamples", m_sampleCount);
+    m_raytracingShader->setUniformMat4("camera.cameraToWorld", cameraToWorld);
+    m_raytracingShader->setUniformMat4("camera.rasterToCamera", rasterToCamera);
 
-    _raytracingShader->setUniformInt("sky", 0);
-    _skybox->bind(0);
+    m_raytracingShader->setUniformInt("sky", 0);
+    m_skybox->bind(0);
 
-    _sphereBuffer->bind(1);
-    _raytracingShader->setUniformInt("sphereBuffer", 1);
+    m_sphereBuffer->bind(1);
+    m_raytracingShader->setUniformInt("sphereBuffer", 1);
 
-    _raytracingShader->setUniformInt("materialBuffer", 2);
-    _materialBuffer->bind(2);
+    m_raytracingShader->setUniformInt("materialBuffer", 2);
+    m_materialBuffer->bind(2);
 
-    _raytracingShader->setUniformInt("primitiveBuffer", 3);
-    _primitiveBuffer->bind(3);
+    m_raytracingShader->setUniformInt("primitiveBuffer", 3);
+    m_primitiveBuffer->bind(3);
 
-    _raytracingShader->setUniformInt("RTResult", 4);
-    _outFrames[_currentReadBufferID]->bind(4);
+    m_raytracingShader->setUniformInt("RTResult", 4);
+    m_outFrames[m_currentReadBufferID]->bind(4);
 
-    _raytracingShader->setUniformInt("oldRngState", 5);
-    _rngStates[_currentReadBufferID]->bind(5);
+    m_raytracingShader->setUniformInt("oldRngState", 5);
+    m_rngStates[m_currentReadBufferID]->bind(5);
 
-    _indexBuffer->bind(6);
-    _raytracingShader->setUniformInt("triangleIndexBuffer", 6);
-    _vertexBuffer->bind(7);
-    _raytracingShader->setUniformInt("vertexBuffer", 7);
+    m_indexBuffer->bind(6);
+    m_raytracingShader->setUniformInt("triangleIndexBuffer", 6);
+    m_vertexBuffer->bind(7);
+    m_raytracingShader->setUniformInt("vertexBuffer", 7);
 
-    _bvhBuffer->bind(8);
-    _raytracingShader->setUniformInt("bvh", 8);
+    m_bvhBuffer->bind(8);
+    m_raytracingShader->setUniformInt("bvh", 8);
 
-    _screenQuad->draw();
+    m_screenQuad->draw();
 
-    _sampleFramebuffers[_currentWriteBufferID]->unbind();
+    m_sampleFramebuffers[m_currentWriteBufferID]->unbind();
 
     // render the result to the screen
-    _drawScreenShader->use();
-    _drawScreenShader->setUniformInt("frame", 0);
+    m_drawScreenShader->use();
+    m_drawScreenShader->setUniformInt("frame", 0);
 
-    _outFrames[_currentWriteBufferID]->bind(0);
-    _screenQuad->draw();
+    m_outFrames[m_currentWriteBufferID]->bind(0);
+    m_screenQuad->draw();
 
     // update
-    ++_sampleCount;
-    std::swap(_currentReadBufferID, _currentWriteBufferID);
+    ++m_sampleCount;
+    std::swap(m_currentReadBufferID, m_currentWriteBufferID);
 
     // render UI
     ImGui_ImplOpenGL3_NewFrame();
@@ -205,13 +205,13 @@ void RayTracing::renderFrame() {
         ImGui::Separator();
         static const char* scenes[] = {"scene 1", "scene 2", "scene 3"};
 
-        ImGui::Combo("##1", &_renderSceneIndex, scenes, IM_ARRAYSIZE(scenes));
+        ImGui::Combo("##1", &m_renderSceneIndex, scenes, IM_ARRAYSIZE(scenes));
 
         ImGui::NewLine();
 
         ImGui::Text("statistics");
         ImGui::Separator();
-        ImGui::Text("samples: %u", _sampleCount);
+        ImGui::Text("samples: %u", m_sampleCount);
 
         ImGui::End();
     }
@@ -230,15 +230,15 @@ void RayTracing::initShaders() {
         ;
 
     // TODO: modify raytracing.frag code to achieve raytracing
-    _raytracingShader.reset(new GLSLProgram);
-    _raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath), version);
-    _raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath), version);
-    _raytracingShader->link();
+    m_raytracingShader.reset(new GLSLProgram);
+    m_raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath), version);
+    m_raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath), version);
+    m_raytracingShader->link();
 
-    _drawScreenShader.reset(new GLSLProgram);
-    _drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
-    _drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
-    _drawScreenShader->link();
+    m_drawScreenShader.reset(new GLSLProgram);
+    m_drawScreenShader->attachVertexShaderFromFile(getAssetFullPath(quadVsRelPath), version);
+    m_drawScreenShader->attachFragmentShaderFromFile(getAssetFullPath(quadFsRelPath), version);
+    m_drawScreenShader->link();
 }
 
 int RayTracing::getBufferHeight(size_t nObjects, size_t objectSize, size_t texComponent) const {
@@ -247,8 +247,8 @@ int RayTracing::getBufferHeight(size_t nObjects, size_t objectSize, size_t texCo
 }
 
 void RayTracing::createBalls() {
-    _balls.push_back(Sphere(glm::vec3(0.0f, -1000.0f, 0.0f), 1000.0f));
-    _ballMaterials.push_back(
+    m_balls.push_back(Sphere(glm::vec3(0.0f, -1000.0f, 0.0f), 1000.0f));
+    m_ballMaterials.push_back(
         Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.5f, 0.5f, 0.5f)));
     for (int a = -12; a < 12; ++a) {
         for (int b = -12; b < 12; ++b) {
@@ -277,23 +277,23 @@ void RayTracing::createBalls() {
                     material.albedo = glm::vec3(1.0f, 1.0f, 1.0f);
                 }
 
-                _balls.push_back(Sphere(center, randomFloat(0.15f, 0.2f)));
-                _ballMaterials.push_back(material);
+                m_balls.push_back(Sphere(center, randomFloat(0.15f, 0.2f)));
+                m_ballMaterials.push_back(material);
             }
         }
     }
 
     // init three big sphere
-    _balls.push_back(Sphere(glm::vec3(4.0f, 1.0f, 5.0f), 1.0f));
-    _ballMaterials.push_back(
+    m_balls.push_back(Sphere(glm::vec3(4.0f, 1.0f, 5.0f), 1.0f));
+    m_ballMaterials.push_back(
         Material(Material::Type::Dielectric, 1.5f, 0.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
 
-    _balls.push_back(Sphere(glm::vec3(-8.0f, 2.0f, 14.0f), 2.0f));
-    _ballMaterials.push_back(
+    m_balls.push_back(Sphere(glm::vec3(-8.0f, 2.0f, 14.0f), 2.0f));
+    m_ballMaterials.push_back(
         Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.2f, 0.4f, 0.8f)));
 
-    _balls.push_back(Sphere(glm::vec3(3.0f, 3.0f, -8.0f), 2.0f));
-    _ballMaterials.push_back(
+    m_balls.push_back(Sphere(glm::vec3(3.0f, 3.0f, -8.0f), 2.0f));
+    m_ballMaterials.push_back(
         Material(Material::Type::Metal, 1.0f, 0.0f, glm::vec3(0.7f, 0.6f, 0.5f)));
 }
 
@@ -350,18 +350,18 @@ void RayTracing::createPrimitiveBuffer(
             sphereBuffer[i] = spheres[i];
         }
 
-        _sphereBuffer.reset(new Texture2D(
+        m_sphereBuffer.reset(new Texture2D(
             GL_RGBA32F, BufferWidth,
             getBufferHeight(sphereBuffer.size(), sizeof(Sphere), Sphere::getTexDataComponent()),
             GL_RGBA, GL_FLOAT, sphereBuffer.data()));
-        _sphereBuffer->bind();
-        _sphereBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _sphereBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        _sphereBuffer->unbind();
+        m_sphereBuffer->bind();
+        m_sphereBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_sphereBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_sphereBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_sphereBuffer->unbind();
     } else {
-        _sphereBuffer.reset(new Texture2D(
+        m_sphereBuffer.reset(new Texture2D(
             GL_RGBA32F, BufferWidth,
             getBufferHeight(1, sizeof(Sphere), Sphere::getTexDataComponent()), GL_RGBA, GL_FLOAT,
             nullptr));
@@ -400,16 +400,16 @@ void RayTracing::createPrimitiveBuffer(
             materials[materialCnt++] = material;
         }
 
-        _vertexBuffer.reset(new Texture2D(
+        m_vertexBuffer.reset(new Texture2D(
             GL_RGBA32F, BufferWidth,
             getBufferHeight(vertexBufferSize, sizeof(Vertex), Sphere::getTexDataComponent()),
             GL_RGBA, GL_FLOAT, vertices.data()));
-        _vertexBuffer->bind();
-        _vertexBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _vertexBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _vertexBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _vertexBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        _vertexBuffer->unbind();
+        m_vertexBuffer->bind();
+        m_vertexBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_vertexBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_vertexBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_vertexBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_vertexBuffer->unbind();
 
         std::vector<glm::ivec3> triangleIndex(triangleBufferSize);
         int triangleIndexCnt = 0;
@@ -417,23 +417,23 @@ void RayTracing::createPrimitiveBuffer(
             triangleIndex[triangleIndexCnt++] = {triangle.v[0], triangle.v[1], triangle.v[2]};
         }
 
-        _indexBuffer.reset(new Texture2D(
+        m_indexBuffer.reset(new Texture2D(
             GL_RGB32I, BufferWidth,
             getBufferHeight(
                 triangleIndex.size(), sizeof(glm::ivec3), Triangle::getIndexTexDataComponent()),
             GL_RGB_INTEGER, GL_INT, triangleIndex.data()));
-        _indexBuffer->bind();
-        _indexBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _indexBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _indexBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _indexBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        _indexBuffer->unbind();
+        m_indexBuffer->bind();
+        m_indexBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_indexBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_indexBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_indexBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_indexBuffer->unbind();
     } else {
-        _vertexBuffer.reset(new Texture2D(
+        m_vertexBuffer.reset(new Texture2D(
             GL_RGBA32F, BufferWidth,
             getBufferHeight(1, sizeof(Vertex), Sphere::getTexDataComponent()), GL_RGBA, GL_FLOAT,
             nullptr));
-        _indexBuffer.reset(new Texture2D(
+        m_indexBuffer.reset(new Texture2D(
             GL_RGB32I, BufferWidth,
             getBufferHeight(1, sizeof(glm::ivec3), Triangle::getIndexTexDataComponent()),
             GL_RGB_INTEGER, GL_INT, nullptr));
@@ -445,49 +445,49 @@ void RayTracing::createPrimitiveBuffer(
                 static_cast<Material::Type>(toFloatLayout(static_cast<int>(material.type)));
         }
 
-        _materialBuffer.reset(new Texture2D(
+        m_materialBuffer.reset(new Texture2D(
             GL_RGB32F, BufferWidth,
             getBufferHeight(materials.size(), sizeof(Material), Material::getTexDataComponent()),
             GL_RGB, GL_FLOAT, materials.data()));
-        _materialBuffer->bind(0);
-        _materialBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        _materialBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        _materialBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        _materialBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        _materialBuffer->unbind();
+        m_materialBuffer->bind(0);
+        m_materialBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_materialBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_materialBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_materialBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_materialBuffer->unbind();
     } else {
-        _materialBuffer.reset(new Texture2D(
+        m_materialBuffer.reset(new Texture2D(
             GL_RGB32F, BufferWidth,
             getBufferHeight(1, sizeof(Material), Material::getTexDataComponent()), GL_RGB, GL_FLOAT,
             nullptr));
     }
 
     if (!primitives.empty()) {
-        if (!_useBVH) {
+        if (!m_useBVH) {
             std::vector<ShaderPrimitive> orderedPrim(roundUp(primitives.size(), BufferWidth));
             int primCnt = 0;
             for (const auto& prim : primitives) {
                 orderedPrim[primCnt++] = {
                     static_cast<int>(prim.type), prim.shapeIdx, prim.materialIdx};
             }
-            _bvhBuffer.reset(new Texture2D(
+            m_bvhBuffer.reset(new Texture2D(
                 GL_RGB32F, BufferWidth,
                 getBufferHeight(1, sizeof(BVHNode), BVHNode::getTexDataComponent()), GL_RGB,
                 GL_FLOAT, nullptr));
 
-            _primitiveBuffer.reset(new Texture2D(
+            m_primitiveBuffer.reset(new Texture2D(
                 GL_RGB32I, BufferWidth,
                 getBufferHeight(
                     orderedPrim.size(), sizeof(ShaderPrimitive), Primitive::getTexDataComponent()),
                 GL_RGB_INTEGER, GL_INT, orderedPrim.data()));
-            _primitiveBuffer->bind();
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            _primitiveBuffer->unbind();
-            _raytracingShader->use();
-            _raytracingShader->setUniformInt("nPrimitives", static_cast<int>(primitives.size()));
+            m_primitiveBuffer->bind();
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            m_primitiveBuffer->unbind();
+            m_raytracingShader->use();
+            m_raytracingShader->setUniformInt("nPrimitives", static_cast<int>(primitives.size()));
 
         } else {
             // build BVH
@@ -505,16 +505,16 @@ void RayTracing::createPrimitiveBuffer(
                 nodes[nodeCnt++] = node;
             }
 
-            _bvhBuffer.reset(new Texture2D(
+            m_bvhBuffer.reset(new Texture2D(
                 GL_RGB32F, BufferWidth,
                 getBufferHeight(nodes.size(), sizeof(BVHNode), BVHNode::getTexDataComponent()),
                 GL_RGB, GL_FLOAT, nodes.data()));
-            _bvhBuffer->bind();
-            _bvhBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            _bvhBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            _bvhBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            _bvhBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            _bvhBuffer->unbind();
+            m_bvhBuffer->bind();
+            m_bvhBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            m_bvhBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            m_bvhBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            m_bvhBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            m_bvhBuffer->unbind();
 
             std::vector<ShaderPrimitive> orderedPrim(
                 roundUp(bvh.orderedPrimitives.size(), BufferWidth));
@@ -524,17 +524,17 @@ void RayTracing::createPrimitiveBuffer(
                     static_cast<int>(prim.type), prim.shapeIdx, prim.materialIdx};
             }
 
-            _primitiveBuffer.reset(new Texture2D(
+            m_primitiveBuffer.reset(new Texture2D(
                 GL_RGB32I, BufferWidth,
                 getBufferHeight(
                     orderedPrim.size(), sizeof(ShaderPrimitive), Primitive::getTexDataComponent()),
                 GL_RGB_INTEGER, GL_INT, orderedPrim.data()));
-            _primitiveBuffer->bind();
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            _primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            _primitiveBuffer->unbind();
+            m_primitiveBuffer->bind();
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            m_primitiveBuffer->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            m_primitiveBuffer->unbind();
         }
     }
 
@@ -546,10 +546,10 @@ void RayTracing::createPrimitiveBuffer(
 }
 
 void RayTracing::createScene1() {
-    _camera->transform.position = glm::vec3(0.0f, 0.0f, 12.0f);
-    _camera->transform.lookAt(glm::vec3(0.0f));
+    m_camera->transform.position = glm::vec3(0.0f, 0.0f, 12.0f);
+    m_camera->transform.lookAt(glm::vec3(0.0f));
 
-    _useBVH = true;
+    m_useBVH = true;
 
     createPrimitiveBuffer(
         {Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 1.5f), Sphere(glm::vec3(4.0f, 0.0f, 0.0f), 1.5f),
@@ -562,23 +562,23 @@ void RayTracing::createScene1() {
 }
 
 void RayTracing::createScene2() {
-    _camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
-    _camera->transform.lookAt(glm::vec3(0.0f));
+    m_camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
+    m_camera->transform.lookAt(glm::vec3(0.0f));
 
-    _useBVH = true;
+    m_useBVH = true;
 
-    createPrimitiveBuffer(_balls, {}, {}, _ballMaterials, {});
+    createPrimitiveBuffer(m_balls, {}, {}, m_ballMaterials, {});
 }
 
 void RayTracing::createScene3() {
-    _camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
-    _camera->transform.lookAt(glm::vec3(0.0f));
+    m_camera->transform.position = glm::vec3(15.0f, 3.0f, 4.0f);
+    m_camera->transform.lookAt(glm::vec3(0.0f));
 
     glm::mat4 scaleT = glm::scale(glm::mat4(1.0f), glm::vec3(0.6f, 0.6f, 0.6f));
     glm::mat4 rotateT =
         glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    _useBVH = true;
+    m_useBVH = true;
 
     std::vector<glm::mat4> transformations = {
         rotateT * scaleT,
@@ -591,7 +591,7 @@ void RayTracing::createScene3() {
         Material(Material::Type::Lambertian, 1.0f, 0.0f, glm::vec3(0.8f, 0.4f, 0.2f))};
 
     createPrimitiveBuffer(
-        _balls, {_lucy.get(), _lucy.get(), _lucy.get()}, transformations, _ballMaterials,
+        m_balls, {m_lucy.get(), m_lucy.get(), m_lucy.get()}, transformations, m_ballMaterials,
         modelMaterials);
 }
 

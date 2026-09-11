@@ -20,11 +20,11 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
                           1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
     // create vao and vbo
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_vbo);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -34,7 +34,7 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
 
     try {
         // init texture
-        _texture.reset(new ImageTextureCubemap(textureFilenames));
+        m_texture.reset(new ImageTextureCubemap(textureFilenames));
 
         const char* version =
 #ifdef USE_GLES
@@ -62,10 +62,10 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
             "   color = texture(cubemap, texCoord);\n"
             "}\n";
 
-        _shader.reset(new GLSLProgram);
-        _shader->attachVertexShader(vsCode, version);
-        _shader->attachFragmentShader(fsCode, version);
-        _shader->link();
+        m_shader.reset(new GLSLProgram);
+        m_shader->attachVertexShader(vsCode, version);
+        m_shader->attachFragmentShader(fsCode, version);
+        m_shader->link();
     } catch (const std::exception&) {
         cleanup();
         throw;
@@ -81,10 +81,10 @@ SkyBox::SkyBox(const std::vector<std::string>& textureFilenames) {
 }
 
 SkyBox::SkyBox(SkyBox&& rhs) noexcept
-    : _vao(rhs._vao), _vbo(rhs._vbo), _texture(std::move(rhs._texture)),
-      _shader(std::move(rhs._shader)) {
-    rhs._vao = 0;
-    rhs._vbo = 0;
+    : m_vao(rhs.m_vao), m_vbo(rhs.m_vbo), m_texture(std::move(rhs.m_texture)),
+      m_shader(std::move(rhs.m_shader)) {
+    rhs.m_vao = 0;
+    rhs.m_vbo = 0;
 }
 
 SkyBox::~SkyBox() {
@@ -100,13 +100,13 @@ void SkyBox::draw(const glm::mat4& projection, const glm::mat4& view) {
 }
 
 void SkyBox::cleanup() {
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo != 0) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 
-    if (_vao != 0) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao != 0) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 }

@@ -18,6 +18,6 @@ public:
     void draw() const;
 
 private:
-    GLuint _vao;
-    GLuint _vbo;
+    GLuint m_vao;
+    GLuint m_vbo;
 };

@@ -14,9 +14,9 @@ public:
     ~RenderFlag() = default;
 
 private:
-    std::unique_ptr<Star> _stars[5];
+    std::unique_ptr<Star> m_stars[5];
 
-    std::unique_ptr<GLSLProgram> _starShader;
+    std::unique_ptr<GLSLProgram> m_starShader;
 
     void handleInput() override;
 

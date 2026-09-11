@@ -19,11 +19,11 @@ public:
 
 private:
     // vertices of the table represented in model's own coordinate
-    std::vector<Vertex> _vertices;
-    std::vector<uint32_t> _indices;
+    std::vector<Vertex> m_vertices;
+    std::vector<uint32_t> m_indices;
 
     // opengl objects
-    GLuint _vao = 0;
-    GLuint _vbo = 0;
-    GLuint _ebo = 0;
+    GLuint m_vao = 0;
+    GLuint m_vbo = 0;
+    GLuint m_ebo = 0;
 };

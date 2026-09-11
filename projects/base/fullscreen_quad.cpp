@@ -1,17 +1,17 @@
 #include "fullscreen_quad.h"
 
 FullscreenQuad::FullscreenQuad() {
-    float _vertices[] = {-1.0f, 1.0f,  0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
+    float m_vertices[] = {-1.0f, 1.0f,  0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
                          1.0f,  -1.0f, 1.0f, 0.0f, -1.0f, 1.0f,  0.0f, 1.0f,
                          1.0f,  -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  1.0f, 1.0f};
 
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_vbo);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(_vertices), &_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), &m_vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
@@ -23,25 +23,25 @@ FullscreenQuad::FullscreenQuad() {
     glBindVertexArray(0);
 }
 
-FullscreenQuad::FullscreenQuad(FullscreenQuad&& rhs) noexcept : _vao(rhs._vao), _vbo(rhs._vbo) {
-    rhs._vao = 0;
-    rhs._vbo = 0;
+FullscreenQuad::FullscreenQuad(FullscreenQuad&& rhs) noexcept : m_vao(rhs.m_vao), m_vbo(rhs.m_vbo) {
+    rhs.m_vao = 0;
+    rhs.m_vbo = 0;
 }
 
 FullscreenQuad::~FullscreenQuad() {
-    if (_vao) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 
-    if (_vbo) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 }
 
 void FullscreenQuad::draw() const {
-    glBindVertexArray(_vao);
+    glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }

@@ -22,23 +22,23 @@ RenderFlag::RenderFlag(const Options& options) : Application(options) {
         "    fragColor = vec4(1.0f, 0.870f, 0.0f, 1.0f);\n"
         "}\n";
 
-    _starShader.reset(new GLSLProgram);
-    _starShader->attachVertexShader(vsCode, version);
-    _starShader->attachFragmentShader(fsCode, version);
-    _starShader->link();
+    m_starShader.reset(new GLSLProgram);
+    m_starShader->attachVertexShader(vsCode, version);
+    m_starShader->attachFragmentShader(fsCode, version);
+    m_starShader->link();
 
     // TODO: create 5 stars
-    // hint: aspect_of_the_window = _windowWidth / _windowHeight
+    // hint: aspect_of_the_window = m_windowWidth / m_windowHeight
     // write your code here
     // ---------------------------------------------------------------
-    // _stars[i].reset(new Star(ndc_position, rotation_in_radians, size_of_star,
+    // m_stars[i].reset(new Star(ndc_position, rotation_in_radians, size_of_star,
     // aspect_of_the_window));
     // ---------------------------------------------------------------
 }
 
 void RenderFlag::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 }
@@ -50,10 +50,10 @@ void RenderFlag::renderFrame() {
     glClearColor(0.87f, 0.161f, 0.063f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    _starShader->use();
+    m_starShader->use();
     for (int i = 0; i < 5; ++i) {
-        if (_stars[i] != nullptr) {
-            _stars[i]->draw();
+        if (m_stars[i] != nullptr) {
+            m_stars[i]->draw();
         }
     }
 }

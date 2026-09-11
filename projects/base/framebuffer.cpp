@@ -2,23 +2,23 @@
 #include <stdexcept>
 
 Framebuffer::Framebuffer() {
-    glGenFramebuffers(1, &_handle);
+    glGenFramebuffers(1, &m_handle);
 }
 
 Framebuffer::Framebuffer(Framebuffer&& rhs) noexcept {
-    _handle = rhs._handle;
-    rhs._handle = 0;
+    m_handle = rhs.m_handle;
+    rhs.m_handle = 0;
 }
 
 Framebuffer::~Framebuffer() {
-    if (_handle != 0) {
-        glDeleteFramebuffers(1, &_handle);
-        _handle = 0;
+    if (m_handle != 0) {
+        glDeleteFramebuffers(1, &m_handle);
+        m_handle = 0;
     }
 }
 
 void Framebuffer::bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, _handle);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
 }
 
 void Framebuffer::unbind() {
@@ -87,5 +87,5 @@ void Framebuffer::readBuffer(GLenum buffer) const {
 }
 
 GLuint Framebuffer::getHandle() const {
-    return _handle;
+    return m_handle;
 }

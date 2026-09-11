@@ -45,7 +45,7 @@ public:
     const std::string& getUri() const;
 
 private:
-    std::string _uri;
+    std::string m_uri;
 
     void setDefaultParameters();
 

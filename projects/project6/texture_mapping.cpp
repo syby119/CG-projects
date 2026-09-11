@@ -337,7 +337,8 @@ void TextureMapping::renderFrame() {
     } else {
         ImGui::Text("Render Mode");
         ImGui::Separator();
-        ImGui::RadioButton("Simple Texture Shading", (int*)&m_renderMode, (int)(RenderMode::Simple));
+        ImGui::RadioButton(
+            "Simple Texture Shading", (int*)&m_renderMode, (int)(RenderMode::Simple));
         ImGui::NewLine();
 
         ImGui::RadioButton("Blend Texture Shading", (int*)&m_renderMode, (int)(RenderMode::Blend));

@@ -7,7 +7,7 @@
 
 const std::string modelRelPath = "gltf/DamagedHelmet.gltf";
 // const std::string modelRelPath = "gltf/drone/scene.gltf";
- //const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
+// const std::string modelRelPath = "gltf/grey_knight/scene.gltf";
 
 const std::string pbrVertShaderRelPath = "shader/pbr_viewer/pbr.vert";
 const std::string pbrFragShaderRelPath = "shader/pbr_viewer/pbr.frag";
@@ -356,7 +356,8 @@ void PbrViewer::initShaders() {
 
     m_skyboxShader.reset(new GLSLProgram);
     m_skyboxShader->attachVertexShaderFromFile(getAssetFullPath(skyboxVertShaderRelPath), version);
-    m_skyboxShader->attachFragmentShaderFromFile(getAssetFullPath(skyboxFragShaderRelPath), version);
+    m_skyboxShader->attachFragmentShaderFromFile(
+        getAssetFullPath(skyboxFragShaderRelPath), version);
     m_skyboxShader->link();
 
     m_quadShader.reset(new GLSLProgram);
@@ -579,10 +580,8 @@ void PbrViewer::printRenderQueue(
     for (size_t i = 0; i < renderQueue.size(); ++i) {
         const glm::mat4 globalMatrix = glm::transpose(renderQueue[i].globalMatrix);
         const Primitive* primitive = renderQueue[i].primitive;
-        std::cout << "  + object[" << i << "]:"
-                  << "\n";
-        std::cout << "    + globalMatrix(row): "
-                  << "\n";
+        std::cout << "  + object[" << i << "]:" << "\n";
+        std::cout << "    + globalMatrix(row): " << "\n";
         std::cout << "        " << globalMatrix[0] << "\n";
         std::cout << "        " << globalMatrix[1] << "\n";
         std::cout << "        " << globalMatrix[2] << "\n";

@@ -304,7 +304,8 @@ void ShadingTutorial::renderFrame() {
         m_lambertShader->setUniformFloat("spotLight.kq", m_spotLight->kq);
         m_lambertShader->setUniformVec3(
             "directionalLight.direction", m_directionalLight->transform.getFront());
-        m_lambertShader->setUniformFloat("directionalLight.intensity", m_directionalLight->intensity);
+        m_lambertShader->setUniformFloat(
+            "directionalLight.intensity", m_directionalLight->intensity);
         m_lambertShader->setUniformVec3("directionalLight.color", m_directionalLight->color);
         break;
     case RenderMode::Phong:

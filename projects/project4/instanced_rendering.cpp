@@ -233,7 +233,8 @@ void InstancedRendering::renderFrame() {
         ImGui::Text("render method");
         ImGui::Separator();
         ImGui::RadioButton("ordinary rendering", (int*)&m_renderMode, (int)(RenderMode::Ordinary));
-        ImGui::RadioButton("instanced rendering", (int*)&m_renderMode, (int)(RenderMode::Instanced));
+        ImGui::RadioButton(
+            "instanced rendering", (int*)&m_renderMode, (int)(RenderMode::Instanced));
 #ifndef __EMSCRIPTEN__
         ImGui::Checkbox("wireframe", &m_wireframe);
 #endif

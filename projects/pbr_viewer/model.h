@@ -53,18 +53,16 @@ private:
 
     void loadSkins(const tg3_model& gltfModel);
 
-    void loadNode(
-        Node* parent, const tg3_node& node, uint32_t nodeIndex, const tg3_model& model);
+    void loadNode(Node* parent, const tg3_node& node, uint32_t nodeIndex, const tg3_model& model);
 
     void cleanup();
 
-    std::pair<size_t, size_t> getNodeProps(
-        const tg3_node& node, const tg3_model& model);
+    std::pair<size_t, size_t> getNodeProps(const tg3_node& node, const tg3_model& model);
 
     template <typename T>
     static bool getAttributeBufferInfo(
-        const tg3_model& gltfModel, const tg3_primitive& gltfPrimitive,
-        const std::string& name, const T*& data, int& byteStride, size_t& count);
+        const tg3_model& gltfModel, const tg3_primitive& gltfPrimitive, const std::string& name,
+        const T*& data, int& byteStride, size_t& count);
 
     Node* getNodeByIndex(int index) const;
 

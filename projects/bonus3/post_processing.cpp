@@ -124,7 +124,8 @@ void PostProcessing::initGeometryPassResources() {
     m_gPosition->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     m_gPosition->unbind();
 
-    m_gNormal.reset(new Texture2D(colorIFormat, m_windowWidth, m_windowHeight, colorFormat, GL_FLOAT));
+    m_gNormal.reset(
+        new Texture2D(colorIFormat, m_windowWidth, m_windowHeight, colorFormat, GL_FLOAT));
     m_gNormal->bind();
     m_gNormal->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     m_gNormal->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -132,7 +133,8 @@ void PostProcessing::initGeometryPassResources() {
     m_gNormal->setParamterInt(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     m_gNormal->unbind();
 
-    m_gAlbedo.reset(new Texture2D(colorIFormat, m_windowWidth, m_windowHeight, colorFormat, GL_FLOAT));
+    m_gAlbedo.reset(
+        new Texture2D(colorIFormat, m_windowWidth, m_windowHeight, colorFormat, GL_FLOAT));
     m_gAlbedo->bind();
     m_gAlbedo->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     m_gAlbedo->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -190,7 +192,8 @@ void PostProcessing::initSSAOPassResources() {
     m_ssaoFBO->bind();
     m_ssaoFBO->drawBuffer(GL_COLOR_ATTACHMENT0);
     for (int i = 0; i < 2; ++i) {
-        m_ssaoResult[i].reset(new Texture2D(GL_R32F, m_windowWidth, m_windowHeight, GL_RED, GL_FLOAT));
+        m_ssaoResult[i].reset(
+            new Texture2D(GL_R32F, m_windowWidth, m_windowHeight, GL_RED, GL_FLOAT));
         m_ssaoResult[i]->bind();
         m_ssaoResult[i]->setParamterInt(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         m_ssaoResult[i]->setParamterInt(GL_TEXTURE_MAG_FILTER, GL_LINEAR);

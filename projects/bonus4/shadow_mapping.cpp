@@ -42,7 +42,8 @@ ShadowMapping::ShadowMapping(const Options& options) : Application(options) {
         if (i == 0) {
             m_bunnies.emplace_back(new Model(getAssetFullPath(bunnyRelPath)));
         } else {
-            m_bunnies.emplace_back(new Model(m_bunnies[0]->getVertices(), m_bunnies[0]->getIndices()));
+            m_bunnies.emplace_back(
+                new Model(m_bunnies[0]->getVertices(), m_bunnies[0]->getIndices()));
         }
         m_bunnies[i]->transform.position.y = 2.5f;
         m_bunnies[i]->transform.position.x = 20.0f * (i % 3 - 1);
@@ -401,7 +402,8 @@ void ShadowMapping::initDepthResources() {
         GLenum status = m_depthCascadeFbos[i]->checkStatus();
         if (status != GL_FRAMEBUFFER_COMPLETE) {
             throw std::runtime_error(
-                "m_depthCascadeFbos illegal status: " + m_depthCascadeFbos[i]->getDiagnostic(status));
+                "m_depthCascadeFbos illegal status: "
+                + m_depthCascadeFbos[i]->getDiagnostic(status));
         }
 
         m_depthCascadeFbos[i]->unbind();
@@ -670,10 +672,10 @@ void ShadowMapping::renderUI() {
 
 void ShadowMapping::updateDirectionalLightSpaceMatrix() {
     m_directionalLightSpaceMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f)
-                                   *            // projection
-                                   glm::lookAt( // view
-                                       m_directionalLight->transform.position,
-                                       glm::vec3(0.0f, 0.0f, 0.0f), Transform::getDefaultUp());
+                                    *            // projection
+                                    glm::lookAt( // view
+                                        m_directionalLight->transform.position,
+                                        glm::vec3(0.0f, 0.0f, 0.0f), Transform::getDefaultUp());
 }
 
 void ShadowMapping::updateDirectionalLightSpaceMatrices() {
@@ -689,7 +691,8 @@ void ShadowMapping::updateDirectionalLightSpaceMatrices() {
 }
 
 void ShadowMapping::updatePointLightSpaceMatrices() {
-    const glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, m_pointLightZfar);
+    const glm::mat4 projection =
+        glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, m_pointLightZfar);
 
     const glm::vec3& eye = m_pointLight->transform.position;
     const glm::mat4 views[6] = {
@@ -741,6 +744,7 @@ BoundingBox ShadowMapping::getSceneBoundingBox() const {
 }
 
 std::vector<float> ShadowMapping::getCascadeDistances() const {
-    return std::vector<float>{m_camera->znear,        m_camera->zfar / 50.0f, m_camera->zfar / 25.0f,
-                              m_camera->zfar / 10.0f, m_camera->zfar / 2.0f,  m_camera->zfar};
+    return std::vector<float>{m_camera->znear,        m_camera->zfar / 50.0f,
+                              m_camera->zfar / 25.0f, m_camera->zfar / 10.0f,
+                              m_camera->zfar / 2.0f,  m_camera->zfar};
 }

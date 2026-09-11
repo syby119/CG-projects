@@ -232,7 +232,8 @@ void RayTracing::initShaders() {
     // TODO: modify raytracing.frag code to achieve raytracing
     m_raytracingShader.reset(new GLSLProgram);
     m_raytracingShader->attachVertexShaderFromFile(getAssetFullPath(raytracingVsRelPath), version);
-    m_raytracingShader->attachFragmentShaderFromFile(getAssetFullPath(raytracingFsRelPath), version);
+    m_raytracingShader->attachFragmentShaderFromFile(
+        getAssetFullPath(raytracingFsRelPath), version);
     m_raytracingShader->link();
 
     m_drawScreenShader.reset(new GLSLProgram);

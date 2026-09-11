@@ -4,14 +4,14 @@
 #include <unordered_map>
 
 #ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4819)
+    #pragma warning(push)
+    #pragma warning(disable : 4819)
 #endif
 
 #include <tiny_obj_loader.h>
 
 #ifdef _MSC_VER
-#pragma warning(pop)
+    #pragma warning(pop)
 #endif
 
 #include "model.h"
@@ -107,8 +107,8 @@ Model::Model(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& i
 
 Model::Model(Model&& rhs) noexcept
     : m_vertices(std::move(rhs.m_vertices)), m_indices(std::move(rhs.m_indices)),
-      m_boundingBox(std::move(rhs.m_boundingBox)), m_vao(rhs.m_vao), m_vbo(rhs.m_vbo), m_ebo(rhs.m_ebo),
-      m_boxVao(rhs.m_boxVao), m_boxVbo(rhs.m_boxVbo), m_boxEbo(rhs.m_boxEbo) {
+      m_boundingBox(std::move(rhs.m_boundingBox)), m_vao(rhs.m_vao), m_vbo(rhs.m_vbo),
+      m_ebo(rhs.m_ebo), m_boxVao(rhs.m_boxVao), m_boxVbo(rhs.m_boxVbo), m_boxEbo(rhs.m_boxEbo) {
     m_vao = 0;
     m_vbo = 0;
     m_ebo = 0;

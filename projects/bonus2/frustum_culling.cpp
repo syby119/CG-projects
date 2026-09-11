@@ -296,7 +296,8 @@ void FrustumCulling::renderFrame() {
         ImGui::NewLine();
 
         float fraction = 1.0f * m_drawAsternoidCount / m_amount;
-        std::string fracInfo = std::to_string(m_drawAsternoidCount) + "/" + std::to_string(m_amount);
+        std::string fracInfo =
+            std::to_string(m_drawAsternoidCount) + "/" + std::to_string(m_amount);
         ImGui::Text("visible fraction");
         ImGui::ProgressBar(fraction, ImVec2(0.0f, 0.0f), fracInfo.c_str());
         ImGui::NewLine();

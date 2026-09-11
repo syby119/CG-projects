@@ -3,7 +3,8 @@
 
 CameraController::CameraController(
     PerspectiveCamera& camera, const glm::vec3& target, int screenWidth, int screenHeight)
-    : m_camera(camera), m_screenWidth(screenWidth), m_screenHeight(screenHeight), m_target(target) {}
+    : m_camera(camera), m_screenWidth(screenWidth), m_screenHeight(screenHeight), m_target(target) {
+}
 
 void CameraController::update(const Input& input, float deltaTime) {
     auto& mouse = input.mouse;
@@ -75,7 +76,8 @@ void CameraController::update(const Input& input, float deltaTime) {
 }
 
 glm::vec2 CameraController::getMouseOnScreen(float pageX, float pageY) {
-    return glm::vec2((pageX - m_screenLeft) / m_screenWidth, (pageY - m_screenTop) / m_screenHeight);
+    return glm::vec2(
+        (pageX - m_screenLeft) / m_screenWidth, (pageY - m_screenTop) / m_screenHeight);
 }
 
 glm::vec2 CameraController::getMouseOnCircle(float pageX, float pageY) {
@@ -85,7 +87,8 @@ glm::vec2 CameraController::getMouseOnCircle(float pageX, float pageY) {
 }
 
 void CameraController::rotateCamera() {
-    glm::vec3 moveDirection = glm::vec3(m_moveCurr.x - m_movePrev.x, m_moveCurr.y - m_movePrev.y, 0);
+    glm::vec3 moveDirection =
+        glm::vec3(m_moveCurr.x - m_movePrev.x, m_moveCurr.y - m_movePrev.y, 0);
     float angle = glm::length(moveDirection);
 
     if (angle > 0) {
@@ -139,8 +142,8 @@ void CameraController::rotateCamera1() {
     phi += (m_moveCurr.y - m_movePrev.y) * m_rotateSpeed;
     phi = std::min(maxPolar, std::max(minPolar, phi));
     m_eye = radius
-           * glm::vec3(
-               std::sin(theta) * std::sin(phi), std::cos(phi), std::cos(theta) * std::sin(phi));
+            * glm::vec3(
+                std::sin(theta) * std::sin(phi), std::cos(phi), std::cos(theta) * std::sin(phi));
     m_eye = invQ * m_eye;
 
     // correct lookAt

@@ -56,9 +56,11 @@ endif()
 add_subdirectory(./external/glm)
 set_target_properties(glm PROPERTIES FOLDER "lib/glm")
 
+# This project uses tinyobjloader's C++ API only.
+set(TINYOBJLOADER_BUILD_C_LIBRARY OFF CACHE BOOL
+    "Build the pure-C11 loader (tiny_obj_c)" FORCE)
 add_subdirectory(./external/tinyobjloader)
 set_target_properties(tinyobjloader PROPERTIES FOLDER "lib")
-set_target_properties(tinyobjloader_c PROPERTIES FOLDER "lib")
 if (MSVC)
     target_compile_options(tinyobjloader PUBLIC /utf-8)
 endif()

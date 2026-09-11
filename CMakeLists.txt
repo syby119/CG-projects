@@ -80,6 +80,27 @@ set_target_properties(tinygltf_v3 PROPERTIES FOLDER "lib")
 
 # add projects
 set(PROJECTS_DIR ${CMAKE_SOURCE_DIR}/projects)
+
+find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
+if (CLANG_FORMAT_EXECUTABLE)
+    file(GLOB_RECURSE PROJECTS_SOURCE_FILES CONFIGURE_DEPENDS
+         "${PROJECTS_DIR}/*.c"
+         "${PROJECTS_DIR}/*.cc"
+         "${PROJECTS_DIR}/*.cpp"
+         "${PROJECTS_DIR}/*.cxx"
+         "${PROJECTS_DIR}/*.h"
+         "${PROJECTS_DIR}/*.hh"
+         "${PROJECTS_DIR}/*.hpp"
+         "${PROJECTS_DIR}/*.hxx")
+
+    add_custom_target(format-projects
+        COMMAND "${CLANG_FORMAT_EXECUTABLE}" -i -style=file ${PROJECTS_SOURCE_FILES}
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        COMMENT "Formatting project source files"
+        VERBATIM)
+    set_target_properties(format-projects PROPERTIES FOLDER "utility")
+endif()
+
 file(GLOB targets LIST_DIRECTORIES true
      RELATIVE ${PROJECTS_DIR} "${PROJECTS_DIR}/*")
 

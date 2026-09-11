@@ -35,5 +35,5 @@ public:
     const std::vector<std::string>& getUris() const;
 
 private:
-    std::vector<std::string> _uris;
+    std::vector<std::string> m_uris;
 };

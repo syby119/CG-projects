@@ -18,11 +18,11 @@ public:
     void draw() const;
 
 private:
-    glm::vec2 _position;
-    float _rotation;
-    float _radius;
+    glm::vec2 m_position;
+    float m_rotation;
+    float m_radius;
 
-    GLuint _vao = 0;
-    GLuint _vbo = 0;
-    std::vector<glm::vec2> _vertices;
+    GLuint m_vao = 0;
+    GLuint m_vbo = 0;
+    std::vector<glm::vec2> m_vertices;
 };

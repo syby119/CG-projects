@@ -41,45 +41,45 @@ public:
     ~FrustumCulling();
 
 private:
-    std::unique_ptr<Model> _planet;
+    std::unique_ptr<Model> m_planet;
 
-    std::unique_ptr<Model> _asternoid;
-    std::vector<glm::mat4> _modelMatrices;
-    int _amount = 10000;
-    int _drawAsternoidCount = 0;
+    std::unique_ptr<Model> m_asternoid;
+    std::vector<glm::mat4> m_modelMatrices;
+    int m_amount = 10000;
+    int m_drawAsternoidCount = 0;
 
-    std::unique_ptr<InstancedModel> _instancedAsternoids;
+    std::unique_ptr<InstancedModel> m_instancedAsternoids;
 
-    std::unique_ptr<LineMaterial> _lineMaterial;
-    std::unique_ptr<LambertMaterial> _planetMaterial;
-    std::unique_ptr<LambertMaterial> _asternoidMaterial;
+    std::unique_ptr<LineMaterial> m_lineMaterial;
+    std::unique_ptr<LambertMaterial> m_planetMaterial;
+    std::unique_ptr<LambertMaterial> m_asternoidMaterial;
 
-    std::unique_ptr<GLSLProgram> _lineShader;
-    std::unique_ptr<GLSLProgram> _lineInstancedShader;
-    std::unique_ptr<GLSLProgram> _lambertShader;
-    std::unique_ptr<GLSLProgram> _lambertInstancedShader;
+    std::unique_ptr<GLSLProgram> m_lineShader;
+    std::unique_ptr<GLSLProgram> m_lineInstancedShader;
+    std::unique_ptr<GLSLProgram> m_lambertShader;
+    std::unique_ptr<GLSLProgram> m_lambertInstancedShader;
 
-    std::unique_ptr<PerspectiveCamera> _camera;
-    const float _cameraMoveSpeed = 10.0f;
-    const float _cameraRotateSpeed = 0.05f;
+    std::unique_ptr<PerspectiveCamera> m_camera;
+    const float m_cameraMoveSpeed = 10.0f;
+    const float m_cameraRotateSpeed = 0.05f;
 
-    std::unique_ptr<DirectionalLight> _light;
+    std::unique_ptr<DirectionalLight> m_light;
 
-    std::vector<int> _visibles;
+    std::vector<int> m_visibles;
 
-    bool _showBoundingBox = false;
+    bool m_showBoundingBox = false;
 
-    enum Method _method = Method::CPU;
+    enum Method m_method = Method::CPU;
 
     // GPU frustum resources
-    GLenum _transformFeedback = {};
-    GLenum _transformFeedbackResultBuffer = {};
-    std::unique_ptr<GLSLProgram> _frustumCullingShader;
+    GLenum m_transformFeedback = {};
+    GLenum m_transformFeedbackResultBuffer = {};
+    std::unique_ptr<GLSLProgram> m_frustumCullingShader;
 
     // indirect draw resources
-    bool _indirectDrawEnabled = false;
-    std::vector<DrawElementsIndirectCommand> _indirectDrawCmds;
-    GLuint _indirectBuffer = {};
+    bool m_indirectDrawEnabled = false;
+    std::vector<DrawElementsIndirectCommand> m_indirectDrawCmds;
+    GLuint m_indirectBuffer = {};
 
     void initModelMatrices();
 

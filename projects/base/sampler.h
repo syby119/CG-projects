@@ -5,38 +5,38 @@
 class Sampler {
 public:
     Sampler() {
-        glGenSamplers(1, &_handle);
+        glGenSamplers(1, &m_handle);
     }
 
     Sampler(Sampler&& rhs) noexcept {
-        rhs._handle = _handle;
-        _handle = 0;
+        rhs.m_handle = m_handle;
+        m_handle = 0;
     }
 
     ~Sampler() {
-        if (_handle != 0) {
-            glDeleteSamplers(1, &_handle);
+        if (m_handle != 0) {
+            glDeleteSamplers(1, &m_handle);
         }
     }
 
     void setInt(GLenum pname, int param) {
-        glSamplerParameteri(_handle, pname, param);
+        glSamplerParameteri(m_handle, pname, param);
     }
 
     void setFloat(GLenum pname, float param) {
-        glSamplerParameterf(_handle, pname, param);
+        glSamplerParameterf(m_handle, pname, param);
     }
 
     void setIntVec(GLenum pname, int* param) {
-        glSamplerParameteriv(_handle, pname, param);
+        glSamplerParameteriv(m_handle, pname, param);
     }
 
     void setFloatVec(GLenum pname, float* param) {
-        glSamplerParameterfv(_handle, pname, param);
+        glSamplerParameterfv(m_handle, pname, param);
     }
 
     void bind(GLuint texUnit) const {
-        glBindSampler(texUnit, _handle);
+        glBindSampler(texUnit, m_handle);
     }
 
     void unbind(GLuint texUnit) const {
@@ -44,5 +44,5 @@ public:
     }
 
 private:
-    GLuint _handle = 0;
+    GLuint m_handle = 0;
 };

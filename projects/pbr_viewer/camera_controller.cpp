@@ -3,7 +3,7 @@
 
 CameraController::CameraController(
     PerspectiveCamera& camera, const glm::vec3& target, int screenWidth, int screenHeight)
-    : _camera(camera), _screenWidth(screenWidth), _screenHeight(screenHeight), _target(target) {}
+    : m_camera(camera), m_screenWidth(screenWidth), m_screenHeight(screenHeight), m_target(target) {}
 
 void CameraController::update(const Input& input, float deltaTime) {
     auto& mouse = input.mouse;
@@ -15,30 +15,30 @@ void CameraController::update(const Input& input, float deltaTime) {
         (mouse.move.xNow - mouse.move.xOld != 0) || (mouse.move.yNow - mouse.move.yOld != 0);
 
     if (!mouseDown) {
-        _state = STATE::NONE;
+        m_state = STATE::NONE;
         return;
     } else {
-        if (_state == STATE::NONE) {
+        if (m_state == STATE::NONE) {
             if (mouse.press.left) {
-                _state = STATE::ROTATE;
+                m_state = STATE::ROTATE;
             } else if (mouse.press.middle) {
-                _state = STATE::ZOOM;
+                m_state = STATE::ZOOM;
             } else if (mouse.press.right) {
-                _state = STATE::PAN;
+                m_state = STATE::PAN;
             }
 
-            switch (_state) {
+            switch (m_state) {
             case CameraController::STATE::ROTATE:
-                _moveCurr = getMouseOnCircle(pageX, pageY);
-                _movePrev = _moveCurr;
+                m_moveCurr = getMouseOnCircle(pageX, pageY);
+                m_movePrev = m_moveCurr;
                 break;
             case CameraController::STATE::ZOOM:
-                _zoomStart = getMouseOnScreen(pageX, pageY);
-                _zoomEnd = _zoomStart;
+                m_zoomStart = getMouseOnScreen(pageX, pageY);
+                m_zoomEnd = m_zoomStart;
                 break;
             case CameraController::STATE::PAN:
-                _panStart = getMouseOnScreen(pageX, pageY);
-                _panEnd = _panStart;
+                m_panStart = getMouseOnScreen(pageX, pageY);
+                m_panEnd = m_panStart;
                 break;
             default: break;
             }
@@ -46,24 +46,24 @@ void CameraController::update(const Input& input, float deltaTime) {
     }
 
     if (mouseMove) {
-        switch (_state) {
+        switch (m_state) {
         case CameraController::STATE::ROTATE:
-            _movePrev = _moveCurr;
-            _moveCurr = getMouseOnCircle(pageX, pageY);
+            m_movePrev = m_moveCurr;
+            m_moveCurr = getMouseOnCircle(pageX, pageY);
             break;
-        case CameraController::STATE::ZOOM: _zoomEnd = getMouseOnScreen(pageX, pageY); break;
-        case CameraController::STATE::PAN: _panEnd = getMouseOnScreen(pageX, pageY); break;
+        case CameraController::STATE::ZOOM: m_zoomEnd = getMouseOnScreen(pageX, pageY); break;
+        case CameraController::STATE::PAN: m_panEnd = getMouseOnScreen(pageX, pageY); break;
         default: break;
         }
     }
 
-    _eye = _camera.transform.position - _target;
+    m_eye = m_camera.transform.position - m_target;
     if (mouse.press.left) {
         rotateCamera1();
     }
 
     if (mouse.press.middle) {
-        _zoomStart.y += input.mouse.scroll.yOffset * 0.025f;
+        m_zoomStart.y += input.mouse.scroll.yOffset * 0.025f;
         zoomCamera();
     }
 
@@ -71,127 +71,127 @@ void CameraController::update(const Input& input, float deltaTime) {
         panCamera();
     }
 
-    _camera.transform.position = _target + _eye;
+    m_camera.transform.position = m_target + m_eye;
 }
 
 glm::vec2 CameraController::getMouseOnScreen(float pageX, float pageY) {
-    return glm::vec2((pageX - _screenLeft) / _screenWidth, (pageY - _screenTop) / _screenHeight);
+    return glm::vec2((pageX - m_screenLeft) / m_screenWidth, (pageY - m_screenTop) / m_screenHeight);
 }
 
 glm::vec2 CameraController::getMouseOnCircle(float pageX, float pageY) {
     return glm::vec2(
-        (2.0f * (pageX - _screenLeft) - _screenWidth) / _screenWidth,
-        (_screenHeight + 2.0f * (_screenTop - pageY)) / _screenWidth);
+        (2.0f * (pageX - m_screenLeft) - m_screenWidth) / m_screenWidth,
+        (m_screenHeight + 2.0f * (m_screenTop - pageY)) / m_screenWidth);
 }
 
 void CameraController::rotateCamera() {
-    glm::vec3 moveDirection = glm::vec3(_moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0);
+    glm::vec3 moveDirection = glm::vec3(m_moveCurr.x - m_movePrev.x, m_moveCurr.y - m_movePrev.y, 0);
     float angle = glm::length(moveDirection);
 
     if (angle > 0) {
-        _eye = _camera.transform.position - _target;
-        glm::vec3 eyeDirection = glm::normalize(_eye);
-        glm::vec3 objectUpDirection = glm::normalize(_camera.transform.getUp());
+        m_eye = m_camera.transform.position - m_target;
+        glm::vec3 eyeDirection = glm::normalize(m_eye);
+        glm::vec3 objectUpDirection = glm::normalize(m_camera.transform.getUp());
         glm::vec3 objectSidewaysDirection =
             glm::normalize(glm::cross(objectUpDirection, eyeDirection));
 
-        objectUpDirection *= _moveCurr.y - _movePrev.y;
-        objectSidewaysDirection *= _moveCurr.x - _movePrev.x;
+        objectUpDirection *= m_moveCurr.y - m_movePrev.y;
+        objectSidewaysDirection *= m_moveCurr.x - m_movePrev.x;
 
         moveDirection = objectUpDirection + objectSidewaysDirection;
         glm::vec3 axis = glm::normalize(glm::cross(moveDirection, eyeDirection));
-        angle *= _rotateSpeed;
+        angle *= m_rotateSpeed;
         glm::quat quaternion = createQuatFromAngleAxis(angle, axis);
-        _camera.transform.rotation = quaternion * _camera.transform.rotation;
+        m_camera.transform.rotation = quaternion * m_camera.transform.rotation;
 
-        _eye = quaternion * _eye;
-        _lastAxis = axis;
-        _lastAngle = angle;
-    } else if (!_staticMoving && (_lastAngle > 0)) {
-        _lastAngle *= std::sqrt(1.0f - _dynamicDampingFactor);
-        _eye = _camera.transform.position - _target;
-        glm::quat quaternion = createQuatFromAngleAxis(_lastAngle, _lastAxis);
-        _camera.transform.rotation = quaternion * _camera.transform.rotation;
-        _eye = quaternion * _eye;
+        m_eye = quaternion * m_eye;
+        m_lastAxis = axis;
+        m_lastAngle = angle;
+    } else if (!m_staticMoving && (m_lastAngle > 0)) {
+        m_lastAngle *= std::sqrt(1.0f - m_dynamicDampingFactor);
+        m_eye = m_camera.transform.position - m_target;
+        glm::quat quaternion = createQuatFromAngleAxis(m_lastAngle, m_lastAxis);
+        m_camera.transform.rotation = quaternion * m_camera.transform.rotation;
+        m_eye = quaternion * m_eye;
     }
-    _movePrev = _moveCurr;
+    m_movePrev = m_moveCurr;
 }
 
 void CameraController::rotateCamera1() {
     constexpr float minPolar = 1e-2f;
     constexpr float maxPolar = glm::pi<float>() - 1e-2f;
 
-    glm::quat q = glm::quat(_camera.transform.getUp(), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::quat q = glm::quat(m_camera.transform.getUp(), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::quat invQ = glm::inverse(q);
 
-    _eye = _camera.transform.position - _target;
-    _eye = q * _eye;
+    m_eye = m_camera.transform.position - m_target;
+    m_eye = q * m_eye;
 
-    float radius = glm::length(_eye);
-    glm::vec3 normEye = glm::normalize(_eye);
+    float radius = glm::length(m_eye);
+    glm::vec3 normEye = glm::normalize(m_eye);
     float phi = std::acos(normEye.y);
     float theta = std::atan2(normEye.x, normEye.z);
     if (theta < 0) {
         theta += 2 * glm::pi<float>();
     }
-    theta += (_moveCurr.x - _movePrev.x) * _rotateSpeed;
-    phi += (_moveCurr.y - _movePrev.y) * _rotateSpeed;
+    theta += (m_moveCurr.x - m_movePrev.x) * m_rotateSpeed;
+    phi += (m_moveCurr.y - m_movePrev.y) * m_rotateSpeed;
     phi = std::min(maxPolar, std::max(minPolar, phi));
-    _eye = radius
+    m_eye = radius
            * glm::vec3(
                std::sin(theta) * std::sin(phi), std::cos(phi), std::cos(theta) * std::sin(phi));
-    _eye = invQ * _eye;
+    m_eye = invQ * m_eye;
 
     // correct lookAt
-    glm::vec3 in = glm::normalize(_eye);
+    glm::vec3 in = glm::normalize(m_eye);
     glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), in));
     glm::vec3 newUp = glm::normalize(glm::cross(in, right));
-    _camera.transform.rotation = glm::mat3(right, newUp, in);
-    _movePrev = _moveCurr;
+    m_camera.transform.rotation = glm::mat3(right, newUp, in);
+    m_movePrev = m_moveCurr;
 }
 
 void CameraController::zoomCamera() {
-    float factor = 1.0f + (_zoomEnd.y - _zoomStart.y) * _zoomSpeed;
+    float factor = 1.0f + (m_zoomEnd.y - m_zoomStart.y) * m_zoomSpeed;
     if (factor != 1.0f && factor > 0.0f) {
         // Perspective Camera
-        _eye *= factor;
+        m_eye *= factor;
     }
 
-    if (_staticMoving) {
-        _zoomStart = _zoomEnd;
+    if (m_staticMoving) {
+        m_zoomStart = m_zoomEnd;
     } else {
-        _zoomStart.y += (_zoomEnd.y - _zoomStart.y) * _dynamicDampingFactor;
+        m_zoomStart.y += (m_zoomEnd.y - m_zoomStart.y) * m_dynamicDampingFactor;
     }
 }
 
 void CameraController::panCamera() {
-    glm::vec2 mouseChange = _panEnd - _panStart;
+    glm::vec2 mouseChange = m_panEnd - m_panStart;
     if (glm::length(mouseChange) > 0) {
-        mouseChange *= glm::length(_eye) * _panSpeed;
-        glm::vec3 cameraUp = glm::normalize(_camera.transform.getUp());
+        mouseChange *= glm::length(m_eye) * m_panSpeed;
+        glm::vec3 cameraUp = glm::normalize(m_camera.transform.getUp());
         glm::vec3 pan =
-            mouseChange.x * glm::normalize(glm::cross(_eye, cameraUp)) + mouseChange.y * cameraUp;
+            mouseChange.x * glm::normalize(glm::cross(m_eye, cameraUp)) + mouseChange.y * cameraUp;
 
-        _camera.transform.position += pan;
-        _target += pan;
-        if (_staticMoving) {
-            _panStart = _panEnd;
+        m_camera.transform.position += pan;
+        m_target += pan;
+        if (m_staticMoving) {
+            m_panStart = m_panEnd;
         } else {
-            _panStart += _dynamicDampingFactor * (_panEnd - _panStart);
+            m_panStart += m_dynamicDampingFactor * (m_panEnd - m_panStart);
         }
     }
 }
 
 void CameraController::checkDistance() {
-    float eyeLength = glm::length(_eye);
-    if (eyeLength > _maxDistance) {
-        _camera.transform.position = _target + _maxDistance * _eye;
+    float eyeLength = glm::length(m_eye);
+    if (eyeLength > m_maxDistance) {
+        m_camera.transform.position = m_target + m_maxDistance * m_eye;
     }
 
-    if (eyeLength < _minDistance) {
-        _camera.transform.position = _target + _minDistance * _eye;
+    if (eyeLength < m_minDistance) {
+        m_camera.transform.position = m_target + m_minDistance * m_eye;
     }
 
-    _zoomStart = _zoomEnd;
+    m_zoomStart = m_zoomEnd;
 }

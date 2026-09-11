@@ -8,20 +8,20 @@ const std::string modelRelPath = "obj/bunny.obj";
 
 ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) {
     // init model
-    _bunny.reset(new Model(getAssetFullPath(modelRelPath)));
+    m_bunny.reset(new Model(getAssetFullPath(modelRelPath)));
 
     // init materials
-    _ambientMaterial.reset(new AmbientMaterial);
-    _ambientMaterial->ka = glm::vec3(0.03f, 0.03f, 0.03f);
+    m_ambientMaterial.reset(new AmbientMaterial);
+    m_ambientMaterial->ka = glm::vec3(0.03f, 0.03f, 0.03f);
 
-    _lambertMaterial.reset(new LambertMaterial);
-    _lambertMaterial->kd = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_lambertMaterial.reset(new LambertMaterial);
+    m_lambertMaterial->kd = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    _phongMaterial.reset(new PhongMaterial);
-    _phongMaterial->ka = glm::vec3(0.03f, 0.03f, 0.03f);
-    _phongMaterial->kd = glm::vec3(1.0f, 1.0f, 1.0f);
-    _phongMaterial->ks = glm::vec3(1.0f, 1.0f, 1.0f);
-    _phongMaterial->ns = 10.0f;
+    m_phongMaterial.reset(new PhongMaterial);
+    m_phongMaterial->ka = glm::vec3(0.03f, 0.03f, 0.03f);
+    m_phongMaterial->kd = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_phongMaterial->ks = glm::vec3(1.0f, 1.0f, 1.0f);
+    m_phongMaterial->ns = 10.0f;
 
     // init shaders
     initAmbientShader();
@@ -29,23 +29,23 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
     initPhongShader();
 
     // init lights
-    _ambientLight.reset(new AmbientLight);
+    m_ambientLight.reset(new AmbientLight);
 
-    _directionalLight.reset(new DirectionalLight);
-    _directionalLight->intensity = 0.5f;
-    _directionalLight->transform.rotation =
+    m_directionalLight.reset(new DirectionalLight);
+    m_directionalLight->intensity = 0.5f;
+    m_directionalLight->transform.rotation =
         glm::angleAxis(glm::radians(45.0f), glm::normalize(glm::vec3(-1.0f)));
 
-    _spotLight.reset(new SpotLight);
-    _spotLight->intensity = 0.5f;
-    _spotLight->angle = glm::radians(90.0f);
-    _spotLight->transform.position = glm::vec3(0.0f, 0.0f, 2.5f);
-    _spotLight->transform.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_spotLight.reset(new SpotLight);
+    m_spotLight->intensity = 0.5f;
+    m_spotLight->angle = glm::radians(90.0f);
+    m_spotLight->transform.position = glm::vec3(0.0f, 0.0f, 2.5f);
+    m_spotLight->transform.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
     // init camera
-    _camera.reset(new PerspectiveCamera(
-        glm::radians(50.0f), 1.0f * _windowWidth / _windowHeight, 0.1f, 1000.0f));
-    _camera->transform.position.z = 10.0f;
+    m_camera.reset(new PerspectiveCamera(
+        glm::radians(50.0f), 1.0f * m_windowWidth / m_windowHeight, 0.1f, 1000.0f));
+    m_camera->transform.position.z = 10.0f;
 
     // init imGUI
     IMGUI_CHECKVERSION();
@@ -54,7 +54,7 @@ ShadingTutorial::ShadingTutorial(const Options& options) : Application(options) 
     (void)io;
 
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(_window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
     ImGui_ImplOpenGL3_Init();
 }
 
@@ -101,10 +101,10 @@ void ShadingTutorial::initAmbientShader() {
         "    color = vec4(ambient, 1.0f);\n"
         "}\n";
 
-    _ambientShader.reset(new GLSLProgram);
-    _ambientShader->attachVertexShader(vsCode);
-    _ambientShader->attachFragmentShader(fsCode);
-    _ambientShader->link();
+    m_ambientShader.reset(new GLSLProgram);
+    m_ambientShader->attachVertexShader(vsCode);
+    m_ambientShader->attachFragmentShader(fsCode);
+    m_ambientShader->link();
 }
 
 void ShadingTutorial::initLambertShader() {
@@ -188,10 +188,10 @@ void ShadingTutorial::initLambertShader() {
         "    color = vec4(diffuse, 1.0f);\n"
         "}\n";
 
-    _lambertShader.reset(new GLSLProgram);
-    _lambertShader->attachVertexShader(vsCode);
-    _lambertShader->attachFragmentShader(fsCode);
-    _lambertShader->link();
+    m_lambertShader.reset(new GLSLProgram);
+    m_lambertShader->attachVertexShader(vsCode);
+    m_lambertShader->attachFragmentShader(fsCode);
+    m_lambertShader->link();
 }
 
 void ShadingTutorial::initPhongShader() {
@@ -228,15 +228,15 @@ void ShadingTutorial::initPhongShader() {
         "}\n";
     // ------------------------------------------------------------
 
-    _phongShader.reset(new GLSLProgram);
-    _phongShader->attachVertexShader(vsCode);
-    _phongShader->attachFragmentShader(fsCode);
-    _phongShader->link();
+    m_phongShader.reset(new GLSLProgram);
+    m_phongShader->attachVertexShader(vsCode);
+    m_phongShader->attachFragmentShader(fsCode);
+    m_phongShader->link();
 }
 
 void ShadingTutorial::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 }
@@ -244,75 +244,75 @@ void ShadingTutorial::handleInput() {
 void ShadingTutorial::renderFrame() {
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    switch (_renderMode) {
+    switch (m_renderMode) {
     case RenderMode::Ambient:
-        _ambientShader->use();
+        m_ambientShader->use();
         // 1. transfer mvp matrix to the shader
-        _ambientShader->setUniformMat4("projection", _camera->getProjectionMatrix());
-        _ambientShader->setUniformMat4("view", _camera->getViewMatrix());
-        _ambientShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
+        m_ambientShader->setUniformMat4("projection", m_camera->getProjectionMatrix());
+        m_ambientShader->setUniformMat4("view", m_camera->getViewMatrix());
+        m_ambientShader->setUniformMat4("model", m_bunny->transform.getLocalMatrix());
         // 2. transfer material attributes to the shader
-        _ambientShader->setUniformVec3("material.ka", _ambientMaterial->ka);
+        m_ambientShader->setUniformVec3("material.ka", m_ambientMaterial->ka);
         // 3. transfer light attributes to the shader
-        _ambientShader->setUniformVec3("ambientLight.color", _ambientLight->color);
-        _ambientShader->setUniformFloat("ambientLight.intensity", _ambientLight->intensity);
+        m_ambientShader->setUniformVec3("ambientLight.color", m_ambientLight->color);
+        m_ambientShader->setUniformFloat("ambientLight.intensity", m_ambientLight->intensity);
         break;
     case RenderMode::Lambert:
-        _lambertShader->use();
+        m_lambertShader->use();
         // 1. transfer mvp matrix to the shader
-        _lambertShader->setUniformMat4("projection", _camera->getProjectionMatrix());
-        _lambertShader->setUniformMat4("view", _camera->getViewMatrix());
-        _lambertShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
+        m_lambertShader->setUniformMat4("projection", m_camera->getProjectionMatrix());
+        m_lambertShader->setUniformMat4("view", m_camera->getViewMatrix());
+        m_lambertShader->setUniformMat4("model", m_bunny->transform.getLocalMatrix());
         // 2. transfer material attributes to the shader
-        _lambertShader->setUniformVec3("material.kd", _lambertMaterial->kd);
+        m_lambertShader->setUniformVec3("material.kd", m_lambertMaterial->kd);
         // 3. transfer light attributes to the shader
-        _lambertShader->setUniformVec3("spotLight.position", _spotLight->transform.position);
-        _lambertShader->setUniformVec3("spotLight.direction", _spotLight->transform.getFront());
-        _lambertShader->setUniformFloat("spotLight.intensity", _spotLight->intensity);
-        _lambertShader->setUniformVec3("spotLight.color", _spotLight->color);
-        _lambertShader->setUniformFloat("spotLight.angle", _spotLight->angle);
-        _lambertShader->setUniformFloat("spotLight.kc", _spotLight->kc);
-        _lambertShader->setUniformFloat("spotLight.kl", _spotLight->kl);
-        _lambertShader->setUniformFloat("spotLight.kq", _spotLight->kq);
-        _lambertShader->setUniformVec3(
-            "directionalLight.direction", _directionalLight->transform.getFront());
-        _lambertShader->setUniformFloat("directionalLight.intensity", _directionalLight->intensity);
-        _lambertShader->setUniformVec3("directionalLight.color", _directionalLight->color);
+        m_lambertShader->setUniformVec3("spotLight.position", m_spotLight->transform.position);
+        m_lambertShader->setUniformVec3("spotLight.direction", m_spotLight->transform.getFront());
+        m_lambertShader->setUniformFloat("spotLight.intensity", m_spotLight->intensity);
+        m_lambertShader->setUniformVec3("spotLight.color", m_spotLight->color);
+        m_lambertShader->setUniformFloat("spotLight.angle", m_spotLight->angle);
+        m_lambertShader->setUniformFloat("spotLight.kc", m_spotLight->kc);
+        m_lambertShader->setUniformFloat("spotLight.kl", m_spotLight->kl);
+        m_lambertShader->setUniformFloat("spotLight.kq", m_spotLight->kq);
+        m_lambertShader->setUniformVec3(
+            "directionalLight.direction", m_directionalLight->transform.getFront());
+        m_lambertShader->setUniformFloat("directionalLight.intensity", m_directionalLight->intensity);
+        m_lambertShader->setUniformVec3("directionalLight.color", m_directionalLight->color);
         break;
     case RenderMode::Phong:
-        _phongShader->use();
+        m_phongShader->use();
         // 1. transfer the mvp matrices to the shader
-        _phongShader->setUniformMat4("projection", _camera->getProjectionMatrix());
-        _phongShader->setUniformMat4("view", _camera->getViewMatrix());
-        _phongShader->setUniformMat4("model", _bunny->transform.getLocalMatrix());
+        m_phongShader->setUniformMat4("projection", m_camera->getProjectionMatrix());
+        m_phongShader->setUniformMat4("view", m_camera->getViewMatrix());
+        m_phongShader->setUniformMat4("model", m_bunny->transform.getLocalMatrix());
 
         // 2. TODO: transfer the camera position to the shader
         // write your code here
         // ----------------------------------------------------------------
-        // _phongShader->set...
+        // m_phongShader->set...
         // ----------------------------------------------------------------
 
         // 3. TODO: transfer the material attributes to the shader
         // write your code here
         // -----------------------------------------------------------
-        // _phongShader->set...
+        // m_phongShader->set...
         // -----------------------------------------------------------
 
         // 4. TODO: transfer the light attributes to the shader
         // write your code here
         // -----------------------------------------------------------
-        // _phongShader->set...
+        // m_phongShader->set...
         // -----------------------------------------------------------
 
         break;
     }
 
     // draw the bunny
-    _bunny->draw();
+    m_bunny->draw();
 
     // draw ui elements
     ImGui_ImplOpenGL3_NewFrame();
@@ -327,39 +327,39 @@ void ShadingTutorial::renderFrame() {
         ImGui::Text("Render Mode");
         ImGui::Separator();
 
-        ImGui::RadioButton("ambient", (int*)&_renderMode, (int)(RenderMode::Ambient));
-        ImGui::ColorEdit3("ka##1", (float*)&_ambientMaterial->ka);
+        ImGui::RadioButton("ambient", (int*)&m_renderMode, (int)(RenderMode::Ambient));
+        ImGui::ColorEdit3("ka##1", (float*)&m_ambientMaterial->ka);
         ImGui::NewLine();
 
-        ImGui::RadioButton("lambert", (int*)&_renderMode, (int)(RenderMode::Lambert));
-        ImGui::ColorEdit3("kd##2", (float*)&_lambertMaterial->kd);
+        ImGui::RadioButton("lambert", (int*)&m_renderMode, (int)(RenderMode::Lambert));
+        ImGui::ColorEdit3("kd##2", (float*)&m_lambertMaterial->kd);
         ImGui::NewLine();
 
-        ImGui::RadioButton("phong", (int*)&_renderMode, (int)(RenderMode::Phong));
-        ImGui::ColorEdit3("ka##3", (float*)&_phongMaterial->ka);
-        ImGui::ColorEdit3("kd##3", (float*)&_phongMaterial->kd);
-        ImGui::ColorEdit3("ks##3", (float*)&_phongMaterial->ks);
-        ImGui::SliderFloat("ns##3", &_phongMaterial->ns, 1.0f, 50.0f);
+        ImGui::RadioButton("phong", (int*)&m_renderMode, (int)(RenderMode::Phong));
+        ImGui::ColorEdit3("ka##3", (float*)&m_phongMaterial->ka);
+        ImGui::ColorEdit3("kd##3", (float*)&m_phongMaterial->kd);
+        ImGui::ColorEdit3("ks##3", (float*)&m_phongMaterial->ks);
+        ImGui::SliderFloat("ns##3", &m_phongMaterial->ns, 1.0f, 50.0f);
         ImGui::NewLine();
 
         ImGui::Text("ambient light");
         ImGui::Separator();
-        ImGui::SliderFloat("intensity##1", &_ambientLight->intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("color##1", (float*)&_ambientLight->color);
+        ImGui::SliderFloat("intensity##1", &m_ambientLight->intensity, 0.0f, 1.0f);
+        ImGui::ColorEdit3("color##1", (float*)&m_ambientLight->color);
         ImGui::NewLine();
 
         ImGui::Text("directional light");
         ImGui::Separator();
-        ImGui::SliderFloat("intensity##2", &_directionalLight->intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("color##2", (float*)&_directionalLight->color);
+        ImGui::SliderFloat("intensity##2", &m_directionalLight->intensity, 0.0f, 1.0f);
+        ImGui::ColorEdit3("color##2", (float*)&m_directionalLight->color);
         ImGui::NewLine();
 
         ImGui::Text("spot light");
         ImGui::Separator();
-        ImGui::SliderFloat("intensity##3", &_spotLight->intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("color##3", (float*)&_spotLight->color);
+        ImGui::SliderFloat("intensity##3", &m_spotLight->intensity, 0.0f, 1.0f);
+        ImGui::ColorEdit3("color##3", (float*)&m_spotLight->color);
         ImGui::SliderFloat(
-            "angle##3", (float*)&_spotLight->angle, 0.0f, glm::radians(180.0f), "%f rad");
+            "angle##3", (float*)&m_spotLight->angle, 0.0f, glm::radians(180.0f), "%f rad");
         ImGui::NewLine();
 
         ImGui::End();

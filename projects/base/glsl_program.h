@@ -64,13 +64,13 @@ public:
     void setUniformBlockBinding(const std::string& name, uint32_t binding) const;
 
 private:
-    GLuint _handle = 0;
+    GLuint m_handle = 0;
 
-    std::vector<GLuint> _vertexShaders;
+    std::vector<GLuint> m_vertexShaders;
 
-    std::vector<GLuint> _geometryShaders;
+    std::vector<GLuint> m_geometryShaders;
 
-    std::vector<GLuint> _fragmentShaders;
+    std::vector<GLuint> m_fragmentShaders;
 
     static std::string readFile(const std::string& filePath);
 

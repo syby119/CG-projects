@@ -3,13 +3,13 @@
 
 HelloTriangle::HelloTriangle(const Options& options) : Application(options) {
     // create a vertex array object
-    glGenVertexArrays(1, &_vao);
+    glGenVertexArrays(1, &m_vao);
     // create a vertex buffer object
-    glGenBuffers(1, &_vbo);
+    glGenBuffers(1, &m_vbo);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(_vertices), _vertices, GL_STATIC_DRAW);
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_STATIC_DRAW);
 
     // specify layout, size of a vertex, data type, normalize, sizeof vertex array, offset of the
     // attribute
@@ -40,28 +40,28 @@ HelloTriangle::HelloTriangle(const Options& options) : Application(options) {
         "    outColor = vec4(color, 1.0f);\n"
         "}\n";
 
-    _shader.reset(new GLSLProgram());
-    _shader->attachVertexShader(vsCode);
-    _shader->attachFragmentShader(fsCode);
+    m_shader.reset(new GLSLProgram());
+    m_shader->attachVertexShader(vsCode);
+    m_shader->attachFragmentShader(fsCode);
 
-    _shader->link();
+    m_shader->link();
 }
 
 HelloTriangle::~HelloTriangle() {
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (m_vbo != 0) {
+        glDeleteBuffers(1, &m_vbo);
+        m_vbo = 0;
     }
 
-    if (_vao != 0) {
-        glDeleteVertexArrays(1, &_vao);
-        _vao = 0;
+    if (m_vao != 0) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
     }
 }
 
 void HelloTriangle::handleInput() {
-    if (_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
-        glfwSetWindowShouldClose(_window, true);
+    if (m_input.keyboard.keyStates[GLFW_KEY_ESCAPE] != GLFW_RELEASE) {
+        glfwSetWindowShouldClose(m_window, true);
         return;
     }
 }
@@ -69,10 +69,10 @@ void HelloTriangle::handleInput() {
 void HelloTriangle::renderFrame() {
     showFpsInWindowTitle();
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    _shader->use();
-    glBindVertexArray(_vao);
+    m_shader->use();
+    glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }

@@ -30,35 +30,35 @@ public:
     ~Transparency();
 
 private:
-    enum RenderMode _renderMode = RenderMode::AlphaTesting;
+    enum RenderMode m_renderMode = RenderMode::AlphaTesting;
 
-    std::unique_ptr<Model> _knot;
+    std::unique_ptr<Model> m_knot;
 
-    std::unique_ptr<TransparentMaterial> _knotMaterial;
+    std::unique_ptr<TransparentMaterial> m_knotMaterial;
 
-    std::unique_ptr<Texture2D> _transparentTexture;
+    std::unique_ptr<Texture2D> m_transparentTexture;
 
-    std::unique_ptr<DirectionalLight> _light;
-    std::unique_ptr<PerspectiveCamera> _camera;
+    std::unique_ptr<DirectionalLight> m_light;
+    std::unique_ptr<PerspectiveCamera> m_camera;
 
-    std::unique_ptr<GLSLProgram> _alphaTestingShader;
-    std::unique_ptr<GLSLProgram> _alphaBlendingShader;
+    std::unique_ptr<GLSLProgram> m_alphaTestingShader;
+    std::unique_ptr<GLSLProgram> m_alphaBlendingShader;
 
     // depth peeling resources
-    std::unique_ptr<FullscreenQuad> _fullscreenQuad;
+    std::unique_ptr<FullscreenQuad> m_fullscreenQuad;
 
-    std::unique_ptr<Framebuffer> _colorBlendFbo;
-    std::unique_ptr<Texture2D> _colorBlendTexture;
-    std::unique_ptr<Framebuffer> _fbos[2];
-    std::unique_ptr<Texture2D> _colorTextures[2];
-    std::unique_ptr<Texture2D> _depthTextures[2];
+    std::unique_ptr<Framebuffer> m_colorBlendFbo;
+    std::unique_ptr<Texture2D> m_colorBlendTexture;
+    std::unique_ptr<Framebuffer> m_fbos[2];
+    std::unique_ptr<Texture2D> m_colorTextures[2];
+    std::unique_ptr<Texture2D> m_depthTextures[2];
 
-    std::unique_ptr<GLSLProgram> _depthPeelingInitShader;
-    std::unique_ptr<GLSLProgram> _depthPeelingShader;
-    std::unique_ptr<GLSLProgram> _depthPeelingBlendShader;
-    std::unique_ptr<GLSLProgram> _depthPeelingFinalShader;
+    std::unique_ptr<GLSLProgram> m_depthPeelingInitShader;
+    std::unique_ptr<GLSLProgram> m_depthPeelingShader;
+    std::unique_ptr<GLSLProgram> m_depthPeelingBlendShader;
+    std::unique_ptr<GLSLProgram> m_depthPeelingFinalShader;
 
-    GLuint _queryId = 0;
+    GLuint m_queryId = 0;
 
     void initShaders();
 

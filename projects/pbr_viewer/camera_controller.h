@@ -24,41 +24,41 @@ public:
     ~CameraController() = default;
 
 private:
-    PerspectiveCamera& _camera;
-    bool _enabled = true;
+    PerspectiveCamera& m_camera;
+    bool m_enabled = true;
 
-    int _screenLeft = 0;
-    int _screenTop = 0;
-    int _screenWidth = 0;
-    int _screenHeight = 0;
+    int m_screenLeft = 0;
+    int m_screenTop = 0;
+    int m_screenWidth = 0;
+    int m_screenHeight = 0;
 
-    float _rotateSpeed = 1.0f;
-    float _zoomSpeed = 1.2f;
-    float _panSpeed = 0.3f;
+    float m_rotateSpeed = 1.0f;
+    float m_zoomSpeed = 1.2f;
+    float m_panSpeed = 0.3f;
 
-    bool _staticMoving = false;
-    float _dynamicDampingFactor = 0.2f;
+    bool m_staticMoving = false;
+    float m_dynamicDampingFactor = 0.2f;
 
-    float _minDistance = 0.0f;
-    float _maxDistance = std::numeric_limits<float>::infinity();
+    float m_minDistance = 0.0f;
+    float m_maxDistance = std::numeric_limits<float>::infinity();
 
-    glm::vec3 _target = glm::vec3(0.0f);
-    glm::vec3 lastPosition = glm::vec3(0.0f);
-    float _lastZoom = 1.0f;
-    float _lastAngle = 0.0f;
+    glm::vec3 m_target = glm::vec3(0.0f);
+    glm::vec3 m_lastPosition = glm::vec3(0.0f);
+    float m_lastZoom = 1.0f;
+    float m_lastAngle = 0.0f;
 
-    STATE _state = STATE::NONE;
+    STATE m_state = STATE::NONE;
 
-    glm::vec3 _eye = glm::vec3(0.0f);
-    glm::vec2 _movePrev = glm::vec2(0.0f);
-    glm::vec2 _moveCurr = glm::vec2(0.0f);
-    glm::vec3 _lastAxis = glm::vec3(0.0f);
-    glm::vec2 _zoomStart = glm::vec2(1.0f);
-    glm::vec2 _zoomEnd = glm::vec2(1.0f);
-    glm::vec2 _panStart = glm::vec2(0.0f);
-    glm::vec2 _panEnd = glm::vec2(0.0f);
+    glm::vec3 m_eye = glm::vec3(0.0f);
+    glm::vec2 m_movePrev = glm::vec2(0.0f);
+    glm::vec2 m_moveCurr = glm::vec2(0.0f);
+    glm::vec3 m_lastAxis = glm::vec3(0.0f);
+    glm::vec2 m_zoomStart = glm::vec2(1.0f);
+    glm::vec2 m_zoomEnd = glm::vec2(1.0f);
+    glm::vec2 m_panStart = glm::vec2(0.0f);
+    glm::vec2 m_panEnd = glm::vec2(0.0f);
 
-    static constexpr float EPS = 0.001f;
+    static constexpr float m_ePS = 0.001f;
 
 private:
     glm::vec2 getMouseOnScreen(float pageX, float pageY);

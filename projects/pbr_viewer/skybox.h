@@ -49,14 +49,14 @@ public:
     void draw() const;
 
 private:
-    GLuint _vao = 0;
-    GLuint _vbo = 0;
+    GLuint m_vao = 0;
+    GLuint m_vbo = 0;
 
     // we'll use the naive handle here to prevent coupling with TextureCubemap
     // in project 6, in which the students are asked to finish the class on their own.
-    GLuint _texture = 0;
+    GLuint m_texture = 0;
 
-    uint32_t _maxPrefilteredMipLevel = 0;
+    uint32_t m_maxPrefilteredMipLevel = 0;
 
     void createVertexResources();
 

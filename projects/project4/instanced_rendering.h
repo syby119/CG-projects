@@ -19,26 +19,26 @@ public:
     ~InstancedRendering();
 
 private:
-    const float _cameraMoveSpeed = 10.0f;
-    const float _cameraRotateSpeed = 0.05f;
+    const float m_cameraMoveSpeed = 10.0f;
+    const float m_cameraRotateSpeed = 0.05f;
 
-    std::unique_ptr<PerspectiveCamera> _camera;
+    std::unique_ptr<PerspectiveCamera> m_camera;
 
-    std::unique_ptr<Model> _planet;
-    std::unique_ptr<Model> _asternoid;
+    std::unique_ptr<Model> m_planet;
+    std::unique_ptr<Model> m_asternoid;
 
-    std::unique_ptr<GLSLProgram> _planetShader;
-    std::unique_ptr<GLSLProgram> _asternoidShader;
-    std::unique_ptr<GLSLProgram> _asternoidInstancedShader;
+    std::unique_ptr<GLSLProgram> m_planetShader;
+    std::unique_ptr<GLSLProgram> m_asternoidShader;
+    std::unique_ptr<GLSLProgram> m_asternoidInstancedShader;
 
-    GLuint _instanceBuffer = {};
+    GLuint m_instanceBuffer = {};
 
-    int _amount = 50000;
-    std::vector<glm::mat4> _modelMatrices;
+    int m_amount = 50000;
+    std::vector<glm::mat4> m_modelMatrices;
 
-    enum RenderMode _renderMode = RenderMode::Ordinary;
+    enum RenderMode m_renderMode = RenderMode::Ordinary;
 
-    bool _wireframe = false;
+    bool m_wireframe = false;
 
     void initShaders();
 
